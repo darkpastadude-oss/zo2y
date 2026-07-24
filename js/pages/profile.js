@@ -6994,58 +6994,34 @@
             }
 
             function resetDetailPanels() {
-                const desktopPairs = [
-                    ['movies-tab', 'movie-detail-view'],
-                    ['tv-tab', 'tv-detail-view'],
-                    ['anime-tab', 'anime-detail-view'],
-                    ['games-tab', 'game-detail-view'],
-                    ['books-tab', 'book-detail-view'],
-                    ['music-tab', 'music-detail-view'],
-                    ['sports-tab', ''],
-                    ['travel-tab', 'travel-detail-view'],
-                    ['fashion-tab', 'fashion-detail-view'],
-                    ['food-tab', 'food-detail-view'],
-                    ['cars-tab', 'cars-detail-view']
+                // Desktop: hide all detail views, sports-tab, and list-detail-view
+                const desktopIds = [
+                    'movie-detail-view', 'tv-detail-view', 'anime-detail-view',
+                    'game-detail-view', 'book-detail-view', 'music-detail-view',
+                    'travel-detail-view', 'fashion-detail-view', 'cars-detail-view',
+                    'food-detail-view', 'sports-tab', 'list-detail-view'
                 ];
-                desktopPairs.forEach(([mainId, detailId]) => {
-                    const main = document.getElementById(mainId);
-                    const detail = detailId ? document.getElementById(detailId) : null;
-                    if (main) main.style.display = '';
-                    if (detail) {
-                        detail.style.display = 'none';
-                        detail.classList.remove('active');
+                desktopIds.forEach(function(id) {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.style.display = 'none';
+                        el.classList.remove('active', 'rendered');
                     }
                 });
 
-                const mobileConfigs = [
-                    { main: 'mobileMoviesSection', detail: 'mobileMovieDetailSection', grid: 'mobileMoviesGrid' },
-                    { main: 'mobileTvSection', detail: 'mobileTvDetailSection', grid: 'mobileTvGrid' },
-                    { main: 'mobileAnimeSection', detail: 'mobileAnimeDetailSection', grid: 'mobileAnimeGrid' },
-                    { main: 'mobileGamesSection', detail: 'mobileGameDetailSection', grid: 'mobileGamesGrid' },
-                    { main: 'mobileBooksSection', detail: 'mobileBookDetailSection', grid: 'mobileBooksGrid' },
-                    { main: 'mobileMusicSection', detail: 'mobileMusicDetailSection', grid: 'mobileMusicGrid' },
-                    { main: 'mobileSportsSection', detail: '', grid: 'mobileSportsGrid' },
-                    { main: 'mobileTravelSection', detail: 'mobileTravelDetailSection', grid: 'mobileTravelGrid' },
-                    { main: 'mobileFashionSection', detail: 'mobileFashionDetailSection', grid: 'mobileFashionGrid' },
-                    { main: 'mobileFoodSection', detail: 'mobileFoodDetailSection', grid: 'mobileFoodGrid' },
-                    { main: 'mobileCarsSection', detail: 'mobileCarsDetailSection', grid: 'mobileCarsGrid' }
+                // Mobile: hide all mobile detail sections, sports section, and list section
+                const mobileIds = [
+                    'mobileMovieDetailSection', 'mobileTvDetailSection', 'mobileAnimeDetailSection',
+                    'mobileGameDetailSection', 'mobileBookDetailSection', 'mobileMusicDetailSection',
+                    'mobileTravelDetailSection', 'mobileFashionDetailSection', 'mobileCarsDetailSection',
+                    'mobileFoodDetailSection', 'mobileSportsSection', 'mobileListDetailSection'
                 ];
-                mobileConfigs.forEach((cfg) => {
-                    const mainSection = document.getElementById(cfg.main);
-                    const detailSection = document.getElementById(cfg.detail);
-                    const grid = document.getElementById(cfg.grid);
-                    if (detailSection) {
-                        detailSection.style.display = 'none';
-                        detailSection.classList.remove('active');
+                mobileIds.forEach(function(id) {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.style.display = 'none';
+                        el.classList.remove('active', 'rendered');
                     }
-                    if (mainSection) {
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        if (titleEl) titleEl.style.display = '';
-                        if (subtitleEl) subtitleEl.style.display = '';
-                        mainSection.style.display = '';
-                    }
-                    if (grid) grid.style.display = '';
                 });
             }
 
@@ -7307,10 +7283,7 @@ const alreadyActive = isMobile
                     });
                     closeProfileTabGroups();
 
-                    const activeSection =
-                        document.getElementById(`mobile${safeTab.charAt(0).toUpperCase() + safeTab.slice(1)}Section`) ||
-                        document.getElementById(`mobile${DEFAULT_PROFILE_TAB.charAt(0).toUpperCase() + DEFAULT_PROFILE_TAB.slice(1)}Section`) ||
-                        document.getElementById('mobileMoviesSection');
+                    const activeSection = document.getElementById(`mobile${safeTab.charAt(0).toUpperCase() + safeTab.slice(1)}Section`);
                     if (activeSection) {
                         activeSection.style.display = 'block';
                         activeSection.classList.add('active');
@@ -7354,10 +7327,7 @@ const alreadyActive = isMobile
                         tab.classList.remove('active', 'rendered');
                     });
 
-                    const tabElement =
-                        document.getElementById(`${safeTab}-tab`) ||
-                        document.getElementById(`${DEFAULT_PROFILE_TAB}-tab`) ||
-                        document.getElementById('movies-tab');
+                    const tabElement = document.getElementById(`${safeTab}-tab`);
                     if (tabElement) {
                         tabElement.classList.add('active');
                         tabElement.classList.remove('rendered');

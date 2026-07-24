@@ -386,41 +386,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             </div>
 
             <section class="profile-primary-panel" data-panel="lists" style="display:none">
-            <!-- Navigation Tabs -->
-            <div id="lists-tab">
-            <!-- Movies Tab Content -->
-            <div class="tab-content" id="movies-tab">
-                <div class="section">
-                    <div class="section-header">
-                        <div>
-                            <button class="btn btn-secondary btn-sm mb-sm" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8);" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i> Back</button>
-                            <h2 class="section-title" id="moviesTitle">My Movies</h2>
-                            <p class="section-subtitle" id="moviesSubtitle">Organize your favorite films</p>
-                        </div>
-                        <div class="section-actions">
-                            <button class="btn btn-primary btn-sm" id="createMovieListBtn" onclick="ProfileManager.createMovieList()">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='movies.html'">
-                                <i class="fas fa-film"></i> Browse Movies
-                            </button>
-                        </div>
-                    </div>
-                    <div class="collection-grid" id="moviesGrid">
-                        <div class="empty-state">
-                            <div class="empty-icon"><i class="fas fa-list"></i></div>
-                            <h3 class="empty-title">No Movies Yet</h3>
-                            <p class="empty-description">Save movies to see them here.</p>
-                            <button class="btn btn-primary mt-md" onclick="window.location.href='movies.html'">
-                                <i class="fas fa-film"></i> Explore Movies
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Movie Detail View -->
-            <div class="tab-content" id="movie-detail-view">
+            <div class="tab-content" id="movie-detail-view" style="display:none">
                 <div class="section">
                     <div class="collection-detail-header-v2">
                         <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('movie')" title="Back to Collections" aria-label="Back">
@@ -438,40 +405,26 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                             </p>
                         </div>
                     </div>
-
-                    <!-- TV Shows Tab Content -->
-            <div class="tab-content" id="tv-tab">
-                <div class="section">
-                    <div class="section-header">
-                        <div>
-                            <button class="btn btn-secondary btn-sm mb-sm" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8);" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i> Back</button>
-                            <h2 class="section-title" id="tvTitle">My TV Shows</h2>
-                            <p class="section-subtitle" id="tvSubtitle">Organize your favorite series</p>
-                        </div>
-                        <div class="section-actions">
-                            <button class="btn btn-primary btn-sm" id="createTvListBtn" onclick="ProfileManager.createTvList()">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='tvshows.html'">
-                                <i class="fas fa-tv"></i> Browse TV Shows
-                            </button>
+                    <div class="collection-sticky-toolbar">
+                        <div class="collection-toolbar-inner">
+                            <div class="collection-toolbar-controls">
+                                <div class="collection-detail-actions hidden" id="movieDetailActions">
+                                    <button class="btn-action-icon" id="movieListEditBtn" title="Edit Collection">
+                                        <i class="fas fa-pen"></i>
+                                    </button>
+                                    <button class="btn-action-icon btn-action-danger" id="movieListDeleteBtn" title="Delete Collection">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="collection-grid" id="tvGrid">
-                        <div class="empty-state">
-                            <div class="empty-icon"><i class="fas fa-list"></i></div>
-                            <h3 class="empty-title">No TV Shows Yet</h3>
-                            <p class="empty-description">Save TV shows to see them here.</p>
-                            <button class="btn btn-primary mt-md" onclick="window.location.href='tvshows.html'">
-                                <i class="fas fa-tv"></i> Explore TV Shows
-                            </button>
-                        </div>
-                    </div>
+                    <div id="movieItemsContainer"></div>
                 </div>
             </div>
 
-            <!-- TV Show Detail View -->
-            <div class="tab-content" id="tv-detail-view">
+            <!-- TV Detail View -->
+            <div class="tab-content" id="tv-detail-view" style="display:none">
                 <div class="section">
                     <div class="collection-detail-header-v2">
                         <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('tv')" title="Back to Collections" aria-label="Back">
@@ -489,14 +442,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                             </p>
                         </div>
                     </div>
-
                     <div class="collection-sticky-toolbar">
                         <div class="collection-toolbar-inner">
                             <div class="collection-search-wrap">
                                 <i class="fas fa-search collection-search-icon"></i>
                                 <input type="text" class="collection-search-input" id="tvSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('tv', this.value)">
                             </div>
-
                             <div class="collection-toolbar-controls">
                                 <div class="collection-sort-wrap">
                                     <select class="collection-sort-select" id="tvSortSelect" onchange="ProfileManager.sortCollectionItems('tv', this.value)">
@@ -508,7 +459,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                         <option value="title">Title</option>
                                     </select>
                                 </div>
-
                                 <div class="collection-view-toggle" data-media="tv">
                                     <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('tv', 'grid')" title="Grid View">
                                         <i class="fas fa-th-large"></i>
@@ -517,7 +467,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                         <i class="fas fa-list"></i>
                                     </button>
                                 </div>
-
                                 <div class="collection-detail-actions hidden" id="tvDetailActions">
                                     <button class="btn-action-icon" id="tvListEditBtn" title="Edit Collection">
                                         <i class="fas fa-pen"></i>
@@ -529,44 +478,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                             </div>
                         </div>
                     </div>
-
                     <div id="tvItemsContainer"></div>
                 </div>
             </div>
 
-            <!-- Anime Tab Content -->
-            <div class="tab-content" id="anime-tab">
-                <div class="section">
-                    <div class="section-header">
-                        <div>
-                            <button class="btn btn-secondary btn-sm mb-sm" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8);" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i> Back</button>
-                            <h2 class="section-title" id="animeTitle">My Anime</h2>
-                            <p class="section-subtitle" id="animeSubtitle">Organize your favorite anime</p>
-                        </div>
-                        <div class="section-actions">
-                            <button class="btn btn-primary btn-sm" id="createAnimeListBtn" onclick="ProfileManager.createAnimeList()">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='animes.html'">
-                                <i class="fas fa-dragon"></i> Browse Anime
-                            </button>
-                        </div>
-                    </div>
-                    <div class="collection-grid" id="animeGrid">
-                        <div class="empty-state">
-                            <div class="empty-icon"><i class="fas fa-list"></i></div>
-                            <h3 class="empty-title">No Anime Yet</h3>
-                            <p class="empty-description">Save anime to see it here.</p>
-                            <button class="btn btn-primary mt-md" onclick="window.location.href='animes.html'">
-                                <i class="fas fa-dragon"></i> Explore Anime
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Anime Detail View -->
-            <div class="tab-content" id="anime-detail-view">
+            <div class="tab-content" id="anime-detail-view" style="display:none">
                 <div class="section">
                     <div class="collection-detail-header-v2">
                         <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('anime')" title="Back to Collections" aria-label="Back">
@@ -580,18 +497,16 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                             <p class="collection-subheading">
                                 <span id="animeDetailDescription">Anime you love</span>
                                 <span class="dot-sep">•</span>
-                                <span class="collection-count-text" id="animeDetailCount">0 items</span>
+                                <span class="collection-count-text" id="animeDetailCount">0 anime</span>
                             </p>
                         </div>
                     </div>
-
                     <div class="collection-sticky-toolbar">
                         <div class="collection-toolbar-inner">
                             <div class="collection-search-wrap">
                                 <i class="fas fa-search collection-search-icon"></i>
                                 <input type="text" class="collection-search-input" id="animeSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('anime', this.value)">
                             </div>
-
                             <div class="collection-toolbar-controls">
                                 <div class="collection-sort-wrap">
                                     <select class="collection-sort-select" id="animeSortSelect" onchange="ProfileManager.sortCollectionItems('anime', this.value)">
@@ -603,7 +518,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                         <option value="title">Title</option>
                                     </select>
                                 </div>
-
                                 <div class="collection-view-toggle" data-media="anime">
                                     <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('anime', 'grid')" title="Grid View">
                                         <i class="fas fa-th-large"></i>
@@ -612,7 +526,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                         <i class="fas fa-list"></i>
                                     </button>
                                 </div>
-
                                 <div class="collection-detail-actions hidden" id="animeDetailActions">
                                     <button class="btn-action-icon" id="animeListEditBtn" title="Edit Collection">
                                         <i class="fas fa-pen"></i>
@@ -624,44 +537,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                             </div>
                         </div>
                     </div>
-
                     <div id="animeItemsContainer"></div>
                 </div>
             </div>
 
-            <!-- Games Tab Content -->
-            <div class="tab-content" id="games-tab">
-                <div class="section">
-                    <div class="section-header">
-                        <div>
-                            <button class="btn btn-secondary btn-sm mb-sm" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8);" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i> Back</button>
-                            <h2 class="section-title" id="gamesTitle">My Games</h2>
-                            <p class="section-subtitle" id="gamesSubtitle">Organize your favorite games</p>
-                        </div>
-                        <div class="section-actions">
-                            <button class="btn btn-primary btn-sm" id="createGameListBtn" onclick="ProfileManager.createGameList()">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='games.html'">
-                                <i class="fas fa-gamepad"></i> Browse Games
-                            </button>
-                        </div>
-                    </div>
-                    <div class="collection-grid" id="gamesGrid">
-                        <div class="empty-state">
-                            <div class="empty-icon"><i class="fas fa-list"></i></div>
-                            <h3 class="empty-title">No Games Yet</h3>
-                            <p class="empty-description">Save games to see them here.</p>
-                            <button class="btn btn-primary mt-md" onclick="window.location.href='games.html'">
-                                <i class="fas fa-gamepad"></i> Explore Games
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Games Detail View -->
-            <div class="tab-content" id="game-detail-view">
+            <!-- Game Detail View -->
+            <div class="tab-content" id="game-detail-view" style="display:none">
                 <div class="section">
                     <div class="collection-detail-header-v2">
                         <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('game')" title="Back to Collections" aria-label="Back">
@@ -675,18 +556,16 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                             <p class="collection-subheading">
                                 <span id="gameDetailDescription">Games you love</span>
                                 <span class="dot-sep">•</span>
-                                <span class="collection-count-text" id="gameDetailCount">0 items</span>
+                                <span class="collection-count-text" id="gameDetailCount">0 games</span>
                             </p>
                         </div>
                     </div>
-
                     <div class="collection-sticky-toolbar">
                         <div class="collection-toolbar-inner">
                             <div class="collection-search-wrap">
                                 <i class="fas fa-search collection-search-icon"></i>
                                 <input type="text" class="collection-search-input" id="gameSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('game', this.value)">
                             </div>
-
                             <div class="collection-toolbar-controls">
                                 <div class="collection-sort-wrap">
                                     <select class="collection-sort-select" id="gameSortSelect" onchange="ProfileManager.sortCollectionItems('game', this.value)">
@@ -698,7 +577,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                         <option value="title">Title</option>
                                     </select>
                                 </div>
-
                                 <div class="collection-view-toggle" data-media="game">
                                     <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('game', 'grid')" title="Grid View">
                                         <i class="fas fa-th-large"></i>
@@ -707,7 +585,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                         <i class="fas fa-list"></i>
                                     </button>
                                 </div>
-
                                 <div class="collection-detail-actions hidden" id="gameDetailActions">
                                     <button class="btn-action-icon" id="gameListEditBtn" title="Edit Collection">
                                         <i class="fas fa-pen"></i>
@@ -719,44 +596,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                             </div>
                         </div>
                     </div>
-
                     <div id="gameItemsContainer"></div>
                 </div>
             </div>
 
-            <!-- Books Tab Content -->
-            <div class="tab-content" id="books-tab">
-                <div class="section">
-                    <div class="section-header">
-                        <div>
-                            <button class="btn btn-secondary btn-sm mb-sm" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8);" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i> Back</button>
-                            <h2 class="section-title" id="booksTitle">My Books</h2>
-                            <p class="section-subtitle" id="booksSubtitle">Organize your favorite books</p>
-                        </div>
-                        <div class="section-actions">
-                            <button class="btn btn-primary btn-sm" id="createBookListBtn" onclick="ProfileManager.createBookList()">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='books.html'">
-                                <i class="fas fa-book"></i> Browse Books
-                            </button>
-                        </div>
-                    </div>
-                    <div class="collection-grid" id="booksGrid">
-                        <div class="empty-state">
-                            <div class="empty-icon"><i class="fas fa-list"></i></div>
-                            <h3 class="empty-title">No Books Yet</h3>
-                            <p class="empty-description">Save books to see them here.</p>
-                            <button class="btn btn-primary mt-md" onclick="window.location.href='books.html'">
-                                <i class="fas fa-book"></i> Explore Books
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Book Detail View -->
-            <div class="tab-content" id="book-detail-view">
+            <div class="tab-content" id="book-detail-view" style="display:none">
                 <div class="section">
                     <div class="collection-detail-header-v2">
                         <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('book')" title="Back to Collections" aria-label="Back">
@@ -770,18 +615,16 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                             <p class="collection-subheading">
                                 <span id="bookDetailDescription">Books you love</span>
                                 <span class="dot-sep">•</span>
-                                <span class="collection-count-text" id="bookDetailCount">0 items</span>
+                                <span class="collection-count-text" id="bookDetailCount">0 books</span>
                             </p>
                         </div>
                     </div>
-
                     <div class="collection-sticky-toolbar">
                         <div class="collection-toolbar-inner">
                             <div class="collection-search-wrap">
                                 <i class="fas fa-search collection-search-icon"></i>
                                 <input type="text" class="collection-search-input" id="bookSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('book', this.value)">
                             </div>
-
                             <div class="collection-toolbar-controls">
                                 <div class="collection-sort-wrap">
                                     <select class="collection-sort-select" id="bookSortSelect" onchange="ProfileManager.sortCollectionItems('book', this.value)">
@@ -793,7 +636,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                         <option value="title">Title</option>
                                     </select>
                                 </div>
-
                                 <div class="collection-view-toggle" data-media="book">
                                     <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('book', 'grid')" title="Grid View">
                                         <i class="fas fa-th-large"></i>
@@ -802,7 +644,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                         <i class="fas fa-list"></i>
                                     </button>
                                 </div>
-
                                 <div class="collection-detail-actions hidden" id="bookDetailActions">
                                     <button class="btn-action-icon" id="bookListEditBtn" title="Edit Collection">
                                         <i class="fas fa-pen"></i>
@@ -814,43 +655,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                             </div>
                         </div>
                     </div>
-
                     <div id="bookItemsContainer"></div>
-                </div>
-            </div>
-            <!-- Music Tab Content -->
-            <div class="tab-content" id="music-tab">
-                <div class="section">
-                    <div class="section-header">
-                        <div>
-                            <button class="btn btn-secondary btn-sm mb-sm" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8);" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i> Back</button>
-                            <h2 class="section-title" id="musicTitle">My Music</h2>
-                            <p class="section-subtitle" id="musicSubtitle">Organize your favorite tracks</p>
-                        </div>
-                        <div class="section-actions">
-                            <button class="btn btn-primary btn-sm" id="createMusicListBtn" onclick="ProfileManager.createMusicList()">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='music.html'">
-                                <i class="fas fa-music"></i> Browse Music
-                            </button>
-                        </div>
-                    </div>
-                    <div class="collection-grid" id="musicGrid">
-                        <div class="empty-state">
-                            <div class="empty-icon"><i class="fas fa-list"></i></div>
-                            <h3 class="empty-title">No Music Yet</h3>
-                            <p class="empty-description">Save tracks to see them here.</p>
-                            <button class="btn btn-primary mt-md" onclick="window.location.href='music.html'">
-                                <i class="fas fa-music"></i> Explore Music
-                            </button>
-                        </div>
-                    </div>
                 </div>
             </div>
 
             <!-- Music Detail View -->
-            <div class="tab-content" id="music-detail-view">
+            <div class="tab-content" id="music-detail-view" style="display:none">
                 <div class="section">
                     <div class="collection-detail-header-v2">
                         <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('music')" title="Back to Collections" aria-label="Back">
@@ -862,20 +672,18 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                 <span id="musicDetailName">Favorites</span>
                             </h1>
                             <p class="collection-subheading">
-                                <span id="musicDetailDescription">Music you love</span>
+                                <span id="musicDetailDescription">Tracks you love</span>
                                 <span class="dot-sep">•</span>
-                                <span class="collection-count-text" id="musicDetailCount">0 items</span>
+                                <span class="collection-count-text" id="musicDetailCount">0 tracks</span>
                             </p>
                         </div>
                     </div>
-
                     <div class="collection-sticky-toolbar">
                         <div class="collection-toolbar-inner">
                             <div class="collection-search-wrap">
                                 <i class="fas fa-search collection-search-icon"></i>
                                 <input type="text" class="collection-search-input" id="musicSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('music', this.value)">
                             </div>
-
                             <div class="collection-toolbar-controls">
                                 <div class="collection-sort-wrap">
                                     <select class="collection-sort-select" id="musicSortSelect" onchange="ProfileManager.sortCollectionItems('music', this.value)">
@@ -887,7 +695,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                         <option value="title">Title</option>
                                     </select>
                                 </div>
-
                                 <div class="collection-view-toggle" data-media="music">
                                     <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('music', 'grid')" title="Grid View">
                                         <i class="fas fa-th-large"></i>
@@ -896,7 +703,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                         <i class="fas fa-list"></i>
                                     </button>
                                 </div>
-
                                 <div class="collection-detail-actions hidden" id="musicDetailActions">
                                     <button class="btn-action-icon" id="musicListEditBtn" title="Edit Collection">
                                         <i class="fas fa-pen"></i>
@@ -908,72 +714,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                             </div>
                         </div>
                     </div>
-
                     <div id="musicItemsContainer"></div>
                 </div>
             </div>
 
-            <!-- Sports Tab Content -->
-            <div class="tab-content" id="sports-tab">
-                <div class="section">
-                    <div class="section-header">
-                        <div>
-                            <button class="btn btn-secondary btn-sm mb-sm" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8);" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i> Back</button>
-                            <h2 class="section-title" id="sportsTitle">Favorite Teams</h2>
-                            <p class="section-subtitle" id="sportsSubtitle">Teams you follow across leagues</p>
-                        </div>
-                        <div class="section-actions">
-                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='sports.html'">
-                                <i class="fas fa-futbol"></i> Browse Sports
-                            </button>
-                        </div>
-                    </div>
-                    <div class="collection-grid" id="sportsGrid">
-                        <div class="empty-state">
-                            <div class="empty-icon"><i class="fas fa-futbol"></i></div>
-                            <h3 class="empty-title">No Teams Yet</h3>
-                            <p class="empty-description">Save teams to see them here.</p>
-                            <button class="btn btn-primary mt-md" onclick="window.location.href='sports.html'">
-                                <i class="fas fa-futbol"></i> Explore Sports
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Travel Tab Content -->
-            <div class="tab-content" id="travel-tab">
-                <div class="section">
-                    <div class="section-header">
-                        <div>
-                            <button class="btn btn-secondary btn-sm mb-sm" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8);" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i> Back</button>
-                            <h2 class="section-title" id="travelTitle">My Travel</h2>
-                            <p class="section-subtitle" id="travelSubtitle">Organize countries you want to explore</p>
-                        </div>
-                        <div class="section-actions">
-                            <button class="btn btn-primary btn-sm" id="createTravelListBtn" onclick="ProfileManager.createTravelList()">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='travel.html'">
-                                <i class="fas fa-earth-americas"></i> Browse Travel
-                            </button>
-                        </div>
-                    </div>
-                    <div class="collection-grid" id="travelGrid">
-                        <div class="empty-state">
-                            <div class="empty-icon"><i class="fas fa-list"></i></div>
-                            <h3 class="empty-title">No Travel Lists Yet</h3>
-                            <p class="empty-description">Save countries to see them here.</p>
-                            <button class="btn btn-primary mt-md" onclick="window.location.href='travel.html'">
-                                <i class="fas fa-earth-americas"></i> Explore Travel
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Travel Detail View -->
-            <div class="tab-content" id="travel-detail-view">
+            <div class="tab-content" id="travel-detail-view" style="display:none">
                 <div class="section">
                     <div class="collection-detail-header">
                         <div class="collection-detail-back">
@@ -1005,39 +751,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 </div>
             </div>
 
-            <!-- Fashion Tab Content -->
-            <div class="tab-content" id="fashion-tab">
-                <div class="section">
-                    <div class="section-header">
-                        <div>
-                            <button class="btn btn-secondary btn-sm mb-sm" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8);" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i> Back</button>
-                            <h2 class="section-title" id="fashionTitle">My Fashion</h2>
-                            <p class="section-subtitle" id="fashionSubtitle">Organize brands you wear, love, or want to try</p>
-                        </div>
-                        <div class="section-actions">
-                            <button class="btn btn-primary btn-sm" id="createFashionListBtn" onclick="ProfileManager.createFashionList()">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='fashion.html'">
-                                <i class="fas fa-shirt"></i> Browse Fashion
-                            </button>
-                        </div>
-                    </div>
-                    <div class="collection-grid" id="fashionGrid">
-                        <div class="empty-state">
-                            <div class="empty-icon"><i class="fas fa-list"></i></div>
-                            <h3 class="empty-title">No Fashion Lists Yet</h3>
-                            <p class="empty-description">Save brands to see them here.</p>
-                            <button class="btn btn-primary mt-md" onclick="window.location.href='fashion.html'">
-                                <i class="fas fa-shirt"></i> Explore Fashion
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Fashion Detail View -->
-            <div class="tab-content" id="fashion-detail-view">
+            <div class="tab-content" id="fashion-detail-view" style="display:none">
                 <div class="section">
                     <div class="collection-detail-header-v2">
                         <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('fashion')" title="Back to Collections" aria-label="Back">
@@ -1055,40 +770,48 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                             </p>
                         </div>
                     </div>
-
-                    <!-- Cars Tab Content -->
-            <div class="tab-content" id="cars-tab">
-                <div class="section">
-                    <div class="section-header">
-                        <div>
-                            <button class="btn btn-secondary btn-sm mb-sm" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8);" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i> Back</button>
-                            <h2 class="section-title" id="carsTitle">My Cars</h2>
-                            <p class="section-subtitle" id="carsSubtitle">Organize car brands you love or want to try</p>
-                        </div>
-                        <div class="section-actions">
-                            <button class="btn btn-primary btn-sm" id="createCarsListBtn" onclick="ProfileManager.createCarList()">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='cars.html'">
-                                <i class="fas fa-car"></i> Browse Cars
-                            </button>
+                    <div class="collection-sticky-toolbar">
+                        <div class="collection-toolbar-inner">
+                            <div class="collection-search-wrap">
+                                <i class="fas fa-search collection-search-icon"></i>
+                                <input type="text" class="collection-search-input" id="fashionSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('fashion', this.value)">
+                            </div>
+                            <div class="collection-toolbar-controls">
+                                <div class="collection-sort-wrap">
+                                    <select class="collection-sort-select" id="fashionSortSelect" onchange="ProfileManager.sortCollectionItems('fashion', this.value)">
+                                        <option value="recent">Recently Added</option>
+                                        <option value="oldest">Oldest Added</option>
+                                        <option value="alpha">Alphabetical</option>
+                                        <option value="release">Release Date</option>
+                                        <option value="rating">Rating</option>
+                                        <option value="title">Title</option>
+                                    </select>
+                                </div>
+                                <div class="collection-view-toggle" data-media="fashion">
+                                    <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('fashion', 'grid')" title="Grid View">
+                                        <i class="fas fa-th-large"></i>
+                                    </button>
+                                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('fashion', 'list')" title="List View">
+                                        <i class="fas fa-list"></i>
+                                    </button>
+                                </div>
+                                <div class="collection-detail-actions hidden" id="fashionDetailActions">
+                                    <button class="btn-action-icon" id="fashionListEditBtn" title="Edit Collection">
+                                        <i class="fas fa-pen"></i>
+                                    </button>
+                                    <button class="btn-action-icon btn-action-danger" id="fashionListDeleteBtn" title="Delete Collection">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="collection-grid" id="carsGrid">
-                        <div class="empty-state">
-                            <div class="empty-icon"><i class="fas fa-list"></i></div>
-                            <h3 class="empty-title">No Car Lists Yet</h3>
-                            <p class="empty-description">Save brands to see them here.</p>
-                            <button class="btn btn-primary mt-md" onclick="window.location.href='cars.html'">
-                                <i class="fas fa-car"></i> Explore Cars
-                            </button>
-                        </div>
-                    </div>
+                    <div id="fashionItemsContainer"></div>
                 </div>
             </div>
 
             <!-- Cars Detail View -->
-            <div class="tab-content" id="cars-detail-view">
+            <div class="tab-content" id="cars-detail-view" style="display:none">
                 <div class="section">
                     <div class="collection-detail-header">
                         <div class="collection-detail-back">
@@ -1120,39 +843,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 </div>
             </div>
 
-            <!-- Food Tab Content -->
-            <div class="tab-content" id="food-tab">
-                <div class="section">
-                    <div class="section-header">
-                        <div>
-                            <button class="btn btn-secondary btn-sm mb-sm" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8);" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i> Back</button>
-                            <h2 class="section-title" id="foodTitle">My Food</h2>
-                            <p class="section-subtitle" id="foodSubtitle">Track fast food and chains you love</p>
-                        </div>
-                        <div class="section-actions">
-                            <button class="btn btn-primary btn-sm" id="createFoodListBtn" onclick="ProfileManager.createFoodList()">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='food.html'">
-                                <i class="fas fa-burger"></i> Browse Food
-                            </button>
-                        </div>
-                    </div>
-                    <div class="collection-grid" id="foodGrid">
-                        <div class="empty-state">
-                            <div class="empty-icon"><i class="fas fa-list"></i></div>
-                            <h3 class="empty-title">No Food Lists Yet</h3>
-                            <p class="empty-description">Save brands to see them here.</p>
-                            <button class="btn btn-primary mt-md" onclick="window.location.href='food.html'">
-                                <i class="fas fa-burger"></i> Explore Food
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Food Detail View -->
-            <div class="tab-content" id="food-detail-view">
+            <div class="tab-content" id="food-detail-view" style="display:none">
                 <div class="section">
                     <div class="collection-detail-header-v2">
                         <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('food')" title="Back to Collections" aria-label="Back">
@@ -1170,9 +862,76 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                             </p>
                         </div>
                     </div>
+                    <div class="collection-sticky-toolbar">
+                        <div class="collection-toolbar-inner">
+                            <div class="collection-search-wrap">
+                                <i class="fas fa-search collection-search-icon"></i>
+                                <input type="text" class="collection-search-input" id="foodSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('food', this.value)">
+                            </div>
+                            <div class="collection-toolbar-controls">
+                                <div class="collection-sort-wrap">
+                                    <select class="collection-sort-select" id="foodSortSelect" onchange="ProfileManager.sortCollectionItems('food', this.value)">
+                                        <option value="recent">Recently Added</option>
+                                        <option value="oldest">Oldest Added</option>
+                                        <option value="alpha">Alphabetical</option>
+                                        <option value="release">Release Date</option>
+                                        <option value="rating">Rating</option>
+                                        <option value="title">Title</option>
+                                    </select>
+                                </div>
+                                <div class="collection-view-toggle" data-media="food">
+                                    <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('food', 'grid')" title="Grid View">
+                                        <i class="fas fa-th-large"></i>
+                                    </button>
+                                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('food', 'list')" title="List View">
+                                        <i class="fas fa-list"></i>
+                                    </button>
+                                </div>
+                                <div class="collection-detail-actions hidden" id="foodDetailActions">
+                                    <button class="btn-action-icon" id="foodListEditBtn" title="Edit Collection">
+                                        <i class="fas fa-pen"></i>
+                                    </button>
+                                    <button class="btn-action-icon btn-action-danger" id="foodListDeleteBtn" title="Delete Collection">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="foodItemsContainer"></div>
+                </div>
+            </div>
 
-                    <!-- List Detail View -->
-            <div id="list-detail-view" style="display: none;">
+            <!-- Sports Tab -->
+            <div class="tab-content" id="sports-tab" style="display:none">
+                <div class="section">
+                    <div class="section-header">
+                        <div>
+                            <button class="btn btn-secondary btn-sm mb-sm" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8);" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i> Back</button>
+                            <h2 class="section-title" id="sportsTitle">Favorite Teams</h2>
+                            <p class="section-subtitle" id="sportsSubtitle">Teams you follow across leagues</p>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='sports.html'">
+                                <i class="fas fa-futbol"></i> Browse Sports
+                            </button>
+                        </div>
+                    </div>
+                    <div class="collection-grid" id="sportsGrid">
+                        <div class="empty-state">
+                            <div class="empty-icon"><i class="fas fa-futbol"></i></div>
+                            <h3 class="empty-title">No Teams Yet</h3>
+                            <p class="empty-description">Save teams to see them here.</p>
+                            <button class="btn btn-primary mt-md" onclick="window.location.href='sports.html'">
+                                <i class="fas fa-futbol"></i> Explore Sports
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- List Detail View -->
+            <div id="list-detail-view" style="display:none">
                 <div class="section">
                     <div class="collection-detail-header">
                         <div class="collection-detail-back">
@@ -1192,7 +951,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                 <i class="fas fa-plus"></i> Add Items
                             </button>
                         </div>
-                    </div>
                     </div>
                 </div>
             </div>
@@ -1507,34 +1265,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
             <!-- === LEGACY LISTS PANEL (detail drilldown, hidden by default) === -->
             <section class="mobile-primary-panel mph2-lists-panel" id="mobileListsPanel" data-panel="lists" style="display:none">
-            <!-- Movies Section -->
-            <div class="mobile-section active" id="mobileMoviesSection">
-                <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base mb-0 mr-sm" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i></button>
-                    <span id="mobileMoviesTitle">My Movies</span>
-                    <div class="d-flex gap-sm">
-                        <button class="mobile-action-btn btn-base mb-0" id="mobileCreateMovieListBtn" onclick="ProfileManager.createMovieList()">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="window.location.href='movies.html'">
-                            <i class="fas fa-film"></i> Browse
-                        </button>
-                    </div>
-                </div>
-                <div class="mobile-section-subtitle" id="mobileMoviesSubtitle">Organize your favorite films</div>
-                
-                <div class="collection-grid" id="mobileMoviesGrid">
-                    <div class="mobile-empty-state">
-                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
-                        <div class="mobile-empty-title">No Movies Yet</div>
-                        <div class="mobile-empty-description">Save movies to see them here.</div>
-                        <button class="mobile-action-btn" onclick="window.location.href='movies.html'">
-                            <i class="fas fa-film"></i> Explore Movies
-                        </button>
-                    </div>
-                </div>
-            </div>
-
             <!-- Movie Detail View -->
             <div class="mobile-section" id="mobileMovieDetailSection" style="display: none;">
                 <div class="collection-detail-header-v2">
@@ -1552,32 +1282,21 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                         </p>
                     </div>
                 </div>
-
-                <!-- TV Shows Section -->
-            <div class="mobile-section" id="mobileTvSection">
-                <div class="mobile-section-title">
-                    <span>My TV Shows</span>
-                    <div class="d-flex gap-sm">
-                        <button class="mobile-action-btn btn-base mb-0" id="mobileCreateTvListBtn" onclick="ProfileManager.createTvList()">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="window.location.href='tvshows.html'">
-                            <i class="fas fa-tv"></i> Browse
-                        </button>
+                <div class="collection-sticky-toolbar">
+                    <div class="collection-toolbar-inner">
+                        <div class="collection-toolbar-controls">
+                            <div class="collection-detail-actions hidden" id="mobileMovieDetailActions">
+                                <button class="btn-action-icon" id="mobileMovieListEditBtn" title="Edit Collection">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                                <button class="btn-action-icon btn-action-danger" id="mobileMovieListDeleteBtn" title="Delete Collection">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="mobile-section-subtitle">Organize your favorite series</div>
-
-                <div class="collection-grid" id="mobileTvGrid">
-                    <div class="mobile-empty-state">
-                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
-                        <div class="mobile-empty-title">No TV Shows Yet</div>
-                        <div class="mobile-empty-description">Save TV shows to see them here.</div>
-                        <button class="mobile-action-btn" onclick="window.location.href='tvshows.html'">
-                            <i class="fas fa-tv"></i> Explore TV Shows
-                        </button>
-                    </div>
-                </div>
+                <div id="mobileMovieItems"></div>
             </div>
 
             <!-- TV Detail View -->
@@ -1597,14 +1316,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                         </p>
                     </div>
                 </div>
-
                 <div class="collection-sticky-toolbar">
                     <div class="collection-toolbar-inner">
                         <div class="collection-search-wrap">
                             <i class="fas fa-search collection-search-icon"></i>
                             <input type="text" class="collection-search-input" id="mobileTvSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('tv', this.value)">
                         </div>
-
                         <div class="collection-toolbar-controls">
                             <div class="collection-sort-wrap">
                                 <select class="collection-sort-select" id="mobileTvSortSelect" onchange="ProfileManager.sortCollectionItems('tv', this.value)">
@@ -1616,7 +1333,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                     <option value="title">Title</option>
                                 </select>
                             </div>
-
                             <div class="collection-view-toggle" data-media="tv">
                                 <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('tv', 'grid', true)" title="Grid View">
                                     <i class="fas fa-th-large"></i>
@@ -1625,7 +1341,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                     <i class="fas fa-list"></i>
                                 </button>
                             </div>
-
                             <div class="collection-detail-actions hidden" id="mobileTvDetailActions">
                                 <button class="btn-action-icon" id="mobileTvListEditBtn" title="Edit Collection">
                                     <i class="fas fa-pen"></i>
@@ -1637,36 +1352,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                         </div>
                     </div>
                 </div>
-
                 <div id="mobileTvItems"></div>
-            </div>
-
-            <!-- Anime Section -->
-            <div class="mobile-section" id="mobileAnimeSection">
-                <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base mb-0 mr-sm" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i></button>
-                    <span id="mobileAnimeTitle">My Anime</span>
-                    <div class="d-flex gap-sm">
-                        <button class="mobile-action-btn btn-base mb-0" id="mobileCreateAnimeListBtn" onclick="ProfileManager.createAnimeList()">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="window.location.href='animes.html'">
-                            <i class="fas fa-dragon"></i> Browse
-                        </button>
-                    </div>
-                </div>
-                <div class="mobile-section-subtitle" id="mobileAnimeSubtitle">Organize your favorite anime</div>
-
-                <div class="collection-grid" id="mobileAnimeGrid">
-                    <div class="mobile-empty-state">
-                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
-                        <div class="mobile-empty-title">No Anime Yet</div>
-                        <div class="mobile-empty-description">Save anime to see it here.</div>
-                        <button class="mobile-action-btn" onclick="window.location.href='animes.html'">
-                            <i class="fas fa-dragon"></i> Explore Anime
-                        </button>
-                    </div>
-                </div>
             </div>
 
             <!-- Anime Detail View -->
@@ -1686,14 +1372,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                         </p>
                     </div>
                 </div>
-
                 <div class="collection-sticky-toolbar">
                     <div class="collection-toolbar-inner">
                         <div class="collection-search-wrap">
                             <i class="fas fa-search collection-search-icon"></i>
                             <input type="text" class="collection-search-input" id="mobileAnimeSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('anime', this.value)">
                         </div>
-
                         <div class="collection-toolbar-controls">
                             <div class="collection-sort-wrap">
                                 <select class="collection-sort-select" id="mobileAnimeSortSelect" onchange="ProfileManager.sortCollectionItems('anime', this.value)">
@@ -1705,7 +1389,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                     <option value="title">Title</option>
                                 </select>
                             </div>
-
                             <div class="collection-view-toggle" data-media="anime">
                                 <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('anime', 'grid', true)" title="Grid View">
                                     <i class="fas fa-th-large"></i>
@@ -1714,7 +1397,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                     <i class="fas fa-list"></i>
                                 </button>
                             </div>
-
                             <div class="collection-detail-actions hidden" id="mobileAnimeDetailActions">
                                 <button class="btn-action-icon" id="mobileAnimeListEditBtn" title="Edit Collection">
                                     <i class="fas fa-pen"></i>
@@ -1726,39 +1408,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                         </div>
                     </div>
                 </div>
-
                 <div id="mobileAnimeItems"></div>
             </div>
 
-            <!-- Games Section -->
-            <div class="mobile-section" id="mobileGamesSection">
-                <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base mb-0 mr-sm" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i></button>
-                    <span id="mobileGamesTitle">My Games</span>
-                    <div class="d-flex gap-sm">
-                        <button class="mobile-action-btn btn-base mb-0" id="mobileCreateGameListBtn" onclick="ProfileManager.createGameList()">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="window.location.href='games.html'">
-                            <i class="fas fa-gamepad"></i> Browse
-                        </button>
-                    </div>
-                </div>
-                <div class="mobile-section-subtitle" id="mobileGamesSubtitle">Organize your favorite games</div>
-
-                <div class="collection-grid" id="mobileGamesGrid">
-                    <div class="mobile-empty-state">
-                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
-                        <div class="mobile-empty-title">No Games Yet</div>
-                        <div class="mobile-empty-description">Save games to see them here.</div>
-                        <button class="mobile-action-btn" onclick="window.location.href='games.html'">
-                            <i class="fas fa-gamepad"></i> Explore Games
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Games Detail View -->
+            <!-- Game Detail View -->
             <div class="mobile-section" id="mobileGameDetailSection" style="display: none;">
                 <div class="collection-detail-header-v2">
                     <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('game')" title="Back to Collections" aria-label="Back">
@@ -1775,14 +1428,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                         </p>
                     </div>
                 </div>
-
                 <div class="collection-sticky-toolbar">
                     <div class="collection-toolbar-inner">
                         <div class="collection-search-wrap">
                             <i class="fas fa-search collection-search-icon"></i>
                             <input type="text" class="collection-search-input" id="mobileGameSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('game', this.value)">
                         </div>
-
                         <div class="collection-toolbar-controls">
                             <div class="collection-sort-wrap">
                                 <select class="collection-sort-select" id="mobileGameSortSelect" onchange="ProfileManager.sortCollectionItems('game', this.value)">
@@ -1794,7 +1445,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                     <option value="title">Title</option>
                                 </select>
                             </div>
-
                             <div class="collection-view-toggle" data-media="game">
                                 <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('game', 'grid', true)" title="Grid View">
                                     <i class="fas fa-th-large"></i>
@@ -1803,7 +1453,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                     <i class="fas fa-list"></i>
                                 </button>
                             </div>
-
                             <div class="collection-detail-actions hidden" id="mobileGameDetailActions">
                                 <button class="btn-action-icon" id="mobileGameListEditBtn" title="Edit Collection">
                                     <i class="fas fa-pen"></i>
@@ -1815,39 +1464,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                         </div>
                     </div>
                 </div>
-
                 <div id="mobileGameItems"></div>
             </div>
 
-            <!-- Books Section -->
-            <div class="mobile-section" id="mobileBooksSection">
-                <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base mb-0 mr-sm" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i></button>
-                    <span id="mobileBooksTitle">My Books</span>
-                    <div class="d-flex gap-sm">
-                        <button class="mobile-action-btn btn-base mb-0" id="mobileCreateBookListBtn" onclick="ProfileManager.createBookList()">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="window.location.href='books.html'">
-                            <i class="fas fa-book"></i> Browse
-                        </button>
-                    </div>
-                </div>
-                <div class="mobile-section-subtitle" id="mobileBooksSubtitle">Organize your favorite books</div>
-
-                <div class="collection-grid" id="mobileBooksGrid">
-                    <div class="mobile-empty-state">
-                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
-                        <div class="mobile-empty-title">No Books Yet</div>
-                        <div class="mobile-empty-description">Save books to see them here.</div>
-                        <button class="mobile-action-btn" onclick="window.location.href='books.html'">
-                            <i class="fas fa-book"></i> Explore Books
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Books Detail View -->
+            <!-- Book Detail View -->
             <div class="mobile-section" id="mobileBookDetailSection" style="display: none;">
                 <div class="collection-detail-header-v2">
                     <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('book')" title="Back to Collections" aria-label="Back">
@@ -1864,14 +1484,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                         </p>
                     </div>
                 </div>
-
                 <div class="collection-sticky-toolbar">
                     <div class="collection-toolbar-inner">
                         <div class="collection-search-wrap">
                             <i class="fas fa-search collection-search-icon"></i>
                             <input type="text" class="collection-search-input" id="mobileBookSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('book', this.value)">
                         </div>
-
                         <div class="collection-toolbar-controls">
                             <div class="collection-sort-wrap">
                                 <select class="collection-sort-select" id="mobileBookSortSelect" onchange="ProfileManager.sortCollectionItems('book', this.value)">
@@ -1883,7 +1501,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                     <option value="title">Title</option>
                                 </select>
                             </div>
-
                             <div class="collection-view-toggle" data-media="book">
                                 <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('book', 'grid', true)" title="Grid View">
                                     <i class="fas fa-th-large"></i>
@@ -1892,7 +1509,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                     <i class="fas fa-list"></i>
                                 </button>
                             </div>
-
                             <div class="collection-detail-actions hidden" id="mobileBookDetailActions">
                                 <button class="btn-action-icon" id="mobileBookListEditBtn" title="Edit Collection">
                                     <i class="fas fa-pen"></i>
@@ -1904,35 +1520,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                         </div>
                     </div>
                 </div>
-
                 <div id="mobileBookItems"></div>
-            </div>
-            <!-- Music Section -->
-            <div class="mobile-section" id="mobileMusicSection">
-                <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base mb-0 mr-sm" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i></button>
-                    <span id="mobileMusicTitle">My Music</span>
-                    <div class="d-flex gap-sm">
-                        <button class="mobile-action-btn btn-base mb-0" id="mobileCreateMusicListBtn" onclick="ProfileManager.createMusicList()">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="window.location.href='music.html'">
-                            <i class="fas fa-music"></i> Browse
-                        </button>
-                    </div>
-                </div>
-                <div class="mobile-section-subtitle" id="mobileMusicSubtitle">Organize your favorite tracks</div>
-
-                <div class="collection-grid" id="mobileMusicGrid">
-                    <div class="mobile-empty-state">
-                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
-                        <div class="mobile-empty-title">No Music Yet</div>
-                        <div class="mobile-empty-description">Save tracks to see them here.</div>
-                        <button class="mobile-action-btn" onclick="window.location.href='music.html'">
-                            <i class="fas fa-music"></i> Explore Music
-                        </button>
-                    </div>
-                </div>
             </div>
 
             <!-- Music Detail View -->
@@ -1952,14 +1540,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                         </p>
                     </div>
                 </div>
-
                 <div class="collection-sticky-toolbar">
                     <div class="collection-toolbar-inner">
                         <div class="collection-search-wrap">
                             <i class="fas fa-search collection-search-icon"></i>
                             <input type="text" class="collection-search-input" id="mobileMusicSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('music', this.value)">
                         </div>
-
                         <div class="collection-toolbar-controls">
                             <div class="collection-sort-wrap">
                                 <select class="collection-sort-select" id="mobileMusicSortSelect" onchange="ProfileManager.sortCollectionItems('music', this.value)">
@@ -1971,7 +1557,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                     <option value="title">Title</option>
                                 </select>
                             </div>
-
                             <div class="collection-view-toggle" data-media="music">
                                 <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('music', 'grid', true)" title="Grid View">
                                     <i class="fas fa-th-large"></i>
@@ -1980,7 +1565,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                     <i class="fas fa-list"></i>
                                 </button>
                             </div>
-
                             <div class="collection-detail-actions hidden" id="mobileMusicDetailActions">
                                 <button class="btn-action-icon" id="mobileMusicListEditBtn" title="Edit Collection">
                                     <i class="fas fa-pen"></i>
@@ -1992,7 +1576,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                         </div>
                     </div>
                 </div>
-
                 <div id="mobileMusicItems"></div>
             </div>
 
@@ -2008,7 +1591,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     </div>
                 </div>
                 <div class="mobile-section-subtitle" id="mobileSportsSubtitle">Teams you follow across leagues</div>
-
                 <div class="collection-grid" id="mobileSportsGrid">
                     <div class="mobile-empty-state">
                         <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
@@ -2016,34 +1598,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                         <div class="mobile-empty-description">Save teams to see them here.</div>
                         <button class="mobile-action-btn" onclick="window.location.href='sports.html'">
                             <i class="fas fa-futbol"></i> Explore Sports
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Travel Section -->
-            <div class="mobile-section" id="mobileTravelSection">
-                <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base mb-0 mr-sm" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i></button>
-                    <span id="mobileTravelTitle">My Travel</span>
-                    <div class="d-flex gap-sm">
-                        <button class="mobile-action-btn btn-base mb-0" id="mobileCreateTravelListBtn" onclick="ProfileManager.createTravelList()">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="window.location.href='travel.html'">
-                            <i class="fas fa-earth-americas"></i> Browse
-                        </button>
-                    </div>
-                </div>
-                <div class="mobile-section-subtitle" id="mobileTravelSubtitle">Organize countries you want to explore</div>
-
-                <div class="collection-grid" id="mobileTravelGrid">
-                    <div class="mobile-empty-state">
-                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
-                        <div class="mobile-empty-title">No Travel Lists Yet</div>
-                        <div class="mobile-empty-description">Save countries to see them here.</div>
-                        <button class="mobile-action-btn" onclick="window.location.href='travel.html'">
-                            <i class="fas fa-earth-americas"></i> Explore Travel
                         </button>
                     </div>
                 </div>
@@ -2073,34 +1627,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <div id="mobileTravelItems"></div>
             </div>
 
-            <!-- Fashion Section -->
-            <div class="mobile-section" id="mobileFashionSection">
-                <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base mb-0 mr-sm" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i></button>
-                    <span id="mobileFashionTitle">My Fashion</span>
-                    <div class="d-flex gap-sm">
-                        <button class="mobile-action-btn btn-base mb-0" id="mobileCreateFashionListBtn" onclick="ProfileManager.createFashionList()">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="window.location.href='fashion.html'">
-                            <i class="fas fa-shirt"></i> Browse
-                        </button>
-                    </div>
-                </div>
-                <div class="mobile-section-subtitle" id="mobileFashionSubtitle">Organize your favorite fashion brands</div>
-
-                <div class="collection-grid" id="mobileFashionGrid">
-                    <div class="mobile-empty-state">
-                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
-                        <h3 class="mobile-empty-title">No Fashion Lists Yet</h3>
-                        <p class="mobile-empty-description">Save brands to see them here.</p>
-                        <button class="mobile-action-btn" onclick="window.location.href='fashion.html'">
-                            <i class="fas fa-shirt"></i> Explore Fashion
-                        </button>
-                    </div>
-                </div>
-            </div>
-
             <!-- Fashion Detail View -->
             <div class="mobile-section" id="mobileFashionDetailSection" style="display: none;">
                 <div class="collection-detail-header-v2">
@@ -2118,14 +1644,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                         </p>
                     </div>
                 </div>
-
                 <div class="collection-sticky-toolbar">
                     <div class="collection-toolbar-inner">
                         <div class="collection-search-wrap">
                             <i class="fas fa-search collection-search-icon"></i>
                             <input type="text" class="collection-search-input" id="mobileFashionSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('fashion', this.value)">
                         </div>
-
                         <div class="collection-toolbar-controls">
                             <div class="collection-sort-wrap">
                                 <select class="collection-sort-select" id="mobileFashionSortSelect" onchange="ProfileManager.sortCollectionItems('fashion', this.value)">
@@ -2137,7 +1661,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                     <option value="title">Title</option>
                                 </select>
                             </div>
-
                             <div class="collection-view-toggle" data-media="fashion">
                                 <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('fashion', 'grid', true)" title="Grid View">
                                     <i class="fas fa-th-large"></i>
@@ -2146,7 +1669,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                     <i class="fas fa-list"></i>
                                 </button>
                             </div>
-
                             <div class="collection-detail-actions hidden" id="mobileFashionDetailActions">
                                 <button class="btn-action-icon" id="mobileFashionListEditBtn" title="Edit Collection">
                                     <i class="fas fa-pen"></i>
@@ -2158,36 +1680,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                         </div>
                     </div>
                 </div>
-
                 <div id="mobileFashionItems"></div>
-            </div>
-
-            <!-- Cars Section -->
-            <div class="mobile-section" id="mobileCarsSection">
-                <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base mb-0 mr-sm" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i></button>
-                    <span id="mobileCarsTitle">My Cars</span>
-                    <div class="d-flex gap-sm">
-                        <button class="mobile-action-btn btn-base mb-0" id="mobileCreateCarsListBtn" onclick="ProfileManager.createCarList()">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="window.location.href='cars.html'">
-                            <i class="fas fa-car"></i> Browse
-                        </button>
-                    </div>
-                </div>
-                <div class="mobile-section-subtitle" id="mobileCarsSubtitle">Track your favorite car brands</div>
-
-                <div class="collection-grid" id="mobileCarsGrid">
-                    <div class="mobile-empty-state">
-                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
-                        <h3 class="mobile-empty-title">No Car Lists Yet</h3>
-                        <p class="mobile-empty-description">Save brands to see them here.</p>
-                        <button class="mobile-action-btn" onclick="window.location.href='cars.html'">
-                            <i class="fas fa-car"></i> Explore Cars
-                        </button>
-                    </div>
-                </div>
             </div>
 
             <!-- Cars Detail View -->
@@ -2214,34 +1707,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <div id="mobileCarsItems"></div>
             </div>
 
-            <!-- Food Section -->
-            <div class="mobile-section" id="mobileFoodSection">
-                <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base mb-0 mr-sm" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i></button>
-                    <span id="mobileFoodTitle">My Food</span>
-                    <div class="d-flex gap-sm">
-                        <button class="mobile-action-btn btn-base mb-0" id="mobileCreateFoodListBtn" onclick="ProfileManager.createFoodList()">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="window.location.href='food.html'">
-                            <i class="fas fa-burger"></i> Browse
-                        </button>
-                    </div>
-                </div>
-                <div class="mobile-section-subtitle" id="mobileFoodSubtitle">Track your favorite food brands</div>
-
-                <div class="collection-grid" id="mobileFoodGrid">
-                    <div class="mobile-empty-state">
-                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
-                        <h3 class="mobile-empty-title">No Food Lists Yet</h3>
-                        <p class="mobile-empty-description">Save brands to see them here.</p>
-                        <button class="mobile-action-btn" onclick="window.location.href='food.html'">
-                            <i class="fas fa-burger"></i> Explore Food
-                        </button>
-                    </div>
-                </div>
-            </div>
-
             <!-- Food Detail View -->
             <div class="mobile-section" id="mobileFoodDetailSection" style="display: none;">
                 <div class="collection-detail-header-v2">
@@ -2259,14 +1724,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                         </p>
                     </div>
                 </div>
-
                 <div class="collection-sticky-toolbar">
                     <div class="collection-toolbar-inner">
                         <div class="collection-search-wrap">
                             <i class="fas fa-search collection-search-icon"></i>
                             <input type="text" class="collection-search-input" id="mobileFoodSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('food', this.value)">
                         </div>
-
                         <div class="collection-toolbar-controls">
                             <div class="collection-sort-wrap">
                                 <select class="collection-sort-select" id="mobileFoodSortSelect" onchange="ProfileManager.sortCollectionItems('food', this.value)">
@@ -2278,7 +1741,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                     <option value="title">Title</option>
                                 </select>
                             </div>
-
                             <div class="collection-view-toggle" data-media="food">
                                 <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('food', 'grid', true)" title="Grid View">
                                     <i class="fas fa-th-large"></i>
@@ -2287,7 +1749,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                     <i class="fas fa-list"></i>
                                 </button>
                             </div>
-
                             <div class="collection-detail-actions hidden" id="mobileFoodDetailActions">
                                 <button class="btn-action-icon" id="mobileFoodListEditBtn" title="Edit Collection">
                                     <i class="fas fa-pen"></i>
@@ -2299,7 +1760,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                         </div>
                     </div>
                 </div>
-
                 <div id="mobileFoodItems"></div>
             </div>
 
