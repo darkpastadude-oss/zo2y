@@ -148,7 +148,8 @@
                 travel: 'list_items',
                 fashion: 'list_items',
                 food: 'list_items',
-                car: 'list_items'
+                car: 'list_items',
+                sports: 'list_items'
             };
             const MEDIA_ITEM_FIELDS = {
                 movie: 'item_id',
@@ -160,7 +161,8 @@
                 travel: 'item_id',
                 fashion: 'item_id',
                 food: 'item_id',
-                car: 'item_id'
+                car: 'item_id',
+                sports: 'item_id'
             };
             let manualProfileBadges = [];
             let profileStatsSnapshot = {
@@ -7844,17 +7846,25 @@ const alreadyActive = isMobile
                 const canRemove = !!options?.canRemove && !!id;
 
                 const card = document.createElement('div');
-                card.className = 'team-card logo-only';
+                card.className = 'collection-item-card';
                 card.innerHTML = `
-                    <div class="team-card-media logo-only">
-                        <img class="team-card-logo-main" src="${logoImage}" alt="${name} logo" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK_BOOK_IMAGE}';">
-                        ${canRemove ? `<button class="remove-btn" type="button" aria-label="Remove team"><i class="fas fa-times"></i></button>` : ''}
+                    <img class="collection-item-image brand-logo-stage" src="${logoImage}" alt="${name} logo" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
+                    <div class="collection-item-body">
+                        <h3 class="collection-item-title">${name}</h3>
+                        ${canRemove ? `
+                            <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${escapeHtml(id)}', 'favorites', 'sports', 'default')">
+                                <i class="fas fa-times"></i> Remove
+                            </button>
+                        ` : ''}
+                        <div class="collection-item-meta">
+                            <span><i class="fas fa-futbol"></i> ${escapeHtml(subtitle)}</span>
+                        </div>
                     </div>
-                    <div class="team-card-body">
-                        <div class="team-card-title">${name}</div>
-                        <div class="team-card-meta">${subtitle}</div>
-                        ${stadium ? `<div class="team-card-stadium"><i class="fas fa-location-dot"></i> ${stadium}</div>` : ''}
-                    </div>
+                    ${canRemove ? `
+                        <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${escapeHtml(id)}', 'favorites', 'sports', 'default')">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    ` : ''}
                 `;
 
                 if (canRemove) {
@@ -7885,7 +7895,8 @@ const alreadyActive = isMobile
             }
             async function renderSports() {
                 const isMobile = window.innerWidth <= 768;
-                const grid = isMobile ? document.getElementById('mobileSportsGrid') : document.getElementById('sportsGrid');
+                const grid = isMobile ? document.getElementById('mobileSportsItems') : document.getElementById('sportsItemsContainer');
+                if (grid) applyCollectionViewToContainer(grid, 'sports');
 
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
@@ -9628,6 +9639,13 @@ const alreadyActive = isMobile
                 const descEl = document.getElementById('sportsSubtitle');
                 if (descEl) descEl.innerText = 'Teams you follow across leagues';
 
+                const countEl = document.getElementById(isMobile ? 'mobileSportsCount' : 'sportsCount');
+                if (countEl) {
+                    const container = document.getElementById(isMobile ? 'mobileSportsItems' : 'sportsItemsContainer');
+                    const count = container ? container.querySelectorAll('.collection-item-card').length : 0;
+                    countEl.textContent = count === 1 ? '1 team' : `${count} teams`;
+                }
+
                 currentMediaDetail = { mediaType: 'sports', listId: 'favorites', listType: 'default', isMobile };
             }
 
@@ -10813,8 +10831,8 @@ const alreadyActive = isMobile
                 const removableNode = trigger ? trigger.closest('.collection-item-card, .movie-list-movie-card, .mobile-journal-entry') : null;
                 let restoreRemovedNode = null;
 
-                const showDetailFns = { movie: showMovieDetail, tv: showTvDetail, anime: showAnimeDetail, game: showGameDetail, book: showBookDetail, music: showMusicDetail, travel: showTravelDetail, fashion: showFashionDetail, food: showFoodDetail, car: showCarDetail };
-                const renderFns = { movie: renderMovies, tv: renderTvShows, anime: renderAnimeShows, game: renderGames, book: renderBooks, music: renderMusic, travel: renderTravel, fashion: renderFashion, food: renderFood, car: renderCars };
+                const showDetailFns = { movie: showMovieDetail, tv: showTvDetail, anime: showAnimeDetail, game: showGameDetail, book: showBookDetail, music: showMusicDetail, travel: showTravelDetail, fashion: showFashionDetail, food: showFoodDetail, car: showCarDetail, sports: showSportsDetail };
+                const renderFns = { movie: renderMovies, tv: renderTvShows, anime: renderAnimeShows, game: renderGames, book: renderBooks, music: renderMusic, travel: renderTravel, fashion: renderFashion, food: renderFood, car: renderCars, sports: renderSports };
 
                 const refreshCollectionViews = () => {
                     const showFn = showDetailFns[type] || showBookDetail;

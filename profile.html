@@ -958,17 +958,25 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <div class="tab-content" id="sports-tab" style="display:none">
                 <div class="section">
                     <div class="collection-detail-header-v2">
-                        <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('sports')" title="Back to Collections" aria-label="Back">
+                        <button class="collection-back-arrow-v2" onclick="ProfileManager.backToProfile()" title="Back to Profile" aria-label="Back">
                             <i class="fas fa-arrow-left"></i>
                         </button>
                         <div class="collection-title-block">
                             <h1 class="collection-heading" id="sportsTitle">Favorite Teams</h1>
-                            <p class="collection-subheading" id="sportsSubtitle">Teams you follow across leagues</p>
+                            <p class="collection-subheading">
+                                <span id="sportsSubtitle">Teams you follow across leagues</span>
+                                <span class="dot-sep">•</span>
+                                <span class="collection-count-text" id="sportsCount">0 teams</span>
+                            </p>
                         </div>
                     </div>
                     <div class="collection-sticky-toolbar">
                         <div class="collection-toolbar-inner">
-                            <div class="collection-toolbar-controls" style="justify-content: flex-end;">
+                            <div class="collection-search-wrap">
+                                <i class="fas fa-search collection-search-icon"></i>
+                                <input type="text" class="collection-search-input" id="sportsSearchInput" placeholder="Search teams..." oninput="ProfileManager.filterCollectionItems('sports', this.value)">
+                            </div>
+                            <div class="collection-toolbar-controls">
                                 <div class="collection-detail-actions">
                                     <button class="btn-action-icon" onclick="window.location.href='sports.html'" title="Browse Sports">
                                         <i class="fas fa-futbol"></i>
@@ -977,7 +985,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                             </div>
                         </div>
                     </div>
-                    <div class="collection-grid" id="sportsGrid">
+                    <div id="sportsItemsContainer">
                         <div class="empty-state">
                             <div class="empty-icon"><i class="fas fa-futbol"></i></div>
                             <h3 class="empty-title">No Teams Yet</h3>
@@ -1642,7 +1650,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- Sports Section -->
             <div class="mobile-section" id="mobileSportsSection">
                 <div class="collection-detail-header-v2">
-                    <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('sports')" title="Back to Collections" aria-label="Back">
+                    <button class="collection-back-arrow-v2" onclick="ProfileManager.backToProfile()" title="Back to Profile" aria-label="Back">
                         <i class="fas fa-arrow-left"></i>
                     </button>
                     <div class="collection-title-block">
@@ -1651,12 +1659,18 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                         </h1>
                         <p class="collection-subheading">
                             <span id="mobileSportsSubtitle">Teams you follow across leagues</span>
+                            <span class="dot-sep">•</span>
+                            <span class="collection-count-text" id="mobileSportsCount">0 teams</span>
                         </p>
                     </div>
                 </div>
                 <div class="collection-sticky-toolbar">
                     <div class="collection-toolbar-inner">
-                        <div class="collection-toolbar-controls" style="justify-content: flex-end;">
+                        <div class="collection-search-wrap">
+                            <i class="fas fa-search collection-search-icon"></i>
+                            <input type="text" class="collection-search-input" id="mobileSportsSearchInput" placeholder="Search teams..." oninput="ProfileManager.filterCollectionItems('sports', this.value)">
+                        </div>
+                        <div class="collection-toolbar-controls">
                             <div class="collection-detail-actions">
                                 <button class="btn-action-icon" onclick="window.location.href='sports.html'" title="Browse Sports">
                                     <i class="fas fa-futbol"></i>
@@ -1665,7 +1679,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                         </div>
                     </div>
                 </div>
-                <div class="collection-grid" id="mobileSportsGrid">
+                <div id="mobileSportsItems">
                     <div class="mobile-empty-state">
                         <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
                         <div class="mobile-empty-title">No Teams Yet</div>
