@@ -739,7 +739,7 @@
                     const mediaToggle = document.querySelector('.mobile-media-toggle');
 
                     if (safeTab === 'lists') {
-                        if (overviewPanel) overviewPanel.style.display = '';
+                        if (overviewPanel) overviewPanel.style.display = 'none';
                         if (listsPanel) listsPanel.style.display = 'none';
                         if (communityPanel) communityPanel.style.display = 'none';
                         if (spaContainer) spaContainer.innerHTML = '';
@@ -6994,12 +6994,12 @@
             }
 
             function resetDetailPanels() {
-                // Desktop: hide all detail views, sports-tab, and list-detail-view
+                // Desktop: hide all detail views and list-detail-view (not sports-tab, it is the main sports view)
                 const desktopIds = [
                     'movie-detail-view', 'tv-detail-view', 'anime-detail-view',
                     'game-detail-view', 'book-detail-view', 'music-detail-view',
                     'travel-detail-view', 'fashion-detail-view', 'cars-detail-view',
-                    'food-detail-view', 'sports-tab', 'list-detail-view'
+                    'food-detail-view', 'list-detail-view'
                 ];
                 desktopIds.forEach(function(id) {
                     const el = document.getElementById(id);
@@ -7009,12 +7009,12 @@
                     }
                 });
 
-                // Mobile: hide all mobile detail sections, sports section, and list section
+                // Mobile: hide all mobile detail sections and list section (not sports section)
                 const mobileIds = [
                     'mobileMovieDetailSection', 'mobileTvDetailSection', 'mobileAnimeDetailSection',
                     'mobileGameDetailSection', 'mobileBookDetailSection', 'mobileMusicDetailSection',
                     'mobileTravelDetailSection', 'mobileFashionDetailSection', 'mobileCarsDetailSection',
-                    'mobileFoodDetailSection', 'mobileSportsSection', 'mobileListDetailSection'
+                    'mobileFoodDetailSection', 'mobileListDetailSection'
                 ];
                 mobileIds.forEach(function(id) {
                     const el = document.getElementById(id);
@@ -7329,6 +7329,7 @@ const alreadyActive = isMobile
 
                     const tabElement = document.getElementById(`${safeTab}-tab`);
                     if (tabElement) {
+                        tabElement.style.display = '';
                         tabElement.classList.add('active');
                         tabElement.classList.remove('rendered');
                     }
@@ -8365,6 +8366,8 @@ const alreadyActive = isMobile
                 if (statsBar) statsBar.style.display = '';
                 const viewingOther = document.getElementById('viewingOtherProfile');
                 if (viewingOther) viewingOther.style.display = (!isViewingOwnProfile && targetUserId) ? '' : 'none';
+                const mobileOverviewPanel = document.getElementById('mobileOverviewPanel');
+                if (mobileOverviewPanel) mobileOverviewPanel.style.display = '';
 
                 const desktopView = document.querySelector('.desktop-only');
                 if (desktopView) desktopView.style.display = '';
@@ -8395,6 +8398,8 @@ const alreadyActive = isMobile
                 if (viewingOther) viewingOther.style.display = 'none';
                 const statsBar = document.querySelector('.pv2-stats');
                 if (statsBar) statsBar.style.display = 'none';
+                const mobileOverviewPanel = document.getElementById('mobileOverviewPanel');
+                if (mobileOverviewPanel) mobileOverviewPanel.style.display = 'none';
             }
 
             async function backToCollections(contentType) {
