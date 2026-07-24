@@ -9917,6 +9917,14 @@ const alreadyActive = isMobile
                 currentMediaDetail = { mediaType: 'travel', listId, listType, isMobile };
                 updateCollectionViewToggleButtons('travel');
                 await renderTravelItems(countryCodes, listId, listType, isMobile, list, listOwnerUserId);
+
+                const finalCount = isMobile
+                    ? document.getElementById('mobileTravelItems')
+                    : document.getElementById('travelItemsContainer');
+                const finalCountNum = finalCount ? finalCount.querySelectorAll('.collection-item-card').length : countryCodes.length;
+                const finalCountText = getCollectionItemLabel('travel', finalCountNum);
+                const finalCountEl = document.getElementById(isMobile ? 'mobileTravelDetailCount' : 'travelDetailCount');
+                if (finalCountEl) finalCountEl.textContent = finalCountText;
             }
 
             async function renderTravelItems(countryCodes, listId, listType, isMobile, list = null, ownerUserId = null) {

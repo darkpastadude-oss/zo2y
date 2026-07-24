@@ -721,30 +721,56 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- Travel Detail View -->
             <div class="tab-content" id="travel-detail-view" style="display:none">
                 <div class="section">
-                    <div class="collection-detail-header">
-                        <div class="collection-detail-back">
-                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.backToProfile()">
-                                <i class="fas fa-arrow-left"></i> Back
-                            </button>
-                        </div>
-                        <div class="collection-detail-title-group">
-                            <h2 class="collection-detail-title" id="travelDetailTitle">
+                    <div class="collection-detail-header-v2">
+                        <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('travel')" title="Back to Collections" aria-label="Back">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <div class="collection-title-block">
+                            <h1 class="collection-heading" id="travelDetailTitle">
                                 <span id="travelDetailIcon"></span>
-                                <span id="travelDetailName"></span>
-                            </h2>
-                            <p class="collection-detail-subtitle" id="travelDetailDescription">Collection description</p>
+                                <span id="travelDetailName">Favorites</span>
+                            </h1>
+                            <p class="collection-subheading">
+                                <span id="travelDetailDescription">Travel you love</span>
+                                <span class="dot-sep">•</span>
+                                <span class="collection-count-text" id="travelDetailCount">0 items</span>
+                            </p>
                         </div>
-                        <div class="collection-view-toggle" data-media="travel">
-                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('travel', 'grid')"><i class="fas fa-th"></i></button>
-                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('travel', 'list')"><i class="fas fa-list"></i></button>
-                        </div>
-                        <div class="collection-detail-actions hidden" id="travelDetailActions">
-                            <button class="btn btn-secondary btn-sm" id="travelListEditBtn">
-                                <i class="fas fa-pen"></i> Edit
-                            </button>
-                            <button class="btn btn-secondary btn-sm" id="travelListDeleteBtn">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
+                    </div>
+                    <div class="collection-sticky-toolbar">
+                        <div class="collection-toolbar-inner">
+                            <div class="collection-search-wrap">
+                                <i class="fas fa-search collection-search-icon"></i>
+                                <input type="text" class="collection-search-input" id="travelSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('travel', this.value)">
+                            </div>
+                            <div class="collection-toolbar-controls">
+                                <div class="collection-sort-wrap">
+                                    <select class="collection-sort-select" id="travelSortSelect" onchange="ProfileManager.sortCollectionItems('travel', this.value)">
+                                        <option value="recent">Recently Added</option>
+                                        <option value="oldest">Oldest Added</option>
+                                        <option value="alpha">Alphabetical</option>
+                                        <option value="release">Release Date</option>
+                                        <option value="rating">Rating</option>
+                                        <option value="title">Title</option>
+                                    </select>
+                                </div>
+                                <div class="collection-view-toggle" data-media="travel">
+                                    <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('travel', 'grid')" title="Grid View">
+                                        <i class="fas fa-th-large"></i>
+                                    </button>
+                                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('travel', 'list')" title="List View">
+                                        <i class="fas fa-list"></i>
+                                    </button>
+                                </div>
+                                <div class="collection-detail-actions hidden" id="travelDetailActions">
+                                    <button class="btn-action-icon" id="travelListEditBtn" title="Edit Collection">
+                                        <i class="fas fa-pen"></i>
+                                    </button>
+                                    <button class="btn-action-icon btn-action-danger" id="travelListDeleteBtn" title="Delete Collection">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div id="travelItemsContainer"></div>
@@ -813,30 +839,56 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- Cars Detail View -->
             <div class="tab-content" id="cars-detail-view" style="display:none">
                 <div class="section">
-                    <div class="collection-detail-header">
-                        <div class="collection-detail-back">
-                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.backToProfile()">
-                                <i class="fas fa-arrow-left"></i> Back
-                            </button>
-                        </div>
-                        <div class="collection-detail-title-group">
-                            <h2 class="collection-detail-title" id="carsDetailTitle">
+                    <div class="collection-detail-header-v2">
+                        <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('car')" title="Back to Collections" aria-label="Back">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <div class="collection-title-block">
+                            <h1 class="collection-heading" id="carsDetailTitle">
                                 <span id="carsDetailIcon"></span>
-                                <span id="carsDetailName"></span>
-                            </h2>
-                            <p class="collection-detail-subtitle" id="carsDetailDescription">Collection description</p>
+                                <span id="carsDetailName">Favorites</span>
+                            </h1>
+                            <p class="collection-subheading">
+                                <span id="carsDetailDescription">Cars you love</span>
+                                <span class="dot-sep">•</span>
+                                <span class="collection-count-text" id="carsDetailCount">0 items</span>
+                            </p>
                         </div>
-                        <div class="collection-view-toggle" data-media="car">
-                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('car', 'grid')"><i class="fas fa-th"></i></button>
-                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('car', 'list')"><i class="fas fa-list"></i></button>
-                        </div>
-                        <div class="collection-detail-actions hidden" id="carsDetailActions">
-                            <button class="btn btn-secondary btn-sm" id="carsListEditBtn">
-                                <i class="fas fa-pen"></i> Edit
-                            </button>
-                            <button class="btn btn-secondary btn-sm" id="carsListDeleteBtn">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
+                    </div>
+                    <div class="collection-sticky-toolbar">
+                        <div class="collection-toolbar-inner">
+                            <div class="collection-search-wrap">
+                                <i class="fas fa-search collection-search-icon"></i>
+                                <input type="text" class="collection-search-input" id="carsSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('car', this.value)">
+                            </div>
+                            <div class="collection-toolbar-controls">
+                                <div class="collection-sort-wrap">
+                                    <select class="collection-sort-select" id="carsSortSelect" onchange="ProfileManager.sortCollectionItems('car', this.value)">
+                                        <option value="recent">Recently Added</option>
+                                        <option value="oldest">Oldest Added</option>
+                                        <option value="alpha">Alphabetical</option>
+                                        <option value="release">Release Date</option>
+                                        <option value="rating">Rating</option>
+                                        <option value="title">Title</option>
+                                    </select>
+                                </div>
+                                <div class="collection-view-toggle" data-media="car">
+                                    <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('car', 'grid')" title="Grid View">
+                                        <i class="fas fa-th-large"></i>
+                                    </button>
+                                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('car', 'list')" title="List View">
+                                        <i class="fas fa-list"></i>
+                                    </button>
+                                </div>
+                                <div class="collection-detail-actions hidden" id="carsDetailActions">
+                                    <button class="btn-action-icon" id="carsListEditBtn" title="Edit Collection">
+                                        <i class="fas fa-pen"></i>
+                                    </button>
+                                    <button class="btn-action-icon btn-action-danger" id="carsListDeleteBtn" title="Delete Collection">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div id="carsItemsContainer"></div>
@@ -1605,24 +1657,56 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
             <!-- Travel Detail View -->
             <div class="mobile-section" id="mobileTravelDetailSection" style="display: none;">
-                <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.backToProfile()">
-                        <i class="fas fa-arrow-left"></i> Back
+                <div class="collection-detail-header-v2">
+                    <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('travel')" title="Back to Collections" aria-label="Back">
+                        <i class="fas fa-arrow-left"></i>
                     </button>
-                    <span id="mobileTravelDetailTitle">Collection</span>
+                    <div class="collection-title-block">
+                        <h1 class="collection-heading">
+                            <span id="mobileTravelDetailTitle">Favorites</span>
+                        </h1>
+                        <p class="collection-subheading">
+                            <span id="mobileTravelDetailDescription">Travel you love</span>
+                            <span class="dot-sep">•</span>
+                            <span class="collection-count-text" id="mobileTravelDetailCount">0 items</span>
+                        </p>
+                    </div>
                 </div>
-                <div class="mobile-section-subtitle" id="mobileTravelDetailDescription"></div>
-                <div class="collection-view-toggle mb-10" data-media="travel">
-                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('travel', 'grid', true)"><i class="fas fa-th"></i></button>
-                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('travel', 'list', true)"><i class="fas fa-list"></i></button>
-                </div>
-                <div id="mobileTravelDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
-                    <button class="mobile-action-btn secondary btn-base" id="mobileTravelListEditBtn">
-                        <i class="fas fa-pen"></i> Edit
-                    </button>
-                    <button class="mobile-action-btn secondary btn-base" id="mobileTravelListDeleteBtn">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
+                <div class="collection-sticky-toolbar">
+                    <div class="collection-toolbar-inner">
+                        <div class="collection-search-wrap">
+                            <i class="fas fa-search collection-search-icon"></i>
+                            <input type="text" class="collection-search-input" id="mobileTravelSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('travel', this.value)">
+                        </div>
+                        <div class="collection-toolbar-controls">
+                            <div class="collection-sort-wrap">
+                                <select class="collection-sort-select" id="mobileTravelSortSelect" onchange="ProfileManager.sortCollectionItems('travel', this.value)">
+                                    <option value="recent">Recently Added</option>
+                                    <option value="oldest">Oldest Added</option>
+                                    <option value="alpha">Alphabetical</option>
+                                    <option value="release">Release Date</option>
+                                    <option value="rating">Rating</option>
+                                    <option value="title">Title</option>
+                                </select>
+                            </div>
+                            <div class="collection-view-toggle" data-media="travel">
+                                <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('travel', 'grid', true)" title="Grid View">
+                                    <i class="fas fa-th-large"></i>
+                                </button>
+                                <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('travel', 'list', true)" title="List View">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                            </div>
+                            <div class="collection-detail-actions hidden" id="mobileTravelDetailActions">
+                                <button class="btn-action-icon" id="mobileTravelListEditBtn" title="Edit Collection">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                                <button class="btn-action-icon btn-action-danger" id="mobileTravelListDeleteBtn" title="Delete Collection">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div id="mobileTravelItems"></div>
             </div>
@@ -1685,24 +1769,56 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
             <!-- Cars Detail View -->
             <div class="mobile-section" id="mobileCarsDetailSection" style="display: none;">
-                <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.backToProfile()">
-                        <i class="fas fa-arrow-left"></i> Back
+                <div class="collection-detail-header-v2">
+                    <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('car')" title="Back to Collections" aria-label="Back">
+                        <i class="fas fa-arrow-left"></i>
                     </button>
-                    <span id="mobileCarsDetailTitle">Collection</span>
+                    <div class="collection-title-block">
+                        <h1 class="collection-heading">
+                            <span id="mobileCarsDetailTitle">Favorites</span>
+                        </h1>
+                        <p class="collection-subheading">
+                            <span id="mobileCarsDetailDescription">Cars you love</span>
+                            <span class="dot-sep">•</span>
+                            <span class="collection-count-text" id="mobileCarsDetailCount">0 items</span>
+                        </p>
+                    </div>
                 </div>
-                <div class="mobile-section-subtitle" id="mobileCarsDetailDescription"></div>
-                <div class="collection-view-toggle mb-10" data-media="car">
-                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('car', 'grid', true)"><i class="fas fa-th"></i></button>
-                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('car', 'list', true)"><i class="fas fa-list"></i></button>
-                </div>
-                <div id="mobileCarsDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
-                    <button class="mobile-action-btn secondary btn-base" id="mobileCarsListEditBtn">
-                        <i class="fas fa-pen"></i> Edit
-                    </button>
-                    <button class="mobile-action-btn secondary btn-base" id="mobileCarsListDeleteBtn">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
+                <div class="collection-sticky-toolbar">
+                    <div class="collection-toolbar-inner">
+                        <div class="collection-search-wrap">
+                            <i class="fas fa-search collection-search-icon"></i>
+                            <input type="text" class="collection-search-input" id="mobileCarsSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('car', this.value)">
+                        </div>
+                        <div class="collection-toolbar-controls">
+                            <div class="collection-sort-wrap">
+                                <select class="collection-sort-select" id="mobileCarsSortSelect" onchange="ProfileManager.sortCollectionItems('car', this.value)">
+                                    <option value="recent">Recently Added</option>
+                                    <option value="oldest">Oldest Added</option>
+                                    <option value="alpha">Alphabetical</option>
+                                    <option value="release">Release Date</option>
+                                    <option value="rating">Rating</option>
+                                    <option value="title">Title</option>
+                                </select>
+                            </div>
+                            <div class="collection-view-toggle" data-media="car">
+                                <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('car', 'grid', true)" title="Grid View">
+                                    <i class="fas fa-th-large"></i>
+                                </button>
+                                <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('car', 'list', true)" title="List View">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                            </div>
+                            <div class="collection-detail-actions hidden" id="mobileCarsDetailActions">
+                                <button class="btn-action-icon" id="mobileCarsListEditBtn" title="Edit Collection">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                                <button class="btn-action-icon btn-action-danger" id="mobileCarsListDeleteBtn" title="Delete Collection">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div id="mobileCarsItems"></div>
             </div>
