@@ -7112,8 +7112,10 @@
                     if (mobileListsPanel) mobileListsPanel.style.display = 'none';
                     const desktopView = document.querySelector('.desktop-only');
                     const mobileView = document.querySelector('.mobile-only');
-                    if (desktopView) desktopView.style.display = 'none';
-                    if (mobileView) mobileView.style.display = 'none';
+                    if (desktopView) desktopView.style.display = '';
+                    if (mobileView) mobileView.style.display = '';
+                    const overview = document.getElementById('pv2Overview');
+                    if (overview) overview.style.display = 'none';
 
                     categoryView.style.display = 'block';
 
@@ -8409,7 +8411,7 @@ const alreadyActive = isMobile
                 const mobileCard = document.querySelector('.mph2-card');
                 if (mobileCard) mobileCard.style.display = '';
                 const viewingOther = document.getElementById('viewingOtherProfile');
-                if (viewingOther) viewingOther.style.display = '';
+                if (viewingOther) viewingOther.style.display = (!isViewingOwnProfile && targetUserId) ? '' : 'none';
                 const statsBar = document.querySelector('.pv2-stats');
                 if (statsBar) statsBar.style.display = '';
                 const desktopView = document.querySelector('.desktop-only');
