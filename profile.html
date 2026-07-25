@@ -1025,91 +1025,23 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             </section>
 
             <section class="profile-primary-panel" data-panel="activity">
-            <!-- Community Tab Content -->
-            <div class="tab-content" id="community-tab">
-                <div class="section">
-                    <div class="section-header">
-                        <div>
-                            <h2 class="section-title" id="communityTitle">Community</h2>
-                            <p class="section-subtitle" id="communitySubtitle">Follow collectors, discover lists, and keep up with what your circle is saving.</p>
-                        </div>
-                        <div class="section-actions">
-                            <div class="community-switcher d-flex gap-sm">
-                                <button class="btn btn-secondary btn-sm active" id="showFollowersBtn" onclick="ProfileManager.showCommunitySection('followers')">
-                                    Followers <span id="followersCountBadge" class="nav-tab-badge">0</span>
-                                </button>
-                                <button class="btn btn-secondary btn-sm" id="showFollowingBtn" onclick="ProfileManager.showCommunitySection('following')">
-                                    Following <span id="followingCountBadge" class="nav-tab-badge">0</span>
-                                </button>
-                                <button class="btn btn-secondary btn-sm" id="showActivityBtn" onclick="ProfileManager.showCommunitySection('activity')">
-                                    Activity <span id="activityCountBadge" class="nav-tab-badge">0</span>
-                                </button>
-                            </div>
-                            <button class="btn btn-primary" onclick="ProfileManager.showModal('communitySearchModal')" id="addCommunityBtn">
-                                <i class="fas fa-user-plus"></i> Find Users
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="community-intro-card">
-                        <div class="community-intro-copy">
-                            <span class="community-intro-kicker">Network</span>
-                            <h3>Build a circle around taste</h3>
-                            <p>Follow people whose lists you trust, see what they are saving, and jump straight into their collections.</p>
-                        </div>
-                        <div class="community-intro-actions">
-                            <button class="btn btn-primary" type="button" onclick="ProfileManager.showModal('communitySearchModal')">
-                                <i class="fas fa-user-plus"></i> Find People
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Followers Section -->
-                    <div class="community-section active" id="followersSection">
+                <div class="tab-content" id="community-tab">
+                    <div class="section">
                         <div class="section-header">
-                            <h3 class="section-title" id="followersSectionTitle">Your Followers</h3>
-                            <p class="section-subtitle">People keeping up with this profile's saved items and lists.</p>
-                        </div>
-                        <div id="followersList">
-                            <div class="empty-state">
-                                <div class="empty-icon"><i class="fas fa-list"></i></div>
-                                <h3 class="empty-title">No followers yet</h3>
-                                <p class="empty-description">Share a few strong lists and this space will start filling up.</p>
+                            <div>
+                                <h2 class="section-title">My Activity</h2>
+                                <p class="section-subtitle">Your recent saves, lists, and reviews across all media.</p>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Following Section -->
-                    <div class="community-section" id="followingSection">
-                        <div class="section-header">
-                            <h3 class="section-title" id="followingSectionTitle">You're Following</h3>
-                            <p class="section-subtitle">Profiles you follow for ideas, recommendations, and list inspiration.</p>
-                        </div>
-                        <div id="followingList">
-                            <div class="empty-state">
-                                <div class="empty-icon"><i class="fas fa-list"></i></div>
-                                <h3 class="empty-title">Not following anyone yet</h3>
-                                <p class="empty-description">Start following a few people to build a more useful feed.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Activity Section -->
-                    <div class="community-section" id="activitySection">
-                        <div class="section-header">
-                            <h3 class="section-title" id="activitySectionTitle">Community Activity</h3>
-                            <p class="section-subtitle">Recent saves, new lists, and review activity from people you follow.</p>
-                        </div>
-                        <div id="activityList">
+                        <div id="myActivityList">
                             <div class="empty-state">
                                 <div class="empty-icon"><i class="fas fa-list"></i></div>
                                 <h3 class="empty-title">No activity yet</h3>
-                                <p class="empty-description">Follow more people or publish fresh lists to wake this feed up.</p>
+                                <p class="empty-description">Start saving items and creating lists to see your activity here.</p>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
             </section>
 
         </div>
@@ -1931,67 +1863,19 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             </section>
 
             <section class="mobile-primary-panel" data-panel="activity">
-            <!-- Community Section -->
-            <div class="mobile-section" id="mobileCommunitySection">
-                <div class="mobile-section-title">
-                    <span id="mobileCommunityTitle">Community</span>
-                    <div class="community-switcher mobile-community-switcher">
-                        <button class="mobile-action-btn secondary btn-base" onclick="ProfileManager.showCommunitySection('followers')" id="mobileFollowersTabBtn">
-                            Followers
-                        </button>
-                        <button class="mobile-action-btn secondary btn-base" onclick="ProfileManager.showCommunitySection('following')" id="mobileFollowingTabBtn">
-                            Following
-                        </button>
-                        <button class="mobile-action-btn secondary btn-base" onclick="ProfileManager.showCommunitySection('activity')" id="mobileActivityTabBtn">
-                            Activity <span id="mobileActivityCountBadge" class="nav-tab-badge">0</span>
-                        </button>
+                <div class="mobile-section" id="mobileCommunitySection">
+                    <div class="mobile-section-title">
+                        <span>My Activity</span>
+                    </div>
+                    <div class="mobile-section-subtitle">Your recent saves, lists, and reviews across all media.</div>
+                    <div id="mobileMyActivityList">
+                        <div class="mobile-empty-state">
+                            <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
+                            <div class="mobile-empty-title">No activity yet</div>
+                            <div class="mobile-empty-description">Start saving items and creating lists to see your activity here.</div>
+                        </div>
                     </div>
                 </div>
-                <div class="mobile-section-subtitle" id="mobileCommunitySubtitle">Follow collectors, see what they save, and keep up with new lists.</div>
-                <div class="mobile-community-intro">
-                    <div class="mobile-community-intro-copy">
-                        <span class="community-intro-kicker">Network</span>
-                        <strong>Find people worth following</strong>
-                        <p>Build a sharper feed by following profiles with good taste across media and lifestyle.</p>
-                    </div>
-                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.showModal('communitySearchModal')">
-                        <i class="fas fa-user-plus"></i> Find Users
-                    </button>
-                </div>
-                
-                <!-- Followers Tab -->
-                <div class="mobile-community-tab active" id="mobileFollowersTab">
-                    <div id="mobileFollowersList">
-                            <div class="mobile-empty-state">
-                                <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
-                                <div class="mobile-empty-title">No followers yet</div>
-                                <div class="mobile-empty-description">Share a few standout lists and your audience will build over time.</div>
-                            </div>
-                        </div>
-                    </div>
-                
-                <!-- Following Tab -->
-                <div class="mobile-community-tab" id="mobileFollowingTab">
-                    <div id="mobileFollowingList">
-                            <div class="mobile-empty-state">
-                                <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
-                                <div class="mobile-empty-title">Not following anyone</div>
-                                <div class="mobile-empty-description">Follow a few strong profiles to make this tab useful.</div>
-                            </div>
-                        </div>
-                    </div>
-
-                <!-- Activity Tab -->
-                <div class="mobile-community-tab" id="mobileActivityTab">
-                    <div id="mobileActivityList">
-                            <div class="mobile-empty-state">
-                                <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
-                                <div class="mobile-empty-title">No activity yet</div>
-                                <div class="mobile-empty-description">Follow more people or publish new lists to populate this feed.</div>
-                            </div>
-                        </div>
-                    </div>
-            </div>
             </section>
 
         </div>

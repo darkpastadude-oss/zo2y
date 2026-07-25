@@ -3100,6 +3100,63 @@
                         }
                     },
 
+                    async loadMyActivity() {
+                        try {
+                            const uid = currentUser?.id;
+                            if (!uid) return;
+                            const isMobile = window.innerWidth <= 768;
+                            const list = isMobile ? document.getElementById('mobileMyActivityList') : document.getElementById('myActivityList');
+                            if (!list) return;
+
+                            const actorIds = [String(uid).trim()].filter(Boolean);
+                            const rows = await this.fetchActivityRows(actorIds);
+                            if (!rows || !rows.length) {
+                                list.innerHTML = isMobile
+                                    ? `<div class="mobile-empty-state"><div class="mobile-empty-icon">${iconGlyph('list')}</div><div class="mobile-empty-title">No activity yet</div><div class="mobile-empty-description">Start saving items and creating lists to see your activity here.</div></div>`
+                                    : `<div class="empty-state"><div class="empty-icon">${iconGlyph('list')}</div><h3 class="empty-title">No activity yet</h3><p class="empty-description">Start saving items and creating lists to see your activity here.</p></div>`;
+                                return;
+                            }
+
+                            const enrichedRows = await this.enrichActivityRows(rows);
+                            if (isMobile) {
+                                list.innerHTML = `<div class="mobile-activity-feed">${enrichedRows.map((row) => {
+                                    const item = row?.__activityItem || null;
+                                    const itemImage = item?.image ? escapeHtml(String(item.image).trim()) : '';
+                                    const mediaType = String(row?.media_type || '').toLowerCase();
+                                    const mediaLabel = mediaType || 'item';
+                                    const listText = String(row?.__activityListTitle || '').trim();
+                                    const listMetaText = listText ? `List: ${escapeHtml(listText)}` : '';
+                                    const ratingText = row?.rating ? `Rated ${Number(row.rating).toFixed(1)}/5` : '';
+                                    const noteText = escapeHtml(String(row?.review_text || '').trim());
+                                    const primaryMeta = ratingText || listMetaText;
+                                    return `<article class="mobile-activity-item"><div class="mobile-activity-header"><div class="mobile-activity-actor"><span class="mobile-activity-avatar">${iconGlyph('user')}</span><span>YOU</span></div><span class="mobile-activity-time">${this.formatActivityTime(row.created_at)}</span></div><div class="mobile-activity-body"><div class="mobile-activity-thumb">${itemImage ? `<img src="${itemImage}" alt="Item artwork" loading="lazy">` : ''}</div><div class="mobile-activity-main"><div class="mobile-activity-text">${this.renderActivityAction(row)}</div><span class="activity-media-pill"><i class="${iconClass(mediaType)}"></i> ${escapeHtml(mediaLabel)}</span>${primaryMeta ? `<div class="mobile-activity-meta">${primaryMeta}</div>` : ''}${ratingText && listMetaText ? `<div class="mobile-activity-meta">${listMetaText}</div>` : ''}${noteText ? `<div class="mobile-activity-meta">${noteText}</div>` : ''}</div></div></article>`;
+                                }).join('')}</div>`;
+                            } else {
+                                list.innerHTML = `<div class="activity-feed">${enrichedRows.map((row) => {
+                                    const item = row?.__activityItem || null;
+                                    const itemImage = item?.image ? escapeHtml(String(item.image).trim()) : '';
+                                    const mediaType = String(row?.media_type || '').toLowerCase();
+                                    const mediaLabel = mediaType || 'item';
+                                    const listText = String(row?.__activityListTitle || '').trim();
+                                    const listMetaText = listText ? `List: ${escapeHtml(listText)}` : '';
+                                    const ratingText = row?.rating ? `Rated ${Number(row.rating).toFixed(1)}/5` : '';
+                                    const noteText = escapeHtml(String(row?.review_text || '').trim());
+                                    const primaryMeta = ratingText || listMetaText;
+                                    return `<article class="activity-item"><div class="activity-item-header"><div class="activity-item-actor"><span class="activity-item-avatar">${iconGlyph('user')}</span><span>YOU</span></div><span class="activity-item-time">${this.formatActivityTime(row.created_at)}</span></div><div class="activity-item-body"><div class="activity-item-thumb">${itemImage ? `<img src="${itemImage}" alt="Item artwork" loading="lazy">` : ''}</div><div class="activity-item-main"><div class="activity-item-text">${this.renderActivityAction(row)}</div><span class="activity-media-pill"><i class="${iconClass(mediaType)}"></i> ${escapeHtml(mediaLabel)}</span>${primaryMeta ? `<div class="activity-item-meta">${primaryMeta}</div>` : ''}${ratingText && listMetaText ? `<div class="activity-item-meta">${listMetaText}</div>` : ''}${noteText ? `<div class="activity-item-meta">${noteText}</div>` : ''}</div></div></article>`;
+                                }).join('')}</div>`;
+                            }
+                        } catch (error) {
+                            console.error('Error loading my activity:', error);
+                            const isMobile = window.innerWidth <= 768;
+                            const list = isMobile ? document.getElementById('mobileMyActivityList') : document.getElementById('myActivityList');
+                            if (list) {
+                                list.innerHTML = isMobile
+                                    ? `<div class="mobile-empty-state"><div class="mobile-empty-icon">${iconGlyph('list')}</div><div class="mobile-empty-title">Activity unavailable</div><div class="mobile-empty-description">Could not load activity at this time.</div></div>`
+                                    : `<div class="empty-state"><div class="empty-icon">${iconGlyph('list')}</div><h3 class="empty-title">Activity unavailable</h3><p class="empty-description">Could not load activity at this time.</p></div>`;
+                            }
+                        }
+                    },
+
                     async searchUsers() {
                         const userSearch = document.getElementById('userSearch');
                         if (!userSearch) return;
@@ -7047,7 +7104,7 @@
                     fashion: () => renderFashion(),
                     food: () => renderFood(),
                     cars: () => renderCars(),
-                    community: () => showCommunitySection('followers')
+                    community: () => { if (communitySystem) communitySystem.loadMyActivity(); }
                 };
 
                 const handler = handlers[safeTab] || handlers[DEFAULT_PROFILE_TAB] || handlers.movies;
@@ -9598,6 +9655,7 @@ const alreadyActive = isMobile
 
             async function showSportsDetail(listId, listType, isMobile) {
                 if (isMobile) {
+                    hideProfileHeaderForDetail();
                     const mobileView = document.querySelector('.mobile-only');
                     if (mobileView) mobileView.style.display = '';
                     const overviewPanel = document.getElementById('mobileOverviewPanel');
@@ -10757,23 +10815,6 @@ const alreadyActive = isMobile
                     if (statsBar) statsBar.style.display = 'none';
                 }
 
-                if (type === 'sports') {
-                    if (isMobile) {
-                        const mainSection = document.getElementById('mobileSportsSection');
-                        if (mainSection) {
-                            mainSection.style.display = 'block';
-                            mainSection.classList.add('active');
-                        }
-                    } else {
-                        const mainTab = document.getElementById('sports-tab');
-                        if (mainTab) {
-                            mainTab.style.display = 'block';
-                            mainTab.classList.add('active');
-                        }
-                    }
-                    return;
-                }
-
                 const detailFn = {
                     movie: showMovieDetail,
                     tv: showTvDetail,
@@ -10784,7 +10825,8 @@ const alreadyActive = isMobile
                     travel: showTravelDetail,
                     fashion: showFashionDetail,
                     food: showFoodDetail,
-                    car: showCarDetail
+                    car: showCarDetail,
+                    sports: showSportsDetail
                 }[type];
 
                 if (detailFn) {
