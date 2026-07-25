@@ -2593,63 +2593,6 @@
                         throw error;
                     },
 
-                    async loadMyActivity() {
-                        try {
-                            const uid = currentUser?.id;
-                            if (!uid) return;
-                            const isMobile = window.innerWidth <= 768;
-                            const list = isMobile ? document.getElementById('mobileMyActivityList') : document.getElementById('myActivityList');
-                            if (!list) return;
-
-                            const actorIds = [String(uid).trim()].filter(Boolean);
-                            const rows = await this.fetchActivityRows(actorIds);
-                            if (!rows || !rows.length) {
-                                list.innerHTML = isMobile
-                                    ? `<div class="mobile-empty-state"><div class="mobile-empty-icon">${iconGlyph('list')}</div><div class="mobile-empty-title">No activity yet</div><div class="mobile-empty-description">Start saving items and creating lists to see your activity here.</div></div>`
-                                    : `<div class="empty-state"><div class="empty-icon">${iconGlyph('list')}</div><h3 class="empty-title">No activity yet</h3><p class="empty-description">Start saving items and creating lists to see your activity here.</p></div>`;
-                                return;
-                            }
-
-                            const enrichedRows = await this.enrichActivityRows(rows);
-                            if (isMobile) {
-                                list.innerHTML = `<div class="mobile-activity-feed">${enrichedRows.map((row) => {
-                                    const item = row?.__activityItem || null;
-                                    const itemImage = item?.image ? escapeHtml(String(item.image).trim()) : '';
-                                    const mediaType = String(row?.media_type || '').toLowerCase();
-                                    const mediaLabel = mediaType || 'item';
-                                    const listText = String(row?.__activityListTitle || '').trim();
-                                    const listMetaText = listText ? `List: ${escapeHtml(listText)}` : '';
-                                    const ratingText = row?.rating ? `Rated ${Number(row.rating).toFixed(1)}/5` : '';
-                                    const noteText = escapeHtml(String(row?.review_text || '').trim());
-                                    const primaryMeta = ratingText || listMetaText;
-                                    return `<article class="mobile-activity-item"><div class="mobile-activity-header"><div class="mobile-activity-actor"><span class="mobile-activity-avatar">${iconGlyph('user')}</span><span>YOU</span></div><span class="mobile-activity-time">${this.formatActivityTime(row.created_at)}</span></div><div class="mobile-activity-body"><div class="mobile-activity-thumb">${itemImage ? `<img src="${itemImage}" alt="Item artwork" loading="lazy">` : ''}</div><div class="mobile-activity-main"><div class="mobile-activity-text">${this.renderActivityAction(row)}</div><span class="activity-media-pill"><i class="${iconClass(mediaType)}"></i> ${escapeHtml(mediaLabel)}</span>${primaryMeta ? `<div class="mobile-activity-meta">${primaryMeta}</div>` : ''}${ratingText && listMetaText ? `<div class="mobile-activity-meta">${listMetaText}</div>` : ''}${noteText ? `<div class="mobile-activity-meta">${noteText}</div>` : ''}</div></div></article>`;
-                                }).join('')}</div>`;
-                            } else {
-                                list.innerHTML = `<div class="activity-feed">${enrichedRows.map((row) => {
-                                    const item = row?.__activityItem || null;
-                                    const itemImage = item?.image ? escapeHtml(String(item.image).trim()) : '';
-                                    const mediaType = String(row?.media_type || '').toLowerCase();
-                                    const mediaLabel = mediaType || 'item';
-                                    const listText = String(row?.__activityListTitle || '').trim();
-                                    const listMetaText = listText ? `List: ${escapeHtml(listText)}` : '';
-                                    const ratingText = row?.rating ? `Rated ${Number(row.rating).toFixed(1)}/5` : '';
-                                    const noteText = escapeHtml(String(row?.review_text || '').trim());
-                                    const primaryMeta = ratingText || listMetaText;
-                                    return `<article class="activity-item"><div class="activity-item-header"><div class="activity-item-actor"><span class="activity-item-avatar">${iconGlyph('user')}</span><span>YOU</span></div><span class="activity-item-time">${this.formatActivityTime(row.created_at)}</span></div><div class="activity-item-body"><div class="activity-item-thumb">${itemImage ? `<img src="${itemImage}" alt="Item artwork" loading="lazy">` : ''}</div><div class="activity-item-main"><div class="activity-item-text">${this.renderActivityAction(row)}</div><span class="activity-media-pill"><i class="${iconClass(mediaType)}"></i> ${escapeHtml(mediaLabel)}</span>${primaryMeta ? `<div class="activity-item-meta">${primaryMeta}</div>` : ''}${ratingText && listMetaText ? `<div class="activity-item-meta">${listMetaText}</div>` : ''}${noteText ? `<div class="activity-item-meta">${noteText}</div>` : ''}</div></div></article>`;
-                                }).join('')}</div>`;
-                            }
-                        } catch (error) {
-                            console.error('Error loading my activity:', error);
-                            const isMobile = window.innerWidth <= 768;
-                            const list = isMobile ? document.getElementById('mobileMyActivityList') : document.getElementById('myActivityList');
-                            if (list) {
-                                list.innerHTML = isMobile
-                                    ? `<div class="mobile-empty-state"><div class="mobile-empty-icon">${iconGlyph('list')}</div><div class="mobile-empty-title">Activity unavailable</div><div class="mobile-empty-description">Could not load activity at this time.</div></div>`
-                                    : `<div class="empty-state"><div class="empty-icon">${iconGlyph('list')}</div><h3 class="empty-title">Activity unavailable</h3><p class="empty-description">Could not load activity at this time.</p></div>`;
-                            }
-                        }
-                    },
-
                     async searchUsers() {
                         const userSearch = document.getElementById('userSearch');
                         if (!userSearch) return;
@@ -6573,7 +6516,7 @@
                     fashion: () => renderFashion(),
                     food: () => renderFood(),
                     cars: () => renderCars(),
-                    community: () => { if (communitySystem) communitySystem.loadMyActivity(); }
+                    community: () => { location.href = 'community.html?tab=activity'; }
                 };
 
                 const handler = handlers[safeTab] || handlers[DEFAULT_PROFILE_TAB] || handlers.movies;
@@ -7617,11 +7560,16 @@ const alreadyActive = isMobile
                 const count = orderedIds.length;
                 const iconGlyphStr = iconGlyph(list.icon, normalizedType === 'restaurant' ? 'restaurant' : (normalizedType === 'movie' ? 'movie' : (normalizedType === 'tv' ? 'tv' : (normalizedType === 'anime' ? 'anime' : (normalizedType === 'game' ? 'game' : (normalizedType === 'book' ? 'book' : (normalizedType === 'travel' ? 'travel' : (normalizedType === 'car' ? 'car' : 'music'))))))));
 
+                const canDelete = !list.is_default && isViewingOwnProfile;
+                const deleteBtnHtml = canDelete
+                    ? `<button class="btn-action-icon btn-action-danger" onclick="event.stopPropagation();ProfileManager.deleteCollection('${safeListId}', '${normalizedType}')" title="Delete Collection" style="flex-shrink:0;"><i class="fas fa-trash"></i></button>`
+                    : '';
+
                 if (isMobile) {
                     rail.innerHTML = `
                         <div class="mph2-row-hd" style="cursor: pointer;" onclick="ProfileManager.openCollectionPage('${safeListId}', '${normalizedType}', '${safeListType}')">
                             <span class="mph2-row-label" style="display:flex;align-items:center;gap:6px;">${iconGlyphStr} <span class="pv2-rail-title-base">${list.title}</span><span class="pv2-rail-title-showcase hidden"></span></span>
-                            <a class="mph2-row-viewall">collections <i class="fas fa-chevron-right"></i></a>
+                            <div style="display:flex;align-items:center;gap:6px;margin-left:auto;flex-shrink:0;">${deleteBtnHtml}<a class="mph2-row-viewall">collections <i class="fas fa-chevron-right"></i></a></div>
                         </div>
                         <div class="mph2-row-track" id="track-${safeListId}"></div>
                     `;
@@ -7629,7 +7577,7 @@ const alreadyActive = isMobile
                     rail.innerHTML = `
                         <div class="pv2-rail-header" style="cursor: pointer;" onclick="ProfileManager.openCollectionPage('${safeListId}', '${normalizedType}', '${safeListType}')">
                             <div class="pv2-rail-title" style="display:flex;align-items:center;gap:8px;">${iconGlyphStr} <span class="pv2-rail-title-base">${list.title}</span><span class="pv2-rail-title-showcase hidden"></span></div>
-                            <a class="pv2-rail-viewall">collections <i class="fas fa-chevron-right"></i></a>
+                            <div style="display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0;">${deleteBtnHtml}<a class="pv2-rail-viewall">collections <i class="fas fa-chevron-right"></i></a></div>
                         </div>
                         <div class="pv2-rail-track" id="track-${safeListId}"></div>
                     `;
@@ -9119,39 +9067,37 @@ const alreadyActive = isMobile
             }
 
             async function showSportsDetail(listId, listType, isMobile) {
+                hideProfileHeaderForDetail();
+                const categoryView = document.getElementById('pv2CategoryView');
+                if (categoryView) categoryView.style.display = 'none';
+
                 if (isMobile) {
-                    hideProfileHeaderForDetail();
                     const mobileView = document.querySelector('.mobile-only');
                     if (mobileView) mobileView.style.display = '';
-                    const overviewPanel = document.getElementById('mobileOverviewPanel');
-                    if (overviewPanel) overviewPanel.style.display = 'none';
                     const mobileListsPanel = document.getElementById('mobileListsPanel');
                     if (mobileListsPanel) mobileListsPanel.style.display = 'block';
+                    document.querySelectorAll('#mobileListsPanel .mobile-section').forEach(function(el) {
+                        el.style.display = 'none';
+                        el.classList.remove('active', 'rendered');
+                    });
                     const section = document.getElementById('mobileSportsSection');
                     if (section) {
                         section.style.display = 'block';
-                        section.classList.add('active');
+                        section.classList.add('active', 'rendered');
                     }
                 } else {
                     const desktopView = document.querySelector('.desktop-only');
                     if (desktopView) desktopView.style.display = '';
-                    const profileContainer = document.getElementById('pv2Overview')?.closest('.container');
-                    if (profileContainer) profileContainer.style.display = '';
-                    const overview = document.getElementById('pv2Overview');
-                    if (overview) overview.style.display = 'none';
-                    const profileHeader = document.querySelector('.profile-header');
-                    if (profileHeader) profileHeader.style.display = 'none';
-                    const statsBar = document.querySelector('.pv2-stats');
-                    if (statsBar) statsBar.style.display = 'none';
+                    document.querySelectorAll('.tab-content').forEach(function(tc) {
+                        tc.style.display = 'none';
+                        tc.classList.remove('active', 'rendered');
+                    });
                     const tab = document.getElementById('sports-tab');
                     if (tab) {
                         tab.style.display = '';
-                        tab.classList.add('active');
+                        tab.classList.add('active', 'rendered');
                     }
                 }
-
-                const categoryView = document.getElementById('pv2CategoryView');
-                if (categoryView) categoryView.style.display = 'none';
 
                 await renderSports();
 
@@ -11376,7 +11322,7 @@ return;
                     try {
                         const type = item.media_type;
                         const id = item.media_id;
-                        if (type === 'movie' || type === 'tv') {
+                        if (type === 'movie' || type === 'tv' || type === 'anime') {
                             const endpoint = type === 'movie' ? 'movie' : 'tv';
                             const res = await fetch(`/api/tmdb/${endpoint}/${id}?language=en`);
                             if (!res.ok) return null;
@@ -11407,12 +11353,17 @@ return;
                             const currentLayerId = activeLayer === 'A' ? 'backdropLayerA' : 'backdropLayerB';
                             const nextEl = document.getElementById(nextLayerId);
                             const currentEl = document.getElementById(currentLayerId);
+                            const mobileBackdrop = document.getElementById('mobileBannerBackdrops');
 
                             if (nextEl && currentEl) {
                                 nextEl.style.backgroundImage = `url("${url}")`;
                                 nextEl.classList.add('active');
                                 currentEl.classList.remove('active');
                                 activeLayer = activeLayer === 'A' ? 'B' : 'A';
+                            }
+                            if (mobileBackdrop) {
+                                mobileBackdrop.style.backgroundImage = `url("${url}")`;
+                                mobileBackdrop.classList.remove('is-empty');
                             }
                             img.onload = null;
                             img.onerror = null;
@@ -11431,12 +11382,25 @@ return;
                     stop();
                     if (!featuredItems || !featuredItems.length) {
                         const autoList = [];
-                        const favs = favoriteIds || {};
-                        ['movie', 'tv', 'game'].forEach(t => {
-                            (favs[t] || []).slice(0, 5).forEach(id => {
-                                autoList.push({ media_type: t, media_id: String(id) });
-                            });
-                        });
+                        try {
+                            const userId = currentUser?.id;
+                            if (userId && supabase) {
+                                const { data: favItems } = await supabase
+                                    .from('list_items')
+                                    .select('item_id, media_type')
+                                    .eq('user_id', userId)
+                                    .eq('list_type', 'favorites')
+                                    .in('media_type', ['movie', 'tv', 'anime'])
+                                    .order('created_at', { ascending: false })
+                                    .limit(30);
+                                if (Array.isArray(favItems) && favItems.length) {
+                                    const shuffled = favItems.slice().sort(() => Math.random() - 0.5);
+                                    shuffled.slice(0, 10).forEach(row => {
+                                        autoList.push({ media_type: row.media_type, media_id: String(row.item_id) });
+                                    });
+                                }
+                            }
+                        } catch (_e) {}
                         featuredItems = autoList;
                     }
 

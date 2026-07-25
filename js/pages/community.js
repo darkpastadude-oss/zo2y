@@ -753,13 +753,15 @@ window.CommunityManager = (function() {
 
         try {
             const user = await getCurrentUser();
-            if (activityFilter !== 'all') {
+            if (activityFilter === 'following') {
                 await loadFollowingSet();
+            } else if (activityFilter === 'followers') {
                 await loadFollowersSet();
             }
 
             const filterSet = activityFilter === 'following' ? followingSet
                 : activityFilter === 'followers' ? followersSet
+                : activityFilter === 'you' ? (user?.id ? new Set([String(user.id).trim()]) : new Set())
                 : null;
 
             let activityItems = await loadFromActivityFeed(client, filterSet);
@@ -1026,6 +1028,8 @@ window.CommunityManager = (function() {
             ? { title: 'no activity from people you follow.', desc: 'follow some members to see their updates here.' }
             : activityFilter === 'followers'
             ? { title: 'no activity from your followers.', desc: 'when members follow you and start saving, their activity appears here.' }
+            : activityFilter === 'you'
+            ? { title: 'no activity from you yet.', desc: 'start saving items and creating lists to see your activity here.' }
             : { title: 'no activity yet.', desc: 'when members add media to their lists, it will show up here.' };
 
         container.innerHTML = `
@@ -3302,16 +3306,22 @@ window.CommunityManager = (function() {
 
     // Auto-init on page load
     document.addEventListener('DOMContentLoaded', function() {
-        const activeTabBtn = document.querySelector('.community-tab-btn.active');
-        const activeTab = activeTabBtn ? activeTabBtn.getAttribute('data-tab') : 'discover';
-        if (activeTab === 'discover') {
-            loadDiscoverFeed();
-        } else if (activeTab === 'activity') {
-            loadActivityFeed();
-        } else if (activeTab === 'reviews') {
-            loadReviewsFeed();
+        const params = new URLSearchParams(window.location.search);
+        const urlTab = params.get('tab');
+        if (urlTab && ['discover', 'activity', 'reviews', 'people', 'following', 'followers', 'lists'].includes(urlTab)) {
+            switchTab(urlTab);
         } else {
-            loadReviewsFeed();
+            const activeTabBtn = document.querySelector('.community-tab-btn.active');
+            const activeTab = activeTabBtn ? activeTabBtn.getAttribute('data-tab') : 'discover';
+            if (activeTab === 'discover') {
+                loadDiscoverFeed();
+            } else if (activeTab === 'activity') {
+                loadActivityFeed();
+            } else if (activeTab === 'reviews') {
+                loadReviewsFeed();
+            } else {
+                loadReviewsFeed();
+            }
         }
         loadFollowingSet();
         loadFollowersSet();
