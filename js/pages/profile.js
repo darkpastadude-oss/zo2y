@@ -10407,6 +10407,9 @@ const alreadyActive = isMobile
                         if (badgesInput) badgesInput.value = normalizeProfileBadges(userProfile.profile_badges || []).join(', ');
                         document.getElementById('editIsPrivate').checked = userProfile.is_private || false;
                         populateShowcaseSettings();
+                        // Banner position
+                        const savedPos = userProfile.banner_position_y != null ? parseInt(userProfile.banner_position_y) : 50;
+                        if (!isNaN(savedPos)) _setBannerPos(savedPos);
                     }
 
                     if (modalId === 'accountSettingsModal' && currentUser) {
@@ -10980,6 +10983,8 @@ const alreadyActive = isMobile
                 }
                 
                 try {
+                    const bannerPosSlider = document.getElementById('bannerPositionSlider');
+                    const bannerPositionY = bannerPosSlider ? parseInt(bannerPosSlider.value) || 50 : null;
                     const normalizedUsername = await ensureProfileUsernameAvailable(rawUsername, currentUser?.id);
                     const updatePayload = {
                         full_name: normalizedUsername,
@@ -10991,15 +10996,17 @@ const alreadyActive = isMobile
                         updated_at: new Date().toISOString()
                     };
                     if (profileTheme) updatePayload.profile_theme = profileTheme;
+                    if (bannerPositionY !== null) updatePayload.banner_position_y = bannerPositionY;
                     let { error } = await supabase
                         .from('user_profiles')
                         .update(updatePayload)
                         .eq('id', currentUser.id);
 
-                    if (error && (String(error.message || '').includes('profile_theme') || String(error.message || '').includes('profile_badges'))) {
+                    if (error && (String(error.message || '').includes('profile_theme') || String(error.message || '').includes('profile_badges') || String(error.message || '').includes('banner_position_y'))) {
                         const fallbackPayload = { ...updatePayload };
                         delete fallbackPayload.profile_theme;
                         delete fallbackPayload.profile_badges;
+                        delete fallbackPayload.banner_position_y;
                         ({ error } = await supabase
                             .from('user_profiles')
                             .update(fallbackPayload)
@@ -11018,6 +11025,7 @@ const alreadyActive = isMobile
                         is_private: isPrivate
                     };
                     if (profileTheme) userProfile.profile_theme = profileTheme;
+                    if (bannerPositionY !== null) userProfile.banner_position_y = bannerPositionY;
                     manualProfileBadges = [...customBadges];
 
                     const authMetadataResult = await supabase.auth.updateUser({
@@ -11345,8 +11353,9 @@ return;
                 function preloadAndFade(url) {
                     if (!url) return Promise.resolve();
                     return new Promise((resolve) => {
-                        const img = new Image();
-                        img.onload = function() {
+                        const tempImg = new Image();
+                        tempImg.onload = function() {
+                            const posY = (userProfile?.banner_position_y ?? 50);
                             const nextLayerId = activeLayer === 'A' ? 'backdropLayerB' : 'backdropLayerA';
                             const currentLayerId = activeLayer === 'A' ? 'backdropLayerA' : 'backdropLayerB';
                             const nextEl = document.getElementById(nextLayerId);
@@ -11354,28 +11363,32 @@ return;
                             const mobileBackdrop = document.getElementById('mobileBannerBackdrops');
 
                             if (nextEl && currentEl) {
-                                nextEl.style.backgroundImage = `url("${url}")`;
+                                nextEl.src = url;
+                                nextEl.style.setProperty('--banner-pos-y', posY + '%');
                                 nextEl.classList.add('active');
                                 currentEl.classList.remove('active');
                                 activeLayer = activeLayer === 'A' ? 'B' : 'A';
                             }
                             if (mobileBackdrop) {
                                 mobileBackdrop.innerHTML = '';
-                                mobileBackdrop.style.backgroundImage = `url("${url}")`;
-                                mobileBackdrop.style.backgroundSize = 'cover';
-                                mobileBackdrop.style.backgroundPosition = 'center';
+                                const mImg = document.createElement('img');
+                                mImg.className = 'mobile-backdrop-img';
+                                mImg.alt = '';
+                                mImg.style.objectPosition = 'center ' + posY + '%';
+                                mImg.src = url;
+                                mobileBackdrop.appendChild(mImg);
                                 mobileBackdrop.classList.remove('is-empty');
                             }
-                            img.onload = null;
-                            img.onerror = null;
+                            tempImg.onload = null;
+                            tempImg.onerror = null;
                             resolve();
                         };
-                        img.onerror = function() {
-                            img.onload = null;
-                            img.onerror = null;
+                        tempImg.onerror = function() {
+                            tempImg.onload = null;
+                            tempImg.onerror = null;
                             resolve();
                         };
-                        img.src = url;
+                        tempImg.src = url;
                     });
                 }
 
@@ -11423,6 +11436,29 @@ return;
                 return { init, stop };
             })();
 
+            function _setBannerPos(pos) {
+                const slider = document.getElementById('bannerPositionSlider');
+                const valueEl = document.getElementById('bannerPositionValue');
+                const presets = document.querySelectorAll('.banner-pos-preset');
+                if (slider) slider.value = pos;
+                if (valueEl) {
+                    const label = pos <= 30 ? 'Top' : pos >= 70 ? 'Bottom' : 'Center';
+                    valueEl.textContent = label;
+                }
+                presets.forEach(function(btn) {
+                    btn.classList.toggle('active', parseInt(btn.getAttribute('data-pos')) === pos);
+                });
+                // Preview position on active backdrop
+                const activeLayer = document.querySelector('.pv2-backdrop-layer.active');
+                if (activeLayer) {
+                    activeLayer.style.setProperty('--banner-pos-y', pos + '%');
+                }
+                const mobileImg = document.querySelector('.mobile-backdrop-img');
+                if (mobileImg) {
+                    mobileImg.style.objectPosition = 'center ' + pos + '%';
+                }
+            }
+
             function toggleOverflowMenu() {
                 var menu = document.getElementById('profileOverflowMenu');
                 if (menu) menu.classList.toggle('open');
@@ -11443,6 +11479,7 @@ return;
                 searchTrackedMediaForBackdrops,
                 addFeaturedBackdrop,
                 removeFeaturedBackdrop,
+                _setBannerPos,
                 ProfileBackdropEngine,
                 toggleOverflowMenu,
                 closeOverflowMenu,

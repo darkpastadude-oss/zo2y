@@ -37,7 +37,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     </script>
     <link rel="stylesheet" href="css/animations.css?v=1751700000z">
     <link rel="stylesheet" href="css/skeleton.css?v=20260705">
-    <link rel="stylesheet" href="css/pages/profile.css?v=20260708a">
+    <link rel="stylesheet" href="css/pages/profile.css?v=20260725a">
     <link rel="icon" href="/favicon.ico" sizes="any" />
 <link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
   <meta name="theme-color" content="#0b1633" />
@@ -55,7 +55,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 <script src="js/shared-header.js?v=20260721B" defer></script>
 
     <script src="/js/components/list-modal.js?v=20260722b" defer></script>
-    <script src="js/pages/profile.js?v=20260724B" defer></script>
+    <script src="js/pages/profile.js?v=20260725a" defer></script>
     <noscript></noscript>
 
   
@@ -111,8 +111,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <!-- Cinematic banner — JS populates background via ProfileBackdropEngine -->
                 <div class="pv2-banner" id="profileBanner">
                     <div class="pv2-banner-backdrops" id="bannerBackdrops">
-                        <div class="pv2-backdrop-layer active" id="backdropLayerA"></div>
-                        <div class="pv2-backdrop-layer" id="backdropLayerB"></div>
+                        <img class="pv2-backdrop-layer active" id="backdropLayerA" alt="">
+                        <img class="pv2-backdrop-layer" id="backdropLayerB" alt="">
                     </div>
                     <div class="pv2-banner-overlay"></div>
                     <div class="pv2-banner-vignette"></div>
@@ -1978,6 +1978,20 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                         <option value="sunset">Sunset Amber (#fb923c)</option>
                                         <option value="forest">Forest Moss (#84cc16)</option>
                                     </select>
+                                </div>
+
+                                <div class="form-group mt-16">
+                                    <label class="form-label">Banner Image Position</label>
+                                    <small class="text-muted d-block mb-8">Adjust how your backdrop is cropped vertically.</small>
+                                    <div class="banner-pos-presets">
+                                        <button type="button" class="banner-pos-preset" data-pos="20" onclick="ProfileManager._setBannerPos(20)">Top</button>
+                                        <button type="button" class="banner-pos-preset active" data-pos="50" onclick="ProfileManager._setBannerPos(50)">Center</button>
+                                        <button type="button" class="banner-pos-preset" data-pos="80" onclick="ProfileManager._setBannerPos(80)">Bottom</button>
+                                    </div>
+                                    <div class="banner-pos-slider-wrap">
+                                        <input type="range" class="banner-pos-slider" id="bannerPositionSlider" min="0" max="100" value="50" oninput="ProfileManager._setBannerPos(parseInt(this.value))">
+                                        <span class="banner-pos-value" id="bannerPositionValue">Center</span>
+                                    </div>
                                 </div>
                             </div>
 
