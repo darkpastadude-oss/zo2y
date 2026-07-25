@@ -37,7 +37,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     </script>
     <link rel="stylesheet" href="css/animations.css?v=1751700000z">
     <link rel="stylesheet" href="css/skeleton.css?v=20260705">
-    <link rel="stylesheet" href="css/pages/profile.css?v=20260725b">
+    <link rel="stylesheet" href="css/pages/profile.css?v=20260725c">
     <link rel="icon" href="/favicon.ico" sizes="any" />
 <link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
   <meta name="theme-color" content="#0b1633" />
@@ -55,7 +55,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 <script src="js/shared-header.js?v=20260721B" defer></script>
 
     <script src="/js/components/list-modal.js?v=20260722b" defer></script>
-    <script src="js/pages/profile.js?v=20260725b" defer></script>
+    <script src="js/pages/profile.js?v=20260725c" defer></script>
     <noscript></noscript>
 
   
@@ -1984,13 +1984,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                     <label class="form-label">Banner Image Position</label>
                                     <small class="text-muted d-block mb-8">Adjust how your backdrop is cropped vertically.</small>
                                     <div class="banner-pos-presets">
-                                        <button type="button" class="banner-pos-preset" data-pos="20" onclick="ProfileManager._setBannerPos(20)">Top</button>
-                                        <button type="button" class="banner-pos-preset active" data-pos="50" onclick="ProfileManager._setBannerPos(50)">Center</button>
+                                        <button type="button" class="banner-pos-preset active" data-pos="20" onclick="ProfileManager._setBannerPos(20)">Top</button>
+                                        <button type="button" class="banner-pos-preset" data-pos="50" onclick="ProfileManager._setBannerPos(50)">Center</button>
                                         <button type="button" class="banner-pos-preset" data-pos="80" onclick="ProfileManager._setBannerPos(80)">Bottom</button>
                                     </div>
                                     <div class="banner-pos-slider-wrap">
-                                        <input type="range" class="banner-pos-slider" id="bannerPositionSlider" min="0" max="100" value="50" oninput="ProfileManager._setBannerPos(parseInt(this.value))">
-                                        <span class="banner-pos-value" id="bannerPositionValue">Center</span>
+                                        <input type="range" class="banner-pos-slider" id="bannerPositionSlider" min="0" max="100" value="20" oninput="ProfileManager._setBannerPos(parseInt(this.value))">
+                                        <span class="banner-pos-value" id="bannerPositionValue">Top</span>
                                     </div>
                                 </div>
                             </div>

@@ -10408,7 +10408,7 @@ const alreadyActive = isMobile
                         document.getElementById('editIsPrivate').checked = userProfile.is_private || false;
                         populateShowcaseSettings();
                         // Banner position
-                        const savedPos = userProfile.banner_position_y != null ? parseInt(userProfile.banner_position_y) : 50;
+                        const savedPos = userProfile.banner_position_y != null ? parseInt(userProfile.banner_position_y) : 15;
                         if (!isNaN(savedPos)) _setBannerPos(savedPos);
                     }
 
@@ -11365,7 +11365,7 @@ return;
                         };
                         const timer = setTimeout(() => done(false), 8000);
                         tempImg.onload = function() {
-                            const posY = (userProfile?.banner_position_y ?? 50);
+                            const posY = (userProfile?.banner_position_y ?? 15);
                             const nextLayerId = activeLayer === 'A' ? 'backdropLayerB' : 'backdropLayerA';
                             const currentLayerId = activeLayer === 'A' ? 'backdropLayerA' : 'backdropLayerB';
                             const nextEl = document.getElementById(nextLayerId);
