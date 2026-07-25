@@ -2056,13 +2056,27 @@ window.CommunityManager = (function() {
             if (rows && rows.length) {
                 rows.forEach(function(row) {
                     var url = row.logo_url || '';
-                    if (url && !url.startsWith('http')) url = (getSupabaseConfig().url || '') + '/storage/v1/object/public/brand-logos/' + url;
+                    if (url && !url.startsWith('http')) {
+                        if (url.indexOf('brand-logos') !== -1 || url.indexOf('food_brands/') !== -1 || url.indexOf('fashion_brands/') !== -1) {
+                            var domain = url.replace(/.*\//, '').replace(/\.[^.]+$/, '').replace(/-/g, '.');
+                            url = '/api/logo?domain=' + encodeURIComponent(domain) + '&mode=logo';
+                        } else {
+                            url = (getSupabaseConfig().url || '') + '/storage/v1/object/public/brand-logos/' + url;
+                        }
+                    }
                     map[String(row.id)] = url || '';
                 });
             } else {
                 map = await individualFallback(table, 'id, logo_url', uniqueIds, false, function(d) {
                     var url = d.logo_url || '';
-                    if (url && !url.startsWith('http')) url = (getSupabaseConfig().url || '') + '/storage/v1/object/public/brand-logos/' + url;
+                    if (url && !url.startsWith('http')) {
+                        if (url.indexOf('brand-logos') !== -1 || url.indexOf('food_brands/') !== -1 || url.indexOf('fashion_brands/') !== -1) {
+                            var domain = url.replace(/.*\//, '').replace(/\.[^.]+$/, '').replace(/-/g, '.');
+                            url = '/api/logo?domain=' + encodeURIComponent(domain) + '&mode=logo';
+                        } else {
+                            url = (getSupabaseConfig().url || '') + '/storage/v1/object/public/brand-logos/' + url;
+                        }
+                    }
                     return url;
                 });
             }
@@ -2841,6 +2855,10 @@ window.CommunityManager = (function() {
         if (!val) return '';
         if (val.includes('unavatar.io') || val.includes('google.com/s2/favicons') || val.includes('icon.horse') || val.endsWith('.ico')) return '';
         if (/^https?:\/\//i.test(val) || val.startsWith('/') || val.startsWith('data:')) return val;
+        if (val.indexOf('brand-logos') !== -1 || val.indexOf('food_brands/') !== -1 || val.indexOf('fashion_brands/') !== -1) {
+            var domain = val.replace(/.*\//, '').replace(/\.[^.]+$/, '').replace(/-/g, '.');
+            return '/api/logo?domain=' + encodeURIComponent(domain) + '&mode=logo';
+        }
         var config = getSupabaseConfig();
         var base = config.url || '';
         return base + '/storage/v1/object/public/brand-logos/' + val;

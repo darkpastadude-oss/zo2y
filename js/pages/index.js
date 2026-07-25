@@ -10245,32 +10245,32 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         { title: 'UFC', image: '/assets/sports/ufc-logo.svg' }
       ],
       food: [
-        { title: 'McDonald\'s', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/food_brands/mcdonalds-com.svg' },
-        { title: 'KFC', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/food_brands/kfc-com.svg' },
-        { title: 'Starbucks', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/food_brands/starbucks-com.png' },
-        { title: 'Taco Bell', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/food_brands/tacobell-com.jpg' },
-        { title: 'Burger King', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/food_brands/burgerking-com.svg' },
-        { title: 'Domino\'s', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/food_brands/dominos-com.svg' },
-        { title: 'Subway', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/food_brands/subway-com.svg' },
+        { title: 'McDonald\'s', image: '/api/logo?title=McDonald%27s&domain=mcdonalds.com&mode=logo' },
+        { title: 'KFC', image: '/api/logo?title=KFC&domain=kfc.com&mode=logo' },
+        { title: 'Starbucks', image: '/api/logo?title=Starbucks&domain=starbucks.com&mode=logo' },
+        { title: 'Taco Bell', image: '/api/logo?title=Taco+Bell&domain=tacobell.com&mode=logo' },
+        { title: 'Burger King', image: '/api/logo?title=Burger+King&domain=burgerking.com&mode=logo' },
+        { title: 'Domino\'s', image: '/api/logo?title=Domino%27s&domain=dominos.com&mode=logo' },
+        { title: 'Subway', image: '/api/logo?title=Subway&domain=subway.com&mode=logo' },
         { title: 'Chipotle', image: 'https://upload.wikimedia.org/wikipedia/en/3/3b/Chipotle_Mexican_Grill_logo.svg' },
-        { title: 'Popeyes', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/food_brands/popeyes-com.svg' },
-        { title: 'Wendy\'s', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/food_brands/wendys-com.svg' },
-        { title: 'Pizza Hut', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/food_brands/pizzahut-com.svg' },
-        { title: 'Shake Shack', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/food_brands/shakeshack-com.svg' }
+        { title: 'Popeyes', image: '/api/logo?title=Popeyes&domain=popeyes.com&mode=logo' },
+        { title: 'Wendy\'s', image: '/api/logo?title=Wendy%27s&domain=wendys.com&mode=logo' },
+        { title: 'Pizza Hut', image: '/api/logo?title=Pizza+Hut&domain=pizzahut.com&mode=logo' },
+        { title: 'Shake Shack', image: '/api/logo?title=Shake+Shack&domain=shakeshack.com&mode=logo' }
       ],
       fashion: [
-        { title: 'Nike', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/fashion_brands/nike-com.svg' },
-        { title: 'Adidas', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/fashion_brands/adidas-com.svg' },
-        { title: 'Zara', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/fashion_brands/zara-com.jpeg' },
-        { title: 'Uniqlo', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/fashion_brands/uniqlo-com.svg' },
-        { title: 'H&M', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/fashion_brands/hm-com.svg' },
-        { title: 'Gucci', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/fashion_brands/gucci-com.svg' },
-        { title: 'Louis Vuitton', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/fashion_brands/louisvuitton-com.svg' },
-        { title: 'Prada', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/fashion_brands/prada-com.svg' },
-        { title: 'Dior', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/fashion_brands/dior-com.svg' },
-        { title: 'Chanel', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/fashion_brands/chanel-com.svg' },
-        { title: 'Burberry', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/fashion_brands/burberry-com.svg' },
-        { title: 'Supreme', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/fashion_brands/supremenewyork-com.svg' }
+        { title: 'Nike', image: '/api/logo?title=Nike&domain=nike.com&mode=logo' },
+        { title: 'Adidas', image: '/api/logo?title=Adidas&domain=adidas.com&mode=logo' },
+        { title: 'Zara', image: '/api/logo?title=Zara&domain=zara.com&mode=logo' },
+        { title: 'Uniqlo', image: '/api/logo?title=Uniqlo&domain=uniqlo.com&mode=logo' },
+        { title: 'H&M', image: '/api/logo?title=H%26M&domain=hm.com&mode=logo' },
+        { title: 'Gucci', image: '/api/logo?title=Gucci&domain=gucci.com&mode=logo' },
+        { title: 'Louis Vuitton', image: '/api/logo?title=Louis+Vuitton&domain=louisvuitton.com&mode=logo' },
+        { title: 'Prada', image: '/api/logo?title=Prada&domain=prada.com&mode=logo' },
+        { title: 'Dior', image: '/api/logo?title=Dior&domain=dior.com&mode=logo' },
+        { title: 'Chanel', image: '/api/logo?title=Chanel&domain=chanel.com&mode=logo' },
+        { title: 'Burberry', image: '/api/logo?title=Burberry&domain=burberry.com&mode=logo' },
+        { title: 'Supreme', image: '/api/logo?title=Supreme&domain=supremenewyork.com&mode=logo' }
       ]
     };
     const LANDING_REVIEW_SOURCES = [

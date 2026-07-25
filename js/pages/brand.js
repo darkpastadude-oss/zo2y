@@ -129,6 +129,14 @@
         direct.startsWith("data:")
       ) {
         url = direct;
+      } else if (direct.indexOf('brand-logos') !== -1 || direct.indexOf('food_brands/') !== -1 || direct.indexOf('fashion_brands/') !== -1) {
+        const title = String(name || '').trim();
+        const dRaw = String(domain || '').trim();
+        const params = new URLSearchParams();
+        if (title) params.set('title', title);
+        if (dRaw) params.set('domain', dRaw);
+        params.set('mode', 'logo');
+        return '/api/logo?' + params.toString();
       } else {
         url = `${SUPABASE_URL}/storage/v1/object/public/brand-logos/${direct}`;
       }
