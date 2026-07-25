@@ -316,12 +316,10 @@
                         ProfileShowcase.init(supabase);
                     }
 
+                    communitySystem = createCommunitySystem();
+
                     const loadProfilePromise = loadProfile();
-                    const communityInitPromise = (async () => {
-                        communitySystem = createCommunitySystem();
-                        return communitySystem.init();
-                    })();
-                    
+
                     if (timeoutHandle) clearTimeout(timeoutHandle);
                     timeoutHandle = setTimeout(() => {
                         if (!initCompleted) {
@@ -330,10 +328,6 @@
                     }, INIT_TIMEOUT_MS);
 
                     await loadProfilePromise;
-                    await Promise.race([
-                        communityInitPromise,
-                        new Promise(resolve => setTimeout(resolve, 3000))
-                    ]);
 
                     setupEventListeners();
                     showPrimaryTab('overview', { force: true, skipTabSync: true });
@@ -658,9 +652,7 @@
                         event.stopImmediatePropagation();
                         if (currentPrimaryTab !== 'lists') {
                             showPrimaryTab('lists', { force: true, skipTabSync: true });
-                            const fallbackTab = lastMediaTab && lastMediaTab !== 'community'
-                                ? lastMediaTab
-                                : DEFAULT_PROFILE_TAB;
+                            const fallbackTab = lastMediaTab || DEFAULT_PROFILE_TAB;
                             showTab(fallbackTab, { skipUrlSync: true, skipPrimarySync: true, skipRender: true });
                         }
                         const group = toggle.getAttribute('data-group');
@@ -736,20 +728,17 @@
                 if (isMobile) {
                     const overviewPanel = document.getElementById('mobileOverviewPanel');
                     const listsPanel = document.getElementById('mobileListsPanel');
-                    const communityPanel = document.getElementById('mobileCommunityPanel');
                     const spaContainer = document.getElementById('mobileSpaViewAllContainer');
                     const mediaToggle = document.querySelector('.mobile-media-toggle');
 
                     if (safeTab === 'lists') {
                         if (overviewPanel) overviewPanel.style.display = 'none';
                         if (listsPanel) listsPanel.style.display = 'none';
-                        if (communityPanel) communityPanel.style.display = 'none';
                         if (spaContainer) spaContainer.innerHTML = '';
                         if (mediaToggle) mediaToggle.style.display = '';
                     } else if (safeTab === 'activity') {
                         if (overviewPanel) overviewPanel.style.display = 'none';
                         if (listsPanel) listsPanel.style.display = 'none';
-                        if (communityPanel) communityPanel.style.display = '';
                         if (spaContainer) spaContainer.innerHTML = '';
                         if (mediaToggle) mediaToggle.style.display = 'none';
                     }
@@ -783,9 +772,7 @@
 
                 if (!options.skipTabSync) {
                     if (safeTab === 'lists') {
-                        const targetTab = lastMediaTab && lastMediaTab !== 'community'
-                            ? lastMediaTab
-                            : DEFAULT_PROFILE_TAB;
+                        const targetTab = lastMediaTab || DEFAULT_PROFILE_TAB;
                         showTab(targetTab, { skipUrlSync: true, skipPrimarySync: true });
                     } else if (safeTab === 'activity') {
                         showTab('community', { skipUrlSync: true, skipPrimarySync: true });
@@ -1553,7 +1540,6 @@
                 const fashionTitle = document.getElementById('fashionTitle');
                 const foodTitle = document.getElementById('foodTitle');
                 const carsTitle = document.getElementById('carsTitle');
-                const communityTitle = document.getElementById('communityTitle');
                 const journalSubtitle = document.getElementById('journalSubtitle');
                 const restaurantsSubtitle = document.getElementById('restaurantsSubtitle');
                 const moviesSubtitle = document.getElementById('moviesSubtitle');
@@ -1567,9 +1553,6 @@
                 const fashionSubtitle = document.getElementById('fashionSubtitle');
                 const foodSubtitle = document.getElementById('foodSubtitle');
                 const carsSubtitle = document.getElementById('carsSubtitle');
-                const communitySubtitle = document.getElementById('communitySubtitle');
-                const followersSectionTitle = document.getElementById('followersSectionTitle');
-                const followingSectionTitle = document.getElementById('followingSectionTitle');
                 const viewingOtherProfileText = document.getElementById('viewingOtherProfileText');
                 const mobileViewingOtherProfileText = document.getElementById('mobileViewingOtherProfileText');
                 
@@ -1599,7 +1582,6 @@
                 if (fashionTitle) fashionTitle.textContent = `${userName}'s Fashion`;
                 if (foodTitle) foodTitle.textContent = `${userName}'s Food`;
                 if (carsTitle) carsTitle.textContent = `${userName}'s Cars`;
-                if (communityTitle) communityTitle.textContent = `${userName}'s Community`;
                 if (journalSubtitle) journalSubtitle.textContent = `${userName}'s restaurant reviews and experiences`;
                 if (restaurantsSubtitle) restaurantsSubtitle.textContent = `${userName}'s featured collections`;
                 if (moviesSubtitle) moviesSubtitle.textContent = `${userName}'s favorite films`;
@@ -1613,9 +1595,6 @@
                 if (fashionSubtitle) fashionSubtitle.textContent = `${userName}'s favorite fashion brands`;
                 if (foodSubtitle) foodSubtitle.textContent = `${userName}'s favorite food brands`;
                 if (carsSubtitle) carsSubtitle.textContent = `${userName}'s favorite car brands`;
-                if (communitySubtitle) communitySubtitle.textContent = `${userName}'s community connections`;
-                if (followersSectionTitle) followersSectionTitle.textContent = `${userName}'s Followers`;
-                if (followingSectionTitle) followingSectionTitle.textContent = `${userName}'s Following`;
                 if (viewingOtherProfileText) viewingOtherProfileText.textContent = `Viewing ${userName}'s profile`;
                 if (mobileViewingOtherProfileText) mobileViewingOtherProfileText.textContent = `${userName}'s profile`;
                 
@@ -1645,7 +1624,6 @@
                 const mobileFashionTitle = document.getElementById('mobileFashionTitle');
                 const mobileFoodTitle = document.getElementById('mobileFoodTitle');
                 const mobileCarsTitle = document.getElementById('mobileCarsTitle');
-                const mobileCommunityTitle = document.getElementById('mobileCommunityTitle');
                 const mobileJournalSubtitle = document.getElementById('mobileJournalSubtitle');
                 const mobileRestaurantsSubtitle = document.getElementById('mobileRestaurantsSubtitle');
                 const mobileMoviesSubtitle = document.getElementById('mobileMoviesSubtitle');
@@ -1658,7 +1636,6 @@
                 const mobileFashionSubtitle = document.getElementById('mobileFashionSubtitle');
                 const mobileFoodSubtitle = document.getElementById('mobileFoodSubtitle');
                 const mobileCarsSubtitle = document.getElementById('mobileCarsSubtitle');
-                const mobileCommunitySubtitle = document.getElementById('mobileCommunitySubtitle');
                 
                 if (mobileTabMovies) mobileTabMovies.textContent = `${userName}'s Movies`;
                 if (mobileJournalTabText) mobileJournalTabText.textContent = `${userName}'s Journal`;
@@ -1686,7 +1663,6 @@
                 if (mobileFashionTitle) mobileFashionTitle.textContent = `${userName}'s Fashion`;
                 if (mobileFoodTitle) mobileFoodTitle.textContent = `${userName}'s Food`;
                 if (mobileCarsTitle) mobileCarsTitle.textContent = `${userName}'s Cars`;
-                if (mobileCommunityTitle) mobileCommunityTitle.textContent = `${userName}'s Community`;
                 if (mobileJournalSubtitle) mobileJournalSubtitle.textContent = `${userName}'s restaurant reviews and experiences`;
                 if (mobileRestaurantsSubtitle) mobileRestaurantsSubtitle.textContent = `${userName}'s featured collections`;
                 if (mobileMoviesSubtitle) mobileMoviesSubtitle.textContent = `${userName}'s favorite films`;
@@ -1699,7 +1675,6 @@
                 if (mobileFashionSubtitle) mobileFashionSubtitle.textContent = `${userName}'s favorite fashion brands`;
                 if (mobileFoodSubtitle) mobileFoodSubtitle.textContent = `${userName}'s favorite food brands`;
                 if (mobileCarsSubtitle) mobileCarsSubtitle.textContent = `${userName}'s favorite car brands`;
-                if (mobileCommunitySubtitle) mobileCommunitySubtitle.textContent = `${userName}'s community connections`;
             }
 
             // ===== FOLLOW SYSTEM =====
@@ -1804,10 +1779,6 @@
                     
                     // Update stats
                     await updateStats();
-                    if (communitySystem) {
-                        await communitySystem.loadFollowStats();
-                        communitySystem.refreshCurrentView();
-                    }
                     
                 } catch (error) {
                     console.error('Error toggling follow:', error);
@@ -2152,7 +2123,6 @@
                     
                     // Update badges
                     updateFollowBadges(followersCount);
-                    await renderCommunityPreview(targetId, followersCount, followingCount);
                     
                 } catch (error) {
                     console.error('Error updating stats:', error);
@@ -2200,84 +2170,10 @@
                 }
             }
 
-            async function renderCommunityPreview(targetId, followersCount, followingCount) {
-                const desktopAvatars = document.getElementById('desktopFriendsPreviewAvatars');
-                const mobileAvatars = document.getElementById('mobileFriendsPreviewAvatars');
-                if (!desktopAvatars && !mobileAvatars) return;
-
-                try {
-                    const [followersRes, followingRes] = await Promise.all([
-                        supabase
-                            .from('follows')
-                            .select('follower_id, created_at')
-                            .eq('followed_id', targetId)
-                            .order('created_at', { ascending: false })
-                            .limit(4),
-                        supabase
-                            .from('follows')
-                            .select('followed_id, created_at')
-                            .eq('follower_id', targetId)
-                            .order('created_at', { ascending: false })
-                            .limit(4)
-                    ]);
-
-                    const candidateIds = [];
-                    (followersRes.data || []).forEach((row) => {
-                        if (row?.follower_id) candidateIds.push(row.follower_id);
-                    });
-                    (followingRes.data || []).forEach((row) => {
-                        if (row?.followed_id) candidateIds.push(row.followed_id);
-                    });
-                    const uniqueIds = [...new Set(candidateIds)].filter(Boolean).slice(0, 6);
-
-                    if (!uniqueIds.length) {
-                        const emptyAvatar = `<span class="social-preview-avatar">${iconGlyph('user')}</span>`;
-                        if (desktopAvatars) desktopAvatars.innerHTML = emptyAvatar;
-                        if (mobileAvatars) mobileAvatars.innerHTML = emptyAvatar;
-                        return;
-                    }
-
-                    const { data: users } = await supabase
-                        .from('user_profiles')
-                        .select('id, username, full_name, avatar_icon')
-                        .in('id', uniqueIds);
-
-                    const userMap = new Map();
-                    (users || []).forEach((user) => userMap.set(user.id, user));
-
-                    const avatarsHtml = uniqueIds.map((id) => {
-                        const user = userMap.get(id);
-                        const label = escapeHtml(user?.full_name || user?.username || 'User');
-                        const rawAvatar = String(user?.avatar_icon || '').trim();
-                        const avatar = rawAvatar ? escapeHtml(rawAvatar) : iconGlyph('user');
-                        return `<button class="social-preview-avatar" title="${label}" onclick="ProfileManager.viewUserProfile('${id}')">${avatar}</button>`;
-                    }).join('');
-
-                    if (desktopAvatars) desktopAvatars.innerHTML = avatarsHtml;
-                    if (mobileAvatars) mobileAvatars.innerHTML = avatarsHtml;
-                } catch (error) {
-                    console.error('Error rendering community preview:', error);
-                    const fallback = `<span class="social-preview-avatar">${iconGlyph('user')}</span>`;
-                    if (desktopAvatars) desktopAvatars.innerHTML = fallback;
-                    if (mobileAvatars) mobileAvatars.innerHTML = fallback;
-                } finally {
-                    const desktopMeta = document.getElementById('desktopSocialPreviewMeta');
-                    const mobileMeta = document.getElementById('mobileSocialPreviewMeta');
-                    const summaryText = `${followersCount} followers Â· ${followingCount} following`;
-                    if (desktopMeta) desktopMeta.textContent = summaryText;
-                    if (mobileMeta) mobileMeta.textContent = summaryText;
-                }
-            }
-
-            // ===== CREATE COMMUNITY SYSTEM =====
+            // ===== CREATE ACTIVITY SYSTEM =====
             function createCommunitySystem() {
                 return {
-                    currentSection: 'followers',
-                    loadedUsersCache: new Set(),
-                    
                     async init() {
-                        await this.loadFollowStats();
-                        
                         const userSearch = document.getElementById('userSearch');
                         if (userSearch) {
                             userSearch.addEventListener('input', () => {
@@ -2288,230 +2184,6 @@
                                     this.searchUsers();
                                 }, 300);
                             });
-                        }
-                    },
-
-                    async loadFollowStats() {
-                        try {
-                            const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
-                            
-                            // Get followers count
-                            const { count: followersCount, error: followersError } = await supabase
-                                .from('follows')
-                                .select('*', { count: 'exact', head: true })
-                                .eq('followed_id', targetId);
-
-                            // Get following count
-                            const { count: followingCount, error: followingError } = await supabase
-                                .from('follows')
-                                .select('*', { count: 'exact', head: true })
-                                .eq('follower_id', targetId);
-
-                            const followersCountBadge = document.getElementById('followersCountBadge');
-                            const followingCountBadge = document.getElementById('followingCountBadge');
-                            
-                            if (followersCountBadge) {
-                                followersCountBadge.textContent = followersCount || 0;
-                                followersCountBadge.style.display = (followersCount || 0) > 0 ? 'inline-block' : 'none';
-                            }
-                            if (followingCountBadge) {
-                                followingCountBadge.textContent = followingCount || 0;
-                                followingCountBadge.style.display = (followingCount || 0) > 0 ? 'inline-block' : 'none';
-                            }
-
-                            // Get activity count
-                            this.loadActivityCount(targetId);
-
-                            await renderCommunityPreview(targetId, followersCount || 0, followingCount || 0);
-
-                        } catch (error) {
-                            console.error('Error loading follow stats:', error);
-                        }
-                    },
-
-                    async loadActivityCount(targetId) {
-                        try {
-                            const { data: follows } = await supabase
-                                .from('follows')
-                                .select('followed_id')
-                                .eq('follower_id', targetId)
-                                .limit(80);
-
-                            const actorIds = [...new Set([
-                                String(targetId || '').trim(),
-                                ...((follows || []).map((row) => String(row?.followed_id || '').trim()))
-                            ].filter(Boolean))].slice(0, 80);
-
-                            if (!actorIds.length) {
-                                this.updateActivityBadge(0);
-                                return;
-                            }
-
-                            const { count, error } = await supabase
-                                .from('user_activity_feed')
-                                .select('id', { count: 'exact', head: true })
-                                .in('actor_id', actorIds);
-
-                            if (!error) {
-                                this.updateActivityBadge(count || 0);
-                            } else {
-                                const code = String(error?.code || '').toUpperCase();
-                                const msg = String(error?.message || '').toLowerCase();
-                                const missingTable = code === 'PGRST205' || msg.includes('user_activity_feed') || msg.includes('could not find the table');
-                                if (!missingTable) {
-                                    console.warn('Activity count query failed:', error);
-                                }
-                            }
-                        } catch (e) {
-                            // silently fail
-                        }
-                    },
-
-                    updateActivityBadge(count) {
-                        const badge = document.getElementById('activityCountBadge');
-                        const mobileBadge = document.getElementById('mobileActivityCountBadge');
-                        const text = String(count || 0);
-                        if (badge) { badge.textContent = text; badge.style.display = count > 0 ? 'inline-block' : 'none'; }
-                        if (mobileBadge) { mobileBadge.textContent = text; mobileBadge.style.display = count > 0 ? 'inline-block' : 'none'; }
-                    },
-
-                    async loadFollowers() {
-                        try {
-                            const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
-                            
-                            const { data: follows, error } = await supabase
-                                .from('follows')
-                                .select('follower_id')
-                                .eq('followed_id', targetId);
-
-                            if (error) throw error;
-
-                            const isMobile = window.innerWidth <= 768;
-                            const followersList = isMobile ? document.getElementById('mobileFollowersList') : document.getElementById('followersList');
-                            if (!followersList) return;
-
-                            if (!follows || follows.length === 0) {
-                                const emptyText = isViewingOwnProfile ? 
-                                    'Share your profile to get followers!' :
-                                    'This user doesn\'t have any followers yet.';
-                                
-                                if (isMobile) {
-                                    followersList.innerHTML = `
-                                        <div class="mobile-empty-state">
-                                            <div class="mobile-empty-icon">${iconGlyph('list')}</div>
-                                            <div class="mobile-empty-title">No followers yet</div>
-                                            <div class="mobile-empty-description">${emptyText}</div>
-                                        </div>
-                                    `;
-                                } else {
-                                    followersList.innerHTML = `
-                                        <div class="empty-state">
-                                            <div class="empty-icon">${iconGlyph('list')}</div>
-                                            <h3 class="empty-title">No followers yet</h3>
-                                            <p class="empty-description">${emptyText}</p>
-                                        </div>
-                                    `;
-                                }
-                                return;
-                            }
-
-                            this.loadedUsersCache.clear();
-                            const followerIds = follows.map(f => f.follower_id);
-                            const uniqueFollowerIds = [...new Set(followerIds)];
-                            
-                            const { data: users, error: usersError } = await supabase
-                                .from('user_profiles')
-                                .select('*')
-                                .in('id', uniqueFollowerIds);
-
-                            if (!usersError) {
-                                // Fetch actual stats for each user
-                                const usersWithStats = await Promise.all(
-                                    (users || []).map(async (user) => {
-                                        const stats = await getUserStats(user.id);
-                                        return {
-                                            ...user,
-                                            savedItemsCount: stats.savedItemsCount,
-                                            createdListsCount: stats.listsCount
-                                        };
-                                    })
-                                );
-
-                                this.displayUsers(usersWithStats, isMobile ? 'mobileFollowersList' : 'followersList');
-                            }
-                        } catch (error) {
-                            console.error('Error loading followers:', error);
-                            showToast('Error loading followers', 'error');
-                        }
-                    },
-
-                    async loadFollowing() {
-                        try {
-                            const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
-                            
-                            const { data: follows, error } = await supabase
-                                .from('follows')
-                                .select('followed_id')
-                                .eq('follower_id', targetId);
-
-                            if (error) throw error;
-
-                            const isMobile = window.innerWidth <= 768;
-                            const followingList = isMobile ? document.getElementById('mobileFollowingList') : document.getElementById('followingList');
-                            if (!followingList) return;
-
-                            if (!follows || follows.length === 0) {
-                                const emptyText = isViewingOwnProfile ? 
-                                    'Discover and follow people you like!' :
-                                    'This user isn\'t following anyone yet.';
-                                
-                                if (isMobile) {
-                                    followingList.innerHTML = `
-                                        <div class="mobile-empty-state">
-                                            <div class="mobile-empty-icon">${iconGlyph('list')}</div>
-                                            <div class="mobile-empty-title">${isViewingOwnProfile ? 'Not following anyone yet' : 'No following yet'}</div>
-                                            <div class="mobile-empty-description">${emptyText}</div>
-                                        </div>
-                                    `;
-                                } else {
-                                    followingList.innerHTML = `
-                                        <div class="empty-state">
-                                            <div class="empty-icon">${iconGlyph('list')}</div>
-                                            <h3 class="empty-title">${isViewingOwnProfile ? 'Not following anyone yet' : 'No following yet'}</h3>
-                                            <p class="empty-description">${emptyText}</p>
-                                        </div>
-                                    `;
-                                }
-                                return;
-                            }
-
-                            this.loadedUsersCache.clear();
-                            const followingIds = follows.map(f => f.followed_id);
-                            const uniqueFollowingIds = [...new Set(followingIds)];
-                            
-                            const { data: users, error: usersError } = await supabase
-                                .from('user_profiles')
-                                .select('*')
-                                .in('id', uniqueFollowingIds);
-
-                            if (!usersError) {
-                                // Fetch actual stats for each user
-                                const usersWithStats = await Promise.all(
-                                    (users || []).map(async (user) => {
-                                        const stats = await getUserStats(user.id);
-                                        return {
-                                            ...user,
-                                            savedItemsCount: stats.savedItemsCount,
-                                            createdListsCount: stats.listsCount
-                                        };
-                                    })
-                                );
-
-                                this.displayUsers(usersWithStats, isMobile ? 'mobileFollowingList' : 'followingList');
-                            }
-                        } catch (error) {
-                            console.error('Error loading following:', error);
-                            showToast('Error loading following', 'error');
                         }
                     },
 
@@ -2921,185 +2593,6 @@
                         throw error;
                     },
 
-                    async loadActivity() {
-                        try {
-                            const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
-                            const isMobile = window.innerWidth <= 768;
-                            const list = isMobile ? document.getElementById('mobileActivityList') : document.getElementById('activityList');
-                            if (!list) return;
-
-                            const { data: follows } = await supabase
-                                .from('follows')
-                                .select('followed_id')
-                                .eq('follower_id', targetId)
-                                .limit(80);
-
-                            const actorIds = [...new Set([
-                                String(targetId || '').trim(),
-                                ...((follows || []).map((row) => String(row?.followed_id || '').trim()))
-                            ].filter(Boolean))].slice(0, 80);
-
-                            if (!actorIds.length) {
-                                list.innerHTML = isMobile
-                                    ? `
-                                        <div class="mobile-empty-state">
-                                            <div class="mobile-empty-icon">${iconGlyph('list')}</div>
-                                            <div class="mobile-empty-title">No activity yet</div>
-                                            <div class="mobile-empty-description">Follow users to see their list updates and reviews.</div>
-                                        </div>
-                                    `
-                                    : `
-                                        <div class="empty-state">
-                                            <div class="empty-icon">${iconGlyph('list')}</div>
-                                            <h3 class="empty-title">No activity yet</h3>
-                                            <p class="empty-description">Follow users to see their list updates and reviews.</p>
-                                        </div>
-                                    `;
-                                return;
-                            }
-
-                            const rows = await this.fetchActivityRows(actorIds);
-                            this.updateActivityBadge(rows?.length || 0);
-                            if (!rows || !rows.length) {
-                                list.innerHTML = isMobile
-                                    ? `
-                                        <div class="mobile-empty-state">
-                                            <div class="mobile-empty-icon">${iconGlyph('list')}</div>
-                                            <div class="mobile-empty-title">No activity yet</div>
-                                            <div class="mobile-empty-description">No recent list updates or reviews were found.</div>
-                                        </div>
-                                    `
-                                    : `
-                                        <div class="empty-state">
-                                            <div class="empty-icon">${iconGlyph('list')}</div>
-                                            <h3 class="empty-title">No activity yet</h3>
-                                            <p class="empty-description">No recent list updates or reviews were found.</p>
-                                        </div>
-                                    `;
-                                return;
-                            }
-
-                            const profileIds = [...new Set(rows.map((r) => String(r?.actor_id || '').trim()).filter(Boolean))];
-                            const { data: profiles } = await supabase
-                                .from('user_profiles')
-                                .select('id, username, full_name, avatar_icon')
-                                .in('id', profileIds);
-                            const profileMap = new Map((profiles || []).map((p) => [String(p.id), p]));
-                            const enrichedRows = await this.enrichActivityRows(rows);
-
-                            if (isMobile) {
-                                list.innerHTML = `
-                                    <div class="mobile-activity-feed">
-                                        ${enrichedRows.map((row) => {
-                                            const profile = profileMap.get(String(row.actor_id)) || {};
-                                            const isCurrentActor = String(row?.actor_id || '').trim() === String(currentUser?.id || '').trim();
-                                            const actorName = isCurrentActor
-                                                ? 'YOU'
-                                                : escapeHtml(profile.username || profile.full_name || 'User');
-                                            const ratingText = row?.rating ? `Rated ${Number(row.rating).toFixed(1)}/5` : '';
-                                            const noteText = escapeHtml(String(row?.review_text || '').trim());
-                                            const listText = String(row?.__activityListTitle || '').trim();
-                                            const listMetaText = listText ? `List: ${escapeHtml(listText)}` : '';
-                                            const item = row?.__activityItem || null;
-                                            const itemImage = escapeHtml(String(item?.image || '').trim());
-                                            const mediaType = String(row?.media_type || '').toLowerCase();
-                                            const mediaLabel = mediaType || 'item';
-                                            const primaryMeta = ratingText || listMetaText;
-                                            return `
-                                                <article class="mobile-activity-item">
-                                                    <div class="mobile-activity-header">
-                                                        <div class="mobile-activity-actor">
-                                                            <span class="mobile-activity-avatar">${profile.avatar_icon || iconGlyph('user')}</span>
-                                                            <span>${actorName}</span>
-                                                        </div>
-                                                        <span class="mobile-activity-time">${this.formatActivityTime(row.created_at)}</span>
-                                                    </div>
-                                                    <div class="mobile-activity-body">
-                                                        <div class="mobile-activity-thumb">
-                                                            ${itemImage ? `<img src="${itemImage}" alt="Item artwork" loading="lazy">` : ''}
-                                                        </div>
-                                                        <div class="mobile-activity-main">
-                                                            <div class="mobile-activity-text">${this.renderActivityAction(row)}</div>
-                                                            <span class="activity-media-pill"><i class="${iconClass(mediaType)}"></i> ${escapeHtml(mediaLabel)}</span>
-                                                            ${primaryMeta ? `<div class="mobile-activity-meta">${primaryMeta}</div>` : ''}
-                                                            ${ratingText && listMetaText ? `<div class="mobile-activity-meta">${listMetaText}</div>` : ''}
-                                                            ${noteText ? `<div class="mobile-activity-meta">${noteText}</div>` : ''}
-                                                        </div>
-                                                    </div>
-                                                </article>
-                                            `;
-                                        }).join('')}
-                                    </div>
-                                `;
-                            } else {
-                                list.innerHTML = `
-                                    <div class="activity-feed">
-                                        ${enrichedRows.map((row) => {
-                                            const profile = profileMap.get(String(row.actor_id)) || {};
-                                            const isCurrentActor = String(row?.actor_id || '').trim() === String(currentUser?.id || '').trim();
-                                            const actorName = isCurrentActor
-                                                ? 'YOU'
-                                                : escapeHtml(profile.username || profile.full_name || 'User');
-                                            const ratingText = row?.rating ? `Rated ${Number(row.rating).toFixed(1)}/5` : '';
-                                            const noteText = escapeHtml(String(row?.review_text || '').trim());
-                                            const listText = String(row?.__activityListTitle || '').trim();
-                                            const listMetaText = listText ? `List: ${escapeHtml(listText)}` : '';
-                                            const item = row?.__activityItem || null;
-                                            const itemImage = escapeHtml(String(item?.image || '').trim());
-                                            const mediaType = String(row?.media_type || '').toLowerCase();
-                                            const mediaLabel = mediaType || 'item';
-                                            const primaryMeta = ratingText || listMetaText;
-                                            return `
-                                                <article class="activity-item">
-                                                    <div class="activity-item-header">
-                                                        <div class="activity-item-actor">
-                                                            <span class="activity-item-avatar">${profile.avatar_icon || iconGlyph('user')}</span>
-                                                            <span>${actorName}</span>
-                                                        </div>
-                                                        <span class="activity-item-time">${this.formatActivityTime(row.created_at)}</span>
-                                                    </div>
-                                                    <div class="activity-item-body">
-                                                        <div class="activity-item-thumb">
-                                                            ${itemImage ? `<img src="${itemImage}" alt="Item artwork" loading="lazy">` : ''}
-                                                        </div>
-                                                        <div class="activity-item-main">
-                                                            <div class="activity-item-text">${this.renderActivityAction(row)}</div>
-                                                            <span class="activity-media-pill"><i class="${iconClass(mediaType)}"></i> ${escapeHtml(mediaLabel)}</span>
-                                                            ${primaryMeta ? `<div class="activity-item-meta">${primaryMeta}</div>` : ''}
-                                                            ${ratingText && listMetaText ? `<div class="activity-item-meta">${listMetaText}</div>` : ''}
-                                                            ${noteText ? `<div class="activity-item-meta">${noteText}</div>` : ''}
-                                                        </div>
-                                                    </div>
-                                                </article>
-                                            `;
-                                        }).join('')}
-                                    </div>
-                                `;
-                            }
-                        } catch (error) {
-                            console.error('Error loading activity feed:', error);
-                            const isMobile = window.innerWidth <= 768;
-                            const list = isMobile ? document.getElementById('mobileActivityList') : document.getElementById('activityList');
-                            if (list) {
-                                list.innerHTML = isMobile
-                                    ? `
-                                        <div class="mobile-empty-state">
-                                            <div class="mobile-empty-icon">${iconGlyph('list')}</div>
-                                            <div class="mobile-empty-title">Activity unavailable</div>
-                                            <div class="mobile-empty-description">Run the activity feed SQL migration and try again.</div>
-                                        </div>
-                                    `
-                                    : `
-                                        <div class="empty-state">
-                                            <div class="empty-icon">${iconGlyph('list')}</div>
-                                            <h3 class="empty-title">Activity unavailable</h3>
-                                            <p class="empty-description">Run the activity feed SQL migration and try again.</p>
-                                        </div>
-                                    `;
-                            }
-                        }
-                    },
-
                     async loadMyActivity() {
                         try {
                             const uid = currentUser?.id;
@@ -3178,8 +2671,6 @@
                         }
 
                         try {
-                            this.loadedUsersCache.clear();
-                            
                             const { data: users, error } = await supabase
                                 .from('user_profiles')
                                 .select('*')
@@ -3234,16 +2725,8 @@
                         }
 
                         container.innerHTML = '';
-                        
-                        const uniqueUsers = users.filter(user => {
-                            if (this.loadedUsersCache.has(user.id)) {
-                                return false;
-                            }
-                            this.loadedUsersCache.add(user.id);
-                            return true;
-                        });
 
-                        for (const user of uniqueUsers) {
+                        for (const user of users) {
                             const isPrivate = user.is_private === true;
                             const isCurrentUser = user.id === currentUser.id;
                             
@@ -3346,20 +2829,6 @@
                         }
                     },
 
-                    refreshCurrentView() {
-                        const userSearch = document.getElementById('userSearch');
-                        if (userSearch && userSearch.value) {
-                            this.searchUsers();
-                        } else {
-                            if (this.currentSection === 'followers') {
-                                this.loadFollowers();
-                            } else if (this.currentSection === 'activity') {
-                                this.loadActivity();
-                            } else {
-                                this.loadFollowing();
-                            }
-                        }
-                    }
                 };
             }
 
@@ -5564,7 +5033,7 @@
                 const cardsHtml = movies.map(m => `
                     <div class="movie-list-movie-card" onclick="window.location.href='movie.html?id=${m?.id}'">
                         <button class="movie-remove-btn" onclick="event.stopPropagation(); ProfileManager.removeMovieFromList('${listId}', '${listType}', ${m?.id})">
-                            <i class="fas fa-times"></i>
+                            <i class="fas fa-trash-alt"></i>
                         </button>
                         <img src="${m && m.poster_path ? TMDB_POSTER + m.poster_path : 'images/placeholder.jpg'}" alt="${m?.title || 'Movie'}">
                         <div class="movie-list-movie-body">
@@ -5577,7 +5046,7 @@
                     const mobileCards = movies.map(m => `
                         <div class="movie-list-movie-card" onclick="window.location.href='movie.html?id=${m?.id}'">
                             <button class="movie-remove-btn" onclick="event.stopPropagation(); ProfileManager.removeMovieFromList('${listId}', '${listType}', ${m?.id})">
-                                <i class="fas fa-times"></i>
+                                <i class="fas fa-trash-alt"></i>
                             </button>
                             <img src="${m && m.poster_path ? TMDB_POSTER + m.poster_path : 'images/placeholder.jpg'}" alt="${m?.title || 'Movie'}">
                             <div class="movie-list-movie-body">
@@ -6371,7 +5840,7 @@
                     const username = escapeHtml(collab.username || '');
                     const safeId = String(collab.collaborator_id || '').replace(/'/g, "\\'");
                     const removeBtn = canManage
-                        ? `<button type="button" class="collab-chip-remove" onclick="ProfileManager.removeMediaListCollaborator('${safeId}')" title="Remove collaborator"><i class="fas fa-times"></i></button>`
+                        ? `<button type="button" class="collab-chip-remove" onclick="ProfileManager.removeMediaListCollaborator('${safeId}')" title="Remove collaborator"><i class="fas fa-trash-alt"></i></button>`
                         : '';
                     return `
                         <span class="collab-chip">
@@ -7320,12 +6789,10 @@ const alreadyActive = isMobile
                 if (isMobile) {
                     const overviewPanel = document.getElementById('mobileOverviewPanel');
                     const listsPanel = document.getElementById('mobileListsPanel');
-                    const communityPanel = document.getElementById('mobileCommunityPanel');
                     const mediaToggle = document.querySelector('.mobile-media-toggle');
 
                     if (overviewPanel) overviewPanel.style.display = 'none';
                     if (listsPanel) listsPanel.style.display = 'block';
-                    if (communityPanel) communityPanel.style.display = 'none';
                     if (mediaToggle) mediaToggle.style.display = 'none';
 
                     document.querySelectorAll('.mobile-section').forEach(section => {
@@ -7910,7 +7377,7 @@ const alreadyActive = isMobile
                         <h3 class="collection-item-title">${name}</h3>
                         ${canRemove ? `
                             <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${escapeHtml(id)}', 'favorites', 'sports', 'default')">
-                                <i class="fas fa-times"></i> Remove
+                                <i class="fas fa-trash-alt"></i> Remove
                             </button>
                         ` : ''}
                         <div class="collection-item-meta">
@@ -7919,7 +7386,7 @@ const alreadyActive = isMobile
                     </div>
                     ${canRemove ? `
                         <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${escapeHtml(id)}', 'favorites', 'sports', 'default')">
-                            <i class="fas fa-times"></i>
+                            <i class="fas fa-trash-alt"></i>
                         </button>
                     ` : ''}
                 `;
@@ -8551,8 +8018,6 @@ const alreadyActive = isMobile
                     if (mobileView) mobileView.style.display = '';
                     const overviewPanel = document.getElementById('mobileOverviewPanel');
                     if (overviewPanel) overviewPanel.style.display = 'none';
-                    const communityPanel = document.getElementById('mobileCommunityPanel');
-                    if (communityPanel) communityPanel.style.display = 'none';
                     const mobileListsPanel = document.getElementById('mobileListsPanel');
                     if (mobileListsPanel) mobileListsPanel.style.display = 'block';
                     document.querySelectorAll('#mobileListsPanel .mobile-section').forEach(function(el) {
@@ -9391,7 +8856,7 @@ const alreadyActive = isMobile
                             <h3 class="collection-item-title">${gameTitle}</h3>
                             ${canEditItems ? `
                                 <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${safeGameId}', '${listId}', 'game', '${listType}')">
-                                    <i class="fas fa-times"></i> Remove
+                                    <i class="fas fa-trash-alt"></i> Remove
                                 </button>
                             ` : ''}
                             <div class="collection-item-meta">
@@ -9402,7 +8867,7 @@ const alreadyActive = isMobile
                         </div>
                         ${canEditItems ? `
                             <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${safeGameId}', '${listId}', 'game', '${listType}')">
-                                <i class="fas fa-times"></i>
+                                <i class="fas fa-trash-alt"></i>
                             </button>
                         ` : ''}
                     `;
@@ -9624,7 +9089,7 @@ const alreadyActive = isMobile
                             <h3 class="collection-item-title">${ProfileManager.escapeHtml(title)}</h3>
                             ${canEditItems ? `
                                 <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${id}', '${listId}', 'book', '${listType}')">
-                                    <i class="fas fa-times"></i> Remove
+                                    <i class="fas fa-trash-alt"></i> Remove
                                 </button>
                             ` : ''}
                             <div class="collection-item-meta">
@@ -9635,7 +9100,7 @@ const alreadyActive = isMobile
                         </div>
                         ${canEditItems ? `
                             <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${id}', '${listId}', 'book', '${listType}')">
-                                <i class="fas fa-times"></i>
+                                <i class="fas fa-trash-alt"></i>
                             </button>
                         ` : ''}
                     `;
@@ -9660,8 +9125,6 @@ const alreadyActive = isMobile
                     if (mobileView) mobileView.style.display = '';
                     const overviewPanel = document.getElementById('mobileOverviewPanel');
                     if (overviewPanel) overviewPanel.style.display = 'none';
-                    const communityPanel = document.getElementById('mobileCommunityPanel');
-                    if (communityPanel) communityPanel.style.display = 'none';
                     const mobileListsPanel = document.getElementById('mobileListsPanel');
                     if (mobileListsPanel) mobileListsPanel.style.display = 'block';
                     const section = document.getElementById('mobileSportsSection');
@@ -9873,7 +9336,7 @@ const alreadyActive = isMobile
                             <h3 class="collection-item-title">${ProfileManager.escapeHtml(title)}</h3>
                             ${canEditItems ? `
                                 <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${trackId}', '${listId}', 'music', '${listType}')">
-                                    <i class="fas fa-times"></i> Remove
+                                    <i class="fas fa-trash-alt"></i> Remove
                                 </button>
                             ` : ''}
                             <div class="collection-item-meta">
@@ -9882,7 +9345,7 @@ const alreadyActive = isMobile
                         </div>
                         ${canEditItems ? `
                             <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${trackId}', '${listId}', 'music', '${listType}')">
-                                <i class="fas fa-times"></i>
+                                <i class="fas fa-trash-alt"></i>
                             </button>
                         ` : ''}
                     `;
@@ -10069,7 +9532,7 @@ const alreadyActive = isMobile
                             <h3 class="collection-item-title">${escapeHtml(title)}</h3>
                             ${canEditItems ? `
                                 <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${escapeHtml(code)}', '${listId}', 'travel', '${listType}')">
-                                    <i class="fas fa-times"></i> Remove
+                                    <i class="fas fa-trash-alt"></i> Remove
                                 </button>
                             ` : ''}
                             <div class="collection-item-meta">
@@ -10080,7 +9543,7 @@ const alreadyActive = isMobile
                         </div>
                         ${canEditItems ? `
                             <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${escapeHtml(code)}', '${listId}', 'travel', '${listType}')">
-                                <i class="fas fa-times"></i>
+                                <i class="fas fa-trash-alt"></i>
                             </button>
                         ` : ''}
                     `;
@@ -10263,7 +9726,7 @@ const alreadyActive = isMobile
                             <h3 class="collection-item-title">${escapeHtml(title)}</h3>
                             ${canEditItems ? `
                                 <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${escapeHtml(id)}', '${listId}', 'fashion', '${listType}')">
-                                    <i class="fas fa-times"></i> Remove
+                                    <i class="fas fa-trash-alt"></i> Remove
                                 </button>
                             ` : ''}
                             <div class="collection-item-meta">
@@ -10273,7 +9736,7 @@ const alreadyActive = isMobile
                         </div>
                         ${canEditItems ? `
                             <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${escapeHtml(id)}', '${listId}', 'fashion', '${listType}')">
-                                <i class="fas fa-times"></i>
+                                <i class="fas fa-trash-alt"></i>
                             </button>
                         ` : ''}
                     `;
@@ -10443,7 +9906,7 @@ const alreadyActive = isMobile
                             <h3 class="collection-item-title">${escapeHtml(title)}</h3>
                             ${canEditItems ? `
                                 <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${escapeHtml(id)}', '${listId}', 'car', '${listType}')">
-                                    <i class="fas fa-times"></i> Remove
+                                    <i class="fas fa-trash-alt"></i> Remove
                                 </button>
                             ` : ''}
                             <div class="collection-item-meta">
@@ -10453,7 +9916,7 @@ const alreadyActive = isMobile
                         </div>
                         ${canEditItems ? `
                             <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${escapeHtml(id)}', '${listId}', 'car', '${listType}')">
-                                <i class="fas fa-times"></i>
+                                <i class="fas fa-trash-alt"></i>
                             </button>
                         ` : ''}
                     `;
@@ -10636,7 +10099,7 @@ const alreadyActive = isMobile
                             <h3 class="collection-item-title">${escapeHtml(title)}</h3>
                             ${canEditItems ? `
                                 <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${escapeHtml(id)}', '${listId}', 'food', '${listType}')">
-                                    <i class="fas fa-times"></i> Remove
+                                    <i class="fas fa-trash-alt"></i> Remove
                                 </button>
                             ` : ''}
                             <div class="collection-item-meta">
@@ -10646,7 +10109,7 @@ const alreadyActive = isMobile
                         </div>
                         ${canEditItems ? `
                             <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${escapeHtml(id)}', '${listId}', 'food', '${listType}')">
-                                <i class="fas fa-times"></i>
+                                <i class="fas fa-trash-alt"></i>
                             </button>
                         ` : ''}
                     `;
@@ -10868,7 +10331,6 @@ const alreadyActive = isMobile
             }
 
             async function removeFromCollection(itemId, collectionId, type, listType = 'custom') {
-                const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 const trigger = window.event?.currentTarget instanceof HTMLElement ? window.event.currentTarget : null;
                 const removableNode = trigger ? trigger.closest('.collection-item-card, .movie-list-movie-card, .mobile-journal-entry') : null;
                 let restoreRemovedNode = null;
@@ -10893,42 +10355,51 @@ const alreadyActive = isMobile
                         showToast('You do not have permission to edit this list', 'warning');
                         return;
                     }
-
-                    if (removableNode instanceof HTMLElement) {
-                        const previousDisplay = removableNode.style.display;
-                        const previousOpacity = removableNode.style.opacity;
-                        const previousTransform = removableNode.style.transform;
-                        const previousPointerEvents = removableNode.style.pointerEvents;
-                        removableNode.style.pointerEvents = 'none';
-                        removableNode.style.opacity = '0.22';
-                        removableNode.style.transform = 'scale(0.98)';
-                        window.setTimeout(() => { removableNode.style.display = 'none'; }, 60);
-                        restoreRemovedNode = () => {
-                            removableNode.style.display = previousDisplay;
-                            removableNode.style.opacity = previousOpacity;
-                            removableNode.style.transform = previousTransform;
-                            removableNode.style.pointerEvents = previousPointerEvents;
-                        };
-                    }
-
-                    const itemTable = MEDIA_ITEM_TABLES[type];
-                    const itemField = MEDIA_ITEM_FIELDS[type];
-                    if (itemTable && itemField) {
-                        const query = supabase.from(itemTable).delete();
-                        const { error } = listType === 'default'
-                            ? await query.eq('user_id', userId).eq(itemField, itemId).eq('list_type', collectionId)
-                            : await query.eq(itemField, itemId).eq('list_id', collectionId);
-                        if (error) throw error;
-                    }
-
-                    showToast('Removed from collection', 'success');
-                    refreshCollectionViews();
-                } catch (error) {
-                    if (typeof restoreRemovedNode === 'function') restoreRemovedNode();
-                    console.error('Error removing item:', error);
-                    showToast('Failed to remove item', 'error');
-                    refreshCollectionViews();
+                } catch (e) {
+                    console.error('Error checking permissions:', e);
+                    showToast('Could not verify permissions', 'error');
+                    return;
                 }
+
+                showConfirmModal('Remove Item', 'Are you sure you want to remove this item from the collection?', async function() {
+                    const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                    try {
+                        if (removableNode instanceof HTMLElement) {
+                            const previousDisplay = removableNode.style.display;
+                            const previousOpacity = removableNode.style.opacity;
+                            const previousTransform = removableNode.style.transform;
+                            const previousPointerEvents = removableNode.style.pointerEvents;
+                            removableNode.style.pointerEvents = 'none';
+                            removableNode.style.opacity = '0.22';
+                            removableNode.style.transform = 'scale(0.98)';
+                            window.setTimeout(() => { removableNode.style.display = 'none'; }, 60);
+                            restoreRemovedNode = () => {
+                                removableNode.style.display = previousDisplay;
+                                removableNode.style.opacity = previousOpacity;
+                                removableNode.style.transform = previousTransform;
+                                removableNode.style.pointerEvents = previousPointerEvents;
+                            };
+                        }
+
+                        const itemTable = MEDIA_ITEM_TABLES[type];
+                        const itemField = MEDIA_ITEM_FIELDS[type];
+                        if (itemTable && itemField) {
+                            const query = supabase.from(itemTable).delete();
+                            const { error } = listType === 'default'
+                                ? await query.eq('user_id', userId).eq(itemField, itemId).eq('list_type', collectionId)
+                                : await query.eq(itemField, itemId).eq('list_id', collectionId);
+                            if (error) throw error;
+                        }
+
+                        showToast('Removed from collection', 'success');
+                        refreshCollectionViews();
+                    } catch (error) {
+                        if (typeof restoreRemovedNode === 'function') restoreRemovedNode();
+                        console.error('Error removing item:', error);
+                        showToast('Failed to remove item', 'error');
+                        refreshCollectionViews();
+                    }
+                });
             }
 
             async function editCollection(id, type) {
@@ -10967,92 +10438,7 @@ const alreadyActive = isMobile
                 });
             }
 
-            function setupCommunitySnapshotNavigation() {
-                const snapshotIds = ['desktopSocialPreview', 'mobileSocialPreview'];
-                snapshotIds.forEach((snapshotId) => {
-                    const snapshot = document.getElementById(snapshotId);
-                    if (!snapshot || snapshot.dataset.communityNavBound === '1') return;
 
-                    snapshot.dataset.communityNavBound = '1';
-                    snapshot.setAttribute('role', 'button');
-                    snapshot.setAttribute('tabindex', '0');
-                    snapshot.setAttribute('aria-label', 'Open community');
-
-                    const openCommunity = () => showTab('community');
-                    const isInteractiveTarget = (target) => {
-                        if (!(target instanceof Element)) return false;
-                        return !!target.closest('button, a, .social-preview-link, .social-preview-avatar');
-                    };
-
-                    snapshot.addEventListener('click', (event) => {
-                        if (isInteractiveTarget(event.target)) return;
-                        openCommunity();
-                    });
-
-                    snapshot.addEventListener('keydown', (event) => {
-                        if (event.key !== 'Enter' && event.key !== ' ') return;
-                        event.preventDefault();
-                        openCommunity();
-                    });
-                });
-            }
-
-            function showCommunitySection(section) {
-                const isMobile = window.innerWidth <= 768;
-                
-                if (isMobile) {
-                    const followersBtn = document.getElementById('mobileFollowersTabBtn');
-                    const followingBtn = document.getElementById('mobileFollowingTabBtn');
-                    const activityBtn = document.getElementById('mobileActivityTabBtn');
-                    
-                    if (followersBtn) followersBtn.classList.remove('active');
-                    if (followingBtn) followingBtn.classList.remove('active');
-                    if (activityBtn) activityBtn.classList.remove('active');
-                    
-                    document.querySelectorAll('.mobile-community-tab').forEach(tab => {
-                        tab.classList.remove('active');
-                    });
-                    
-                    const targetTab = document.getElementById(`mobile${section.charAt(0).toUpperCase() + section.slice(1)}Tab`);
-                    if (targetTab) {
-                        targetTab.classList.add('active');
-                    }
-                    
-                    const activeBtn = document.getElementById(`mobile${section.charAt(0).toUpperCase() + section.slice(1)}TabBtn`);
-                    if (activeBtn) activeBtn.classList.add('active');
-                } else {
-                    const followersBtn = document.getElementById('showFollowersBtn');
-                    const followingBtn = document.getElementById('showFollowingBtn');
-                    const activityBtn = document.getElementById('showActivityBtn');
-                    
-                    if (followersBtn) followersBtn.classList.remove('active');
-                    if (followingBtn) followingBtn.classList.remove('active');
-                    if (activityBtn) activityBtn.classList.remove('active');
-                    
-                    document.querySelectorAll('.community-section').forEach(sectionEl => {
-                        sectionEl.classList.remove('active');
-                    });
-                    
-                    const targetSection = document.getElementById(`${section}Section`);
-                    if (targetSection) {
-                        targetSection.classList.add('active');
-                    }
-                    
-                    const activeBtn = document.getElementById(`show${section.charAt(0).toUpperCase() + section.slice(1)}Btn`);
-                    if (activeBtn) activeBtn.classList.add('active');
-                }
-                
-                if (communitySystem) {
-                    communitySystem.currentSection = section;
-                    if (section === 'followers') {
-                        communitySystem.loadFollowers();
-                    } else if (section === 'activity') {
-                        communitySystem.loadActivity();
-                    } else {
-                        communitySystem.loadFollowing();
-                    }
-                }
-            }
 
             function showModal(modalId) {
                 const modal = document.getElementById(modalId);
@@ -12112,7 +11498,6 @@ return;
                 showPrimaryTab,
                 showRailShowcaseDetail,
                 goToMyProfile,
-                showCommunitySection,
                 viewUserProfile,
                 showModal,
                 closeModal,
