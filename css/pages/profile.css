@@ -6220,7 +6220,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 /* === Cinematic backdrop banner === */
 .pv2-banner {
   position: relative;
-  height: 280px;
+  height: 220px;
   overflow: visible;
   background: #0a1428;
 }
@@ -6331,9 +6331,9 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   inset: 0;
   background: linear-gradient(
     to bottom,
-    rgba(10,20,40,0.2) 0%,
-    rgba(10,20,40,0.45) 55%,
-    rgba(11,22,51,0.88) 100%
+    rgba(10,20,40,0.1) 0%,
+    rgba(10,20,40,0.25) 50%,
+    rgba(11,22,51,0.7) 100%
   );
   z-index: 2;
   pointer-events: none;
@@ -6343,7 +6343,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 .pv2-banner-vignette {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at center, transparent 50%, rgba(10,20,40,0.6) 100%);
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(10,20,40,0.35) 100%);
   z-index: 3;
   pointer-events: none;
 }
@@ -7098,7 +7098,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 
 @media (max-width: 1024px) {
   .pv2-banner {
-    height: 220px;
+    height: 180px;
   }
 
   .pv2-avatar {
@@ -7170,7 +7170,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 /* === Cinematic backdrop banner (mobile) === */
 .mph2-banner {
   position: relative;
-  height: 210px;
+  height: 170px;
   overflow: visible;
   background: #0a1428;
 }
@@ -7221,9 +7221,9 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   inset: 0;
   background: linear-gradient(
     to bottom,
-    rgba(9,18,38,0.18) 0%,
-    rgba(9,18,38,0.42) 55%,
-    rgba(11,22,51,0.85) 100%
+    rgba(9,18,38,0.08) 0%,
+    rgba(9,18,38,0.22) 50%,
+    rgba(11,22,51,0.68) 100%
   );
   z-index: 2;
   pointer-events: none;
@@ -7232,7 +7232,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 .mph2-banner-vignette {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at center, transparent 40%, rgba(10,20,40,0.55) 100%);
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(10,20,40,0.3) 100%);
   z-index: 3;
   pointer-events: none;
 }
@@ -7885,7 +7885,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
    ============================================================ */
 
 @media (max-width: 389px) {
-  .mph2-banner { height: 170px; }
+  .mph2-banner { height: 140px; }
   .mph2-avatar { width: 78px; height: 78px; font-size: 32px; }
   .mph2-avatar-wrap { margin-top: -28px; }
   .mph2-name { font-size: 1.28rem; }

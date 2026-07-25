@@ -11351,9 +11351,19 @@ return;
                 }
 
                 function preloadAndFade(url) {
-                    if (!url) return Promise.resolve();
+                    if (!url) return Promise.resolve(false);
                     return new Promise((resolve) => {
                         const tempImg = new Image();
+                        let settled = false;
+                        const done = (result) => {
+                            if (settled) return;
+                            settled = true;
+                            clearTimeout(timer);
+                            tempImg.onload = null;
+                            tempImg.onerror = null;
+                            resolve(result);
+                        };
+                        const timer = setTimeout(() => done(false), 8000);
                         tempImg.onload = function() {
                             const posY = (userProfile?.banner_position_y ?? 50);
                             const nextLayerId = activeLayer === 'A' ? 'backdropLayerB' : 'backdropLayerA';
@@ -11379,14 +11389,10 @@ return;
                                 mobileBackdrop.appendChild(mImg);
                                 mobileBackdrop.classList.remove('is-empty');
                             }
-                            tempImg.onload = null;
-                            tempImg.onerror = null;
-                            resolve();
+                            done(true);
                         };
                         tempImg.onerror = function() {
-                            tempImg.onload = null;
-                            tempImg.onerror = null;
-                            resolve();
+                            done(false);
                         };
                         tempImg.src = url;
                     });
@@ -11425,8 +11431,11 @@ return;
 
                     if (!backdropUrls.length) return;
 
-                    currentIndex = Math.floor(Math.random() * backdropUrls.length);
-                    await preloadAndFade(backdropUrls[currentIndex]);
+                    const shuffled = backdropUrls.slice().sort(() => Math.random() - 0.5);
+                    for (const url of shuffled) {
+                        const ok = await preloadAndFade(url);
+                        if (ok) break;
+                    }
                 }
 
                 function stop() {
