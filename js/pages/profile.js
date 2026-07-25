@@ -11311,10 +11311,8 @@ return;
 
             // ===== PROFILE DYNAMIC BACKDROP ROTATION ENGINE =====
             const ProfileBackdropEngine = (function() {
-                let rotationTimer = null;
                 let backdropUrls = [];
                 let currentIndex = 0;
-                let isPaused = false;
                 let activeLayer = 'A';
 
                 async function fetchBackdropUrl(item) {
@@ -11362,7 +11360,10 @@ return;
                                 activeLayer = activeLayer === 'A' ? 'B' : 'A';
                             }
                             if (mobileBackdrop) {
+                                mobileBackdrop.innerHTML = '';
                                 mobileBackdrop.style.backgroundImage = `url("${url}")`;
+                                mobileBackdrop.style.backgroundSize = 'cover';
+                                mobileBackdrop.style.backgroundPosition = 'center';
                                 mobileBackdrop.classList.remove('is-empty');
                             }
                             img.onload = null;
@@ -11413,24 +11414,11 @@ return;
 
                     currentIndex = Math.floor(Math.random() * backdropUrls.length);
                     await preloadAndFade(backdropUrls[currentIndex]);
-
-                    if (mode === 'rotate' && backdropUrls.length > 1) {
-                        rotationTimer = setInterval(async () => {
-                            if (isPaused || document.hidden) return;
-                            currentIndex = (currentIndex + 1) % backdropUrls.length;
-                            await preloadAndFade(backdropUrls[currentIndex]);
-                        }, 22000);
-                    }
                 }
 
                 function stop() {
-                    if (rotationTimer) clearInterval(rotationTimer);
-                    rotationTimer = null;
+                    backdropUrls = [];
                 }
-
-                document.addEventListener('visibilitychange', function() {
-                    isPaused = document.hidden;
-                });
 
                 return { init, stop };
             })();
