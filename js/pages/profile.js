@@ -10410,6 +10410,8 @@ const alreadyActive = isMobile
                         // Banner position
                         const savedPos = userProfile.banner_position_y != null ? parseInt(userProfile.banner_position_y) : 15;
                         if (!isNaN(savedPos)) _setBannerPos(savedPos);
+                        const savedPosX = userProfile.banner_position_x != null ? parseInt(userProfile.banner_position_x) : 50;
+                        if (!isNaN(savedPosX)) _setBannerPosX(savedPosX);
                     }
 
                     if (modalId === 'accountSettingsModal' && currentUser) {
@@ -10984,7 +10986,9 @@ const alreadyActive = isMobile
                 
                 try {
                     const bannerPosSlider = document.getElementById('bannerPositionSlider');
-                    const bannerPositionY = bannerPosSlider ? parseInt(bannerPosSlider.value) || 50 : null;
+                    const bannerPositionY = bannerPosSlider ? parseInt(bannerPosSlider.value) || 15 : null;
+                    const bannerPosXSlider = document.getElementById('bannerPositionXSlider');
+                    const bannerPositionX = bannerPosXSlider ? parseInt(bannerPosXSlider.value) || 50 : null;
                     const normalizedUsername = await ensureProfileUsernameAvailable(rawUsername, currentUser?.id);
                     const updatePayload = {
                         full_name: normalizedUsername,
@@ -10997,16 +11001,18 @@ const alreadyActive = isMobile
                     };
                     if (profileTheme) updatePayload.profile_theme = profileTheme;
                     if (bannerPositionY !== null) updatePayload.banner_position_y = bannerPositionY;
+                    if (bannerPositionX !== null) updatePayload.banner_position_x = bannerPositionX;
                     let { error } = await supabase
                         .from('user_profiles')
                         .update(updatePayload)
                         .eq('id', currentUser.id);
 
-                    if (error && (String(error.message || '').includes('profile_theme') || String(error.message || '').includes('profile_badges') || String(error.message || '').includes('banner_position_y'))) {
+                    if (error && (String(error.message || '').includes('profile_theme') || String(error.message || '').includes('profile_badges') || String(error.message || '').includes('banner_position_y') || String(error.message || '').includes('banner_position_x'))) {
                         const fallbackPayload = { ...updatePayload };
                         delete fallbackPayload.profile_theme;
                         delete fallbackPayload.profile_badges;
                         delete fallbackPayload.banner_position_y;
+                        delete fallbackPayload.banner_position_x;
                         ({ error } = await supabase
                             .from('user_profiles')
                             .update(fallbackPayload)
@@ -11026,6 +11032,7 @@ const alreadyActive = isMobile
                     };
                     if (profileTheme) userProfile.profile_theme = profileTheme;
                     if (bannerPositionY !== null) userProfile.banner_position_y = bannerPositionY;
+                    if (bannerPositionX !== null) userProfile.banner_position_x = bannerPositionX;
                     manualProfileBadges = [...customBadges];
 
                     const authMetadataResult = await supabase.auth.updateUser({
@@ -11366,14 +11373,21 @@ return;
                         const timer = setTimeout(() => done(false), 8000);
                         tempImg.onload = function() {
                             const posY = (userProfile?.banner_position_y ?? 15);
+                            const posX = (userProfile?.banner_position_x ?? 50);
+                            const posXY = posX + '% ' + posY + '%';
                             const nextLayerId = activeLayer === 'A' ? 'backdropLayerB' : 'backdropLayerA';
                             const currentLayerId = activeLayer === 'A' ? 'backdropLayerA' : 'backdropLayerB';
                             const nextEl = document.getElementById(nextLayerId);
                             const currentEl = document.getElementById(currentLayerId);
+                            const blurEl = document.getElementById('backdropBlur');
                             const mobileBackdrop = document.getElementById('mobileBannerBackdrops');
 
+                            if (blurEl) {
+                                blurEl.src = url;
+                            }
                             if (nextEl && currentEl) {
                                 nextEl.src = url;
+                                nextEl.style.setProperty('--banner-pos-x', posX + '%');
                                 nextEl.style.setProperty('--banner-pos-y', posY + '%');
                                 nextEl.classList.add('active');
                                 currentEl.classList.remove('active');
@@ -11448,7 +11462,7 @@ return;
             function _setBannerPos(pos) {
                 const slider = document.getElementById('bannerPositionSlider');
                 const valueEl = document.getElementById('bannerPositionValue');
-                const presets = document.querySelectorAll('.banner-pos-preset');
+                const presets = document.querySelectorAll('.banner-pos-presets [data-pos]');
                 if (slider) slider.value = pos;
                 if (valueEl) {
                     const label = pos <= 30 ? 'Top' : pos >= 70 ? 'Bottom' : 'Center';
@@ -11457,7 +11471,6 @@ return;
                 presets.forEach(function(btn) {
                     btn.classList.toggle('active', parseInt(btn.getAttribute('data-pos')) === pos);
                 });
-                // Preview position on active backdrop
                 const activeLayer = document.querySelector('.pv2-backdrop-layer.active');
                 if (activeLayer) {
                     activeLayer.style.setProperty('--banner-pos-y', pos + '%');
@@ -11465,6 +11478,24 @@ return;
                 const mobileImg = document.querySelector('.mobile-backdrop-img');
                 if (mobileImg) {
                     mobileImg.style.objectPosition = 'center ' + pos + '%';
+                }
+            }
+
+            function _setBannerPosX(pos) {
+                const slider = document.getElementById('bannerPositionXSlider');
+                const valueEl = document.getElementById('bannerPositionXValue');
+                const presets = document.querySelectorAll('.banner-pos-presets [data-posx]');
+                if (slider) slider.value = pos;
+                if (valueEl) {
+                    const label = pos <= 30 ? 'Left' : pos >= 70 ? 'Right' : 'Center';
+                    valueEl.textContent = label;
+                }
+                presets.forEach(function(btn) {
+                    btn.classList.toggle('active', parseInt(btn.getAttribute('data-posx')) === pos);
+                });
+                const activeLayer = document.querySelector('.pv2-backdrop-layer.active');
+                if (activeLayer) {
+                    activeLayer.style.setProperty('--banner-pos-x', pos + '%');
                 }
             }
 
@@ -11481,6 +11512,7 @@ return;
             // ===== PUBLIC API =====
             return {
                 initialize,
+                saveProfileChanges,
                 toggleGearMenu,
                 closeGearMenu,
                 showEditProfileModal,
@@ -11489,6 +11521,7 @@ return;
                 addFeaturedBackdrop,
                 removeFeaturedBackdrop,
                 _setBannerPos,
+                _setBannerPosX,
                 ProfileBackdropEngine,
                 toggleOverflowMenu,
                 closeOverflowMenu,

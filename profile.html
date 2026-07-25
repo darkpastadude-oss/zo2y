@@ -37,7 +37,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     </script>
     <link rel="stylesheet" href="css/animations.css?v=1751700000z">
     <link rel="stylesheet" href="css/skeleton.css?v=20260705">
-    <link rel="stylesheet" href="css/pages/profile.css?v=20260725c">
+    <link rel="stylesheet" href="css/pages/profile.css?v=20260725d">
     <link rel="icon" href="/favicon.ico" sizes="any" />
 <link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
   <meta name="theme-color" content="#0b1633" />
@@ -55,7 +55,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 <script src="js/shared-header.js?v=20260721B" defer></script>
 
     <script src="/js/components/list-modal.js?v=20260722b" defer></script>
-    <script src="js/pages/profile.js?v=20260725c" defer></script>
+    <script src="js/pages/profile.js?v=20260725d" defer></script>
     <noscript></noscript>
 
   
@@ -111,6 +111,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <!-- Cinematic banner — JS populates background via ProfileBackdropEngine -->
                 <div class="pv2-banner" id="profileBanner">
                     <div class="pv2-banner-backdrops" id="bannerBackdrops">
+                        <img class="pv2-backdrop-blur" id="backdropBlur" alt="">
                         <img class="pv2-backdrop-layer active" id="backdropLayerA" alt="">
                         <img class="pv2-backdrop-layer" id="backdropLayerB" alt="">
                     </div>
@@ -1982,15 +1983,28 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
                                 <div class="form-group mt-16">
                                     <label class="form-label">Banner Image Position</label>
-                                    <small class="text-muted d-block mb-8">Adjust how your backdrop is cropped vertically.</small>
+                                    <small class="text-muted d-block mb-8">Adjust how your backdrop is cropped.</small>
                                     <div class="banner-pos-presets">
-                                        <button type="button" class="banner-pos-preset active" data-pos="20" onclick="ProfileManager._setBannerPos(20)">Top</button>
+                                        <button type="button" class="banner-pos-preset active" data-pos="15" onclick="ProfileManager._setBannerPos(15)">Top</button>
                                         <button type="button" class="banner-pos-preset" data-pos="50" onclick="ProfileManager._setBannerPos(50)">Center</button>
-                                        <button type="button" class="banner-pos-preset" data-pos="80" onclick="ProfileManager._setBannerPos(80)">Bottom</button>
+                                        <button type="button" class="banner-pos-preset" data-pos="85" onclick="ProfileManager._setBannerPos(85)">Bottom</button>
                                     </div>
                                     <div class="banner-pos-slider-wrap">
-                                        <input type="range" class="banner-pos-slider" id="bannerPositionSlider" min="0" max="100" value="20" oninput="ProfileManager._setBannerPos(parseInt(this.value))">
+                                        <input type="range" class="banner-pos-slider" id="bannerPositionSlider" min="0" max="100" value="15" oninput="ProfileManager._setBannerPos(parseInt(this.value))">
                                         <span class="banner-pos-value" id="bannerPositionValue">Top</span>
+                                    </div>
+                                </div>
+                                <div class="form-group mt-12">
+                                    <label class="form-label">Horizontal Focal Point</label>
+                                    <small class="text-muted d-block mb-8">Shift the banner left or right.</small>
+                                    <div class="banner-pos-presets">
+                                        <button type="button" class="banner-pos-preset" data-posx="15" onclick="ProfileManager._setBannerPosX(15)">Left</button>
+                                        <button type="button" class="banner-pos-preset active" data-posx="50" onclick="ProfileManager._setBannerPosX(50)">Center</button>
+                                        <button type="button" class="banner-pos-preset" data-posx="85" onclick="ProfileManager._setBannerPosX(85)">Right</button>
+                                    </div>
+                                    <div class="banner-pos-slider-wrap">
+                                        <input type="range" class="banner-pos-slider" id="bannerPositionXSlider" min="0" max="100" value="50" oninput="ProfileManager._setBannerPosX(parseInt(this.value))">
+                                        <span class="banner-pos-value" id="bannerPositionXValue">Center</span>
                                     </div>
                                 </div>
                             </div>
