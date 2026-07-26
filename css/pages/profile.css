@@ -6220,7 +6220,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 /* === Cinematic backdrop banner === */
 .pv2-banner {
   position: relative;
-  height: 220px;
+  height: 290px;
   overflow: visible;
   background: #0a1428;
 }
@@ -6361,14 +6361,14 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   grid-template-columns: auto minmax(0,1fr) auto;
   align-items: flex-start;
   gap: 20px;
-  padding: 0 32px 20px;
+  padding: 0 32px 14px;
   max-width: 1440px;
   margin: 0 auto;
 }
 
 /* === Avatar === */
 .pv2-avatar-wrap {
-  margin-top: -52px;
+  margin-top: -44px;
   flex-shrink: 0;
 }
 
@@ -7098,7 +7098,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 
 @media (max-width: 1024px) {
   .pv2-banner {
-    height: 180px;
+    height: 240px;
   }
 
   .pv2-avatar {
@@ -7170,7 +7170,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 /* === Cinematic backdrop banner (mobile) === */
 .mph2-banner {
   position: relative;
-  height: 170px;
+  height: 220px;
   overflow: visible;
   background: #0a1428;
 }
@@ -7319,7 +7319,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 /* === Topbar (menu + edit pill) === */
 .mph2-topbar {
   position: absolute;
-  top: 130px;
+  top: 230px;
   right: 14px;
   z-index: 10;
   display: flex;
@@ -7407,11 +7407,11 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   grid-template-columns: auto minmax(0, 1fr);
   gap: 12px;
   align-items: flex-start;
-  padding: 0 14px 14px;
+  padding: 0 14px 10px;
 }
 
 .mph2-avatar-wrap {
-  margin-top: -32px;
+  margin-top: -38px;
   position: relative;
   z-index: 5;
 }
