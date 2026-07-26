@@ -578,7 +578,6 @@
 
   function setHero(team, wiki) {
     if (ui.body) ui.body.dataset.elevatedCategory = "team";
-    document.body.dataset.navPage = "sports";
     document.title = `Zo2y - ${team.name}`;
 
     if (ui.actionCard) {

@@ -979,11 +979,27 @@
     return brandCoversCache;
   }
 
+  async function fetchBrandfetchBanner(brand) {
+    const domain = String(brand?.domain || "").trim();
+    if (!domain) return "";
+    try {
+      const res = await fetch("/api/brandfetch-bg?domain=" + encodeURIComponent(domain));
+      if (!res.ok) return "";
+      const data = await res.json();
+      return String(data?.image || "").trim();
+    } catch (_e) {
+      return "";
+    }
+  }
+
   async function fetchWikiHeroBackdrop(brand) {
     const covers = await getBrandCovers();
     if (brand.id && covers[brand.id]) {
       return covers[brand.id];
     }
+
+    const bfBanner = await fetchBrandfetchBanner(brand);
+    if (bfBanner) return bfBanner;
 
     const wikiTitle = brand.wiki?.title || brand.name;
     if (!wikiTitle) return "";
@@ -1083,7 +1099,6 @@
 
   function updateHero(brand) {
     setCategoryAccent();
-    document.body.dataset.navPage = brandType;
     document.title = `${brand.name} \u00B7 ${CATEGORY_LABEL} \u00B7 Zo2y`;
 
     if (dom.about) {

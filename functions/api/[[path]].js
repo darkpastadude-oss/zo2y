@@ -1,6 +1,7 @@
 import analyticsHandler from "../../api/analytics-handler.js";
 import authHandler from "../../api/auth-handler.js";
 import booksHandler from "../../api/books-handler.js";
+import brandfetchBgHandler from "../../api/brandfetch-bg.js";
 import cspReportHandler from "../../api/csp-report.js";
 import emailsHandler from "../../api/emails-handler.js";
 import healthHandler from "../../api/health.js";
@@ -38,6 +39,7 @@ const ROUTE_HANDLERS = new Map([
   ["analytics", analyticsHandler],
   ["auth", authHandler],
   ["books", booksHandler],
+  ["brandfetch-bg", brandfetchBgHandler],
   ["csp-report", cspReportHandler],
   ["emails", emailsHandler],
   ["health", healthHandler],

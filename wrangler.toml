@@ -14,6 +14,7 @@ SUPABASE_URL = "https://gfkhjbztayjyojsgdpgk.supabase.co"
 SUPABASE_PROJECT_REF = "gfkhjbztayjyojsgdpgk"
 OMDB_API_KEY = "a57d8799"
 GOOGLE_BOOKS_API_KEY = "AIzaSyB3AUlevQTbgdN-joy0Dl8WQWaKBGTp7Io"
+BRANDFETCH_API_KEY = "_gpMOwS8UBDJYRIZ0x2fj06aoHILRbvNJY2akm42QK-6cJjKtt7mqQRMZ50FfzOIGRnzeUvkmX0bRolPQ5ts4g"
 # SUPABASE_ANON_KEY set via: wrangler pages secret put SUPABASE_ANON_KEY --project-name zo2y
 
 [build.environment]
