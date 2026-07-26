@@ -66,11 +66,45 @@ const ProfileShowcase = (function () {
             display_order: options.display_order ?? 0,
             is_hidden: options.is_hidden ?? false
         };
-        const { error } = await sb
+
+        // Strategy 1: Try onConflict user_id,media_type
+        let { error } = await sb
             .from('profile_showcase')
-            .upsert(row, { onConflict: 'user_id,media_type,list_id' });
+            .upsert(row, { onConflict: 'user_id,media_type' });
+
+        // Strategy 2: Try onConflict user_id,media_type,list_id
         if (error) {
-            console.error('setProfileShowcase error:', error);
+            const res2 = await sb.from('profile_showcase').upsert(row, { onConflict: 'user_id,media_type,list_id' });
+            error = res2.error;
+        }
+
+        // Strategy 3: Select -> Update or Insert (failsafe)
+        if (error) {
+            try {
+                const { data: existing } = await sb
+                    .from('profile_showcase')
+                    .select('id')
+                    .eq('user_id', userId)
+                    .eq('media_type', mediaType)
+                    .maybeSingle();
+
+                if (existing && existing.id) {
+                    const res3 = await sb
+                        .from('profile_showcase')
+                        .update({ list_id: listId, display_order: options.display_order ?? 0, is_hidden: options.is_hidden ?? false })
+                        .eq('id', existing.id);
+                    error = res3.error;
+                } else {
+                    const res4 = await sb.from('profile_showcase').insert(row);
+                    error = res4.error;
+                }
+            } catch (err3) {
+                error = err3;
+            }
+        }
+
+        if (error) {
+            console.error('setProfileShowcase final error:', error);
             return false;
         }
         return true;

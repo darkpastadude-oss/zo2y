@@ -1145,8 +1145,10 @@ window.BannerPicker = (function () {
       try {
         const { error: err1 } = await sb.from('user_profiles').update(fullPayload).eq('id', userId);
         if (err1) {
-          // If banner_url column is not on user_profiles yet, update position
-          await sb.from('user_profiles').update(basicPayload).eq('id', userId);
+          const { error: err2 } = await sb.from('user_profiles').update(fullPayload).eq('user_id', userId);
+          if (err2) {
+            await sb.from('user_profiles').update(basicPayload).eq('id', userId);
+          }
         }
       } catch (e) {
         console.warn('Banner: user_profiles update notice', e);
@@ -1164,9 +1166,9 @@ window.BannerPicker = (function () {
             display_order: 0,
             is_hidden: false
           };
-          const { error: showcaseErr } = await sb.from('profile_showcase').upsert(bannerRow, { onConflict: 'user_id,media_type,list_id' });
+          const { error: showcaseErr } = await sb.from('profile_showcase').upsert(bannerRow, { onConflict: 'user_id,media_type' });
           if (showcaseErr) {
-            await sb.from('profile_showcase').upsert(bannerRow, { onConflict: 'user_id,media_type' });
+            await sb.from('profile_showcase').upsert(bannerRow, { onConflict: 'user_id,media_type,list_id' });
           }
         }
       } catch (e) {
