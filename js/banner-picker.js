@@ -7,6 +7,7 @@ window.BannerPicker = (function () {
   /* ── state ────────────────────────────────────────────── */
   let isOpen = false;
   let currentMode = 'static';       // 'static' | 'rotate'
+  let currentDomain = 'media';     // 'media' | 'lifestyle'
   let selectedMedia = null;          // { type, id, title, year }
 
   let draftStaticItem = null;        // { media_type, media_id, title, url, pos_y }
@@ -18,9 +19,37 @@ window.BannerPicker = (function () {
   let dragStartY = 0;
   let initialPosY = 15;
 
-  /* search */
+  /* search & filters */
   let searchTimeout = null;
   let currentSearchAbort = null;
+  let activeCategoryFilter = 'all';
+
+  /* lifestyle caches */
+  let sportsCoversCache = null;
+  let brandCoversCache = null;
+
+  /* lifestyle datasets */
+  const LIFESTYLE_CAR_ITEMS = [
+    { id: 'porsche-911', title: 'Porsche 911 GT3 RS', poster: 'https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg?auto=compress&cs=tinysrgb&w=800' },
+    { id: 'ferrari-laferrari', title: 'Ferrari LaFerrari', poster: 'https://images.pexels.com/photos/337909/pexels-photo-337909.jpeg?auto=compress&cs=tinysrgb&w=800' },
+    { id: 'lambo-aventador', title: 'Lamborghini Aventador', poster: 'https://images.pexels.com/photos/3972755/pexels-photo-3972755.jpeg?auto=compress&cs=tinysrgb&w=800' },
+    { id: 'bmw-m4', title: 'BMW M4 Competition', poster: 'https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=800' },
+    { id: 'mercedes-amg', title: 'Mercedes-AMG GT', poster: 'https://images.pexels.com/photos/112460/pexels-photo-112460.jpeg?auto=compress&cs=tinysrgb&w=800' },
+    { id: 'aston-martin', title: 'Aston Martin DBS', poster: 'https://images.pexels.com/photos/210019/pexels-photo-210019.jpeg?auto=compress&cs=tinysrgb&w=800' },
+    { id: 'audi-r8', title: 'Audi R8 V10', poster: 'https://images.pexels.com/photos/1149831/pexels-photo-1149831.jpeg?auto=compress&cs=tinysrgb&w=800' },
+    { id: 'bugatti-chiron', title: 'Bugatti Chiron', poster: 'https://images.pexels.com/photos/909907/pexels-photo-909907.jpeg?auto=compress&cs=tinysrgb&w=800' }
+  ];
+
+  const LIFESTYLE_TRAVEL_ITEMS = [
+    { id: 'tokyo', title: 'Tokyo, Japan', poster: 'https://images.pexels.com/photos/2506923/pexels-photo-2506923.jpeg?auto=compress&cs=tinysrgb&w=800' },
+    { id: 'paris', title: 'Paris, France', poster: 'https://images.pexels.com/photos/699466/pexels-photo-699466.jpeg?auto=compress&cs=tinysrgb&w=800' },
+    { id: 'amalfi', title: 'Amalfi Coast, Italy', poster: 'https://images.pexels.com/photos/532826/pexels-photo-532826.jpeg?auto=compress&cs=tinysrgb&w=800' },
+    { id: 'swiss', title: 'Swiss Alps, Switzerland', poster: 'https://images.pexels.com/photos/417074/pexels-photo-417074.jpeg?auto=compress&cs=tinysrgb&w=800' },
+    { id: 'maldives', title: 'Maldives Islands', poster: 'https://images.pexels.com/photos/1483053/pexels-photo-1483053.jpeg?auto=compress&cs=tinysrgb&w=800' },
+    { id: 'reykjavik', title: 'Reykjavik, Iceland', poster: 'https://images.pexels.com/photos/1009136/pexels-photo-1009136.jpeg?auto=compress&cs=tinysrgb&w=800' },
+    { id: 'santorini', title: 'Santorini, Greece', poster: 'https://images.pexels.com/photos/1010657/pexels-photo-1010657.jpeg?auto=compress&cs=tinysrgb&w=800' },
+    { id: 'nyc', title: 'New York City, USA', poster: 'https://images.pexels.com/photos/290386/pexels-photo-290386.jpeg?auto=compress&cs=tinysrgb&w=800' }
+  ];
 
   /* recently used (localStorage) */
   let recentlyUsed = [];
@@ -180,6 +209,51 @@ window.BannerPicker = (function () {
         const modal = $('bannerPickerModal');
         if (modal) modal.scrollTo({ top: 0, behavior: 'smooth' });
       }, 300);
+    }
+  }
+
+  function setDomain(domain) {
+    currentDomain = domain || 'media';
+    activeCategoryFilter = 'all';
+
+    const btnMedia = $('bpDomainMedia');
+    const btnLifestyle = $('bpDomainLifestyle');
+    if (btnMedia) btnMedia.classList.toggle('active', currentDomain === 'media');
+    if (btnLifestyle) btnLifestyle.classList.toggle('active', currentDomain === 'lifestyle');
+
+    renderCategoryPills();
+
+    const query = ($('bpSearchInput')?.value || '').trim();
+    if (query) {
+      performSearch(query);
+    } else {
+      loadSuggested();
+    }
+  }
+
+  function renderCategoryPills() {
+    const bar = $('bpCategoryFilterBar');
+    if (!bar) return;
+
+    if (currentDomain === 'media') {
+      bar.innerHTML = `
+        <button type="button" class="bp-cat-pill ${activeCategoryFilter === 'all' ? 'active' : ''}" data-cat="all" onclick="BannerPicker.setCategoryFilter('all')">All</button>
+        <button type="button" class="bp-cat-pill ${activeCategoryFilter === 'movie' ? 'active' : ''}" data-cat="movie" onclick="BannerPicker.setCategoryFilter('movie')"><i class="fas fa-film"></i> Movies</button>
+        <button type="button" class="bp-cat-pill ${activeCategoryFilter === 'tv' ? 'active' : ''}" data-cat="tv" onclick="BannerPicker.setCategoryFilter('tv')"><i class="fas fa-tv"></i> TV Shows</button>
+        <button type="button" class="bp-cat-pill ${activeCategoryFilter === 'anime' ? 'active' : ''}" data-cat="anime" onclick="BannerPicker.setCategoryFilter('anime')"><i class="fas fa-dragon"></i> Anime</button>
+        <button type="button" class="bp-cat-pill ${activeCategoryFilter === 'game' ? 'active' : ''}" data-cat="game" onclick="BannerPicker.setCategoryFilter('game')"><i class="fas fa-gamepad"></i> Games</button>
+        <button type="button" class="bp-cat-pill ${activeCategoryFilter === 'book' ? 'active' : ''}" data-cat="book" onclick="BannerPicker.setCategoryFilter('book')"><i class="fas fa-book"></i> Books</button>
+        <button type="button" class="bp-cat-pill ${activeCategoryFilter === 'music' ? 'active' : ''}" data-cat="music" onclick="BannerPicker.setCategoryFilter('music')"><i class="fas fa-music"></i> Music</button>
+      `;
+    } else {
+      bar.innerHTML = `
+        <button type="button" class="bp-cat-pill ${activeCategoryFilter === 'all' ? 'active' : ''}" data-cat="all" onclick="BannerPicker.setCategoryFilter('all')">All</button>
+        <button type="button" class="bp-cat-pill ${activeCategoryFilter === 'sports' ? 'active' : ''}" data-cat="sports" onclick="BannerPicker.setCategoryFilter('sports')"><i class="fas fa-football-ball"></i> Sports</button>
+        <button type="button" class="bp-cat-pill ${activeCategoryFilter === 'brand' ? 'active' : ''}" data-cat="brand" onclick="BannerPicker.setCategoryFilter('brand')"><i class="fas fa-tag"></i> Brands</button>
+        <button type="button" class="bp-cat-pill ${activeCategoryFilter === 'food' ? 'active' : ''}" data-cat="food" onclick="BannerPicker.setCategoryFilter('food')"><i class="fas fa-utensils"></i> Food</button>
+        <button type="button" class="bp-cat-pill ${activeCategoryFilter === 'travel' ? 'active' : ''}" data-cat="travel" onclick="BannerPicker.setCategoryFilter('travel')"><i class="fas fa-plane"></i> Travel</button>
+        <button type="button" class="bp-cat-pill ${activeCategoryFilter === 'car' ? 'active' : ''}" data-cat="car" onclick="BannerPicker.setCategoryFilter('car')"><i class="fas fa-car"></i> Cars</button>
+      `;
     }
   }
 
@@ -460,35 +534,194 @@ window.BannerPicker = (function () {
     }
 
     /* grid — popular items filtered by activeCategoryFilter */
+    let items = [];
     try {
-      let endpoint = '/api/tmdb/movie/popular?language=en-US&page=1';
-      let mediaType = 'movie';
-      let mediaLabel = 'MOVIE';
-
       if (activeCategoryFilter === 'tv') {
-        endpoint = '/api/tmdb/tv/popular?language=en-US&page=1';
-        mediaType = 'tv';
-        mediaLabel = 'TV';
-      }
-
-      const res = await fetch(endpoint);
-      if (res.ok) {
-        const data = await res.json();
-        const results = data.results || (Array.isArray(data) ? data : []);
-        if (grid && results.length > 0) {
-          grid.innerHTML = results.slice(0, 18).map(item => `
-            <div class="bp-poster-card" onclick="BannerPicker.selectMedia('${mediaType}', '${item.id}', '${jsEsc(item.title || item.name)}', '${(item.release_date || item.first_air_date || '').split('-')[0]}')">
-              <div class="bp-poster-img-wrap">
-                ${item.poster_path ? `<img src="https://image.tmdb.org/t/p/w342${item.poster_path}" loading="lazy" alt="">` : '<div class="bp-poster-placeholder"><i class="fas fa-image"></i></div>'}
-              </div>
-              <div class="bp-poster-title">${escHtml(item.title || item.name)}</div>
-              <div class="bp-poster-meta">${mediaLabel}${(item.release_date || item.first_air_date) ? ' • ' + (item.release_date || item.first_air_date).split('-')[0] : ''}</div>
-            </div>
-          `).join('');
+        const res = await fetch('/api/tmdb/tv/popular?language=en-US&page=1');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.results) {
+            items = data.results.slice(0, 18).map(r => ({
+              type: 'tv',
+              id: String(r.id),
+              title: r.name || r.title,
+              year: (r.first_air_date || '').split('-')[0],
+              poster: r.poster_path ? `https://image.tmdb.org/t/p/w342${r.poster_path}` : '',
+              label: 'TV'
+            }));
+          }
         }
+      } else if (activeCategoryFilter === 'anime') {
+        const res = await fetch('/api/tmdb/discover/tv?with_genres=16&with_original_language=ja&sort_by=popularity.desc&page=1');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.results) {
+            items = data.results.slice(0, 18).map(r => ({
+              type: 'anime',
+              id: String(r.id),
+              title: r.name || r.title,
+              year: (r.first_air_date || '').split('-')[0],
+              poster: r.poster_path ? `https://image.tmdb.org/t/p/w342${r.poster_path}` : '',
+              label: 'ANIME'
+            }));
+          }
+        }
+      } else if (activeCategoryFilter === 'game') {
+        const sb = getSupabase();
+        if (sb) {
+          const { data } = await sb.from('games').select('id, name, cover_url, hero_url').limit(18);
+          if (data && data.length > 0) {
+            items = data.map(g => ({
+              type: 'game',
+              id: String(g.id),
+              title: g.name,
+              year: '',
+              poster: g.cover_url || g.hero_url || '',
+              label: 'GAME'
+            }));
+          }
+        }
+      } else if (activeCategoryFilter === 'book') {
+        const res = await fetch('/api/books/search?q=fiction&limit=18');
+        if (res.ok) {
+          const data = await res.json();
+          const books = data.books || data.items || [];
+          if (books.length > 0) {
+            items = books.slice(0, 18).map(b => {
+              const vol = b.volumeInfo || b;
+              return {
+                type: 'book',
+                id: String(b.id || b.book_id || ''),
+                title: vol.title || b.title || 'Book',
+                year: (vol.publishedDate || '').split('-')[0],
+                poster: vol.imageLinks?.thumbnail || b.cover_url || b.image || '',
+                label: 'BOOK'
+              };
+            });
+          }
+        }
+      } else if (activeCategoryFilter === 'music') {
+        const res = await fetch('/api/music/search?q=pop&limit=18');
+        if (res.ok) {
+          const data = await res.json();
+          const music = data.results || data.items || [];
+          if (music.length > 0) {
+            items = music.slice(0, 18).map(m => ({
+              type: 'music',
+              id: String(m.id || ''),
+              title: m.title || m.name || 'Album',
+              year: (m.release_date || m.year || '').toString().split('-')[0],
+              poster: m.cover_medium || m.album?.cover_medium || m.image || '',
+              label: 'MUSIC'
+            }));
+          }
+        }
+      } else if (activeCategoryFilter === 'sports') {
+        try {
+          const res = await fetch('/assets/data/sports_covers.json');
+          if (res.ok) {
+            const covers = await res.json();
+            const keys = Object.keys(covers).slice(0, 18);
+            items = keys.map(k => ({
+              type: 'sports',
+              id: k,
+              title: k,
+              year: '',
+              poster: covers[k],
+              label: 'SPORTS',
+              backdropUrl: covers[k]
+            }));
+          }
+        } catch (_e) { /* ignore */ }
+      } else if (activeCategoryFilter === 'brand') {
+        const sb = getSupabase();
+        if (sb) {
+          const { data } = await sb.from('fashion_brands').select('id, name, logo_url').limit(18);
+          if (data && data.length > 0) {
+            items = data.map(b => ({
+              type: 'brand',
+              id: String(b.id),
+              title: b.name,
+              year: '',
+              poster: b.logo_url || '',
+              label: 'BRAND'
+            }));
+          }
+        }
+      } else if (activeCategoryFilter === 'food') {
+        const sb = getSupabase();
+        if (sb) {
+          const { data } = await sb.from('food_brands').select('id, name, logo_url').limit(18);
+          if (data && data.length > 0) {
+            items = data.map(b => ({
+              type: 'food',
+              id: String(b.id),
+              title: b.name,
+              year: '',
+              poster: b.logo_url || '',
+              label: 'FOOD'
+            }));
+          }
+        }
+      } else if (activeCategoryFilter === 'travel') {
+        items = [
+          { type: 'travel', id: 'tokyo', title: 'Tokyo, Japan', poster: 'https://images.pexels.com/photos/2506923/pexels-photo-2506923.jpeg?auto=compress&cs=tinysrgb&w=800', label: 'TRAVEL' },
+          { type: 'travel', id: 'paris', title: 'Paris, France', poster: 'https://images.pexels.com/photos/699466/pexels-photo-699466.jpeg?auto=compress&cs=tinysrgb&w=800', label: 'TRAVEL' },
+          { type: 'travel', id: 'amalfi', title: 'Amalfi Coast, Italy', poster: 'https://images.pexels.com/photos/532826/pexels-photo-532826.jpeg?auto=compress&cs=tinysrgb&w=800', label: 'TRAVEL' },
+          { type: 'travel', id: 'swiss', title: 'Swiss Alps, Switzerland', poster: 'https://images.pexels.com/photos/417074/pexels-photo-417074.jpeg?auto=compress&cs=tinysrgb&w=800', label: 'TRAVEL' },
+          { type: 'travel', id: 'maldives', title: 'Maldives Islands', poster: 'https://images.pexels.com/photos/1483053/pexels-photo-1483053.jpeg?auto=compress&cs=tinysrgb&w=800', label: 'TRAVEL' },
+          { type: 'travel', id: 'reykjavik', title: 'Reykjavik, Iceland', poster: 'https://images.pexels.com/photos/1009136/pexels-photo-1009136.jpeg?auto=compress&cs=tinysrgb&w=800', label: 'TRAVEL' },
+          { type: 'travel', id: 'santorini', title: 'Santorini, Greece', poster: 'https://images.pexels.com/photos/1010657/pexels-photo-1010657.jpeg?auto=compress&cs=tinysrgb&w=800', label: 'TRAVEL' },
+          { type: 'travel', id: 'nyc', title: 'New York City, USA', poster: 'https://images.pexels.com/photos/290386/pexels-photo-290386.jpeg?auto=compress&cs=tinysrgb&w=800', label: 'TRAVEL' }
+        ];
+      } else if (activeCategoryFilter === 'car') {
+        items = [
+          { type: 'car', id: 'porsche-911', title: 'Porsche 911 GT3 RS', poster: 'https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg?auto=compress&cs=tinysrgb&w=800', label: 'CAR' },
+          { type: 'car', id: 'ferrari-laferrari', title: 'Ferrari LaFerrari', poster: 'https://images.pexels.com/photos/337909/pexels-photo-337909.jpeg?auto=compress&cs=tinysrgb&w=800', label: 'CAR' },
+          { type: 'car', id: 'lambo-aventador', title: 'Lamborghini Aventador', poster: 'https://images.pexels.com/photos/3972755/pexels-photo-3972755.jpeg?auto=compress&cs=tinysrgb&w=800', label: 'CAR' },
+          { type: 'car', id: 'bmw-m4', title: 'BMW M4 Competition', poster: 'https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=800', label: 'CAR' },
+          { type: 'car', id: 'mercedes-amg', title: 'Mercedes-AMG GT', poster: 'https://images.pexels.com/photos/112460/pexels-photo-112460.jpeg?auto=compress&cs=tinysrgb&w=800', label: 'CAR' },
+          { type: 'car', id: 'aston-martin', title: 'Aston Martin DBS', poster: 'https://images.pexels.com/photos/210019/pexels-photo-210019.jpeg?auto=compress&cs=tinysrgb&w=800', label: 'CAR' },
+          { type: 'car', id: 'audi-r8', title: 'Audi R8 V10', poster: 'https://images.pexels.com/photos/1149831/pexels-photo-1149831.jpeg?auto=compress&cs=tinysrgb&w=800', label: 'CAR' },
+          { type: 'car', id: 'bugatti-chiron', title: 'Bugatti Chiron', poster: 'https://images.pexels.com/photos/909907/pexels-photo-909907.jpeg?auto=compress&cs=tinysrgb&w=800', label: 'CAR' }
+        ];
       }
-    } catch (_e) {
-      if (grid) grid.innerHTML = '<p class="text-muted">Could not load suggestions.</p>';
+    } catch (_e) { /* ignore */ }
+
+    /* Default fallback for 'all' or 'movie' or if category endpoint returned empty */
+    if (items.length === 0) {
+      try {
+        const res = await fetch('/api/tmdb/movie/popular?language=en-US&page=1');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.results) {
+            items = data.results.slice(0, 18).map(r => ({
+              type: 'movie',
+              id: String(r.id),
+              title: r.title || r.name,
+              year: (r.release_date || '').split('-')[0],
+              poster: r.poster_path ? `https://image.tmdb.org/t/p/w342${r.poster_path}` : '',
+              label: 'MOVIE'
+            }));
+          }
+        }
+      } catch (_e) { /* ignore */ }
+    }
+
+    if (grid) {
+      if (items.length > 0) {
+        grid.innerHTML = items.map(item => `
+          <div class="bp-poster-card" onclick="BannerPicker.selectMedia('${jsEsc(item.type)}', '${jsEsc(item.id)}', '${jsEsc(item.title)}', '${jsEsc(item.year)}')">
+            <div class="bp-poster-img-wrap">
+              ${item.poster ? `<img src="${jsEsc(item.poster)}" loading="lazy" alt="">` : '<div class="bp-poster-placeholder"><i class="fas fa-image"></i></div>'}
+            </div>
+            <div class="bp-poster-title">${escHtml(item.title)}</div>
+            <div class="bp-poster-meta">${escHtml(item.label)} ${item.year ? '• ' + escHtml(item.year) : ''}</div>
+          </div>
+        `).join('');
+      } else {
+        grid.innerHTML = '<div class="bp-empty-state"><div class="bp-empty-icon"><i class="fas fa-film"></i></div><div class="bp-empty-title">No items found</div></div>';
+      }
     }
   }
 
@@ -591,7 +824,7 @@ window.BannerPicker = (function () {
             if (Array.isArray(data.screenshots)) urls.push(...data.screenshots);
           }
         }
-      } else if (type === 'brand') {
+      } else if (type === 'brand' || type === 'food') {
         try {
           const coversRes = await fetch('/assets/data/brand_covers.json');
           if (coversRes.ok) {
@@ -599,6 +832,20 @@ window.BannerPicker = (function () {
             if (covers[id]) urls = Array.isArray(covers[id]) ? covers[id] : [covers[id]];
           }
         } catch (_e) { /* ignore */ }
+      } else if (type === 'sports') {
+        try {
+          const coversRes = await fetch('/assets/data/sports_covers.json');
+          if (coversRes.ok) {
+            const covers = await coversRes.json();
+            if (covers[id]) urls = Array.isArray(covers[id]) ? covers[id] : [covers[id]];
+          }
+        } catch (_e) { /* ignore */ }
+      } else if (type === 'car') {
+        const car = LIFESTYLE_CAR_ITEMS.find(c => c.id === id || c.title === title);
+        if (car && car.poster) urls = [car.poster];
+      } else if (type === 'travel') {
+        const tr = LIFESTYLE_TRAVEL_ITEMS.find(t => t.id === id || t.title === title);
+        if (tr && tr.poster) urls = [tr.poster];
       } else {
         /* Books, Music — try to get a single image */
         const url = await fetchSingleBackdrop(type, id);
@@ -612,8 +859,8 @@ window.BannerPicker = (function () {
 
       if (grid) {
         grid.innerHTML = urls.map(url => `
-          <div class="bp-backdrop-card ${draftStaticItem && draftStaticItem.url === url ? 'selected' : ''}" onclick="BannerPicker.selectBackdrop('${escHtml(url)}')">
-            <img src="${escHtml(url)}" loading="lazy" alt="">
+          <div class="bp-backdrop-card ${draftStaticItem && draftStaticItem.url === url ? 'selected' : ''}" onclick="BannerPicker.selectBackdrop('${jsEsc(url)}')">
+            <img src="${jsEsc(url)}" loading="lazy" alt="">
           </div>
         `).join('');
       }
@@ -886,6 +1133,7 @@ window.BannerPicker = (function () {
     openPicker,
     closePicker,
     setMode,
+    setDomain,
     setCategoryFilter,
     onSearchInput,
     onSearchFocus,

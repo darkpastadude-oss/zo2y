@@ -2594,16 +2594,28 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
           </button>
         </div>
 
-        <!-- Mode Toggle -->
+        <!-- Mode & Domain Toggle -->
         <div class="bp-mode-bar">
-          <label class="bp-mode-pill">
-            <input type="radio" name="bpMode" value="static" id="bpModeStatic" onchange="BannerPicker.setMode('static')" checked>
-            <span><i class="fas fa-image"></i> Static</span>
-          </label>
-          <label class="bp-mode-pill">
-            <input type="radio" name="bpMode" value="rotate" id="bpModeRotate" onchange="BannerPicker.setMode('rotate')">
-            <span><i class="fas fa-sync-alt"></i> Rotate</span>
-          </label>
+          <div class="bp-mode-group">
+            <label class="bp-mode-pill">
+              <input type="radio" name="bpMode" value="static" id="bpModeStatic" onchange="BannerPicker.setMode('static')" checked>
+              <span><i class="fas fa-image"></i> Static</span>
+            </label>
+            <label class="bp-mode-pill">
+              <input type="radio" name="bpMode" value="rotate" id="bpModeRotate" onchange="BannerPicker.setMode('rotate')">
+              <span><i class="fas fa-sync-alt"></i> Rotate</span>
+            </label>
+          </div>
+
+          <!-- Media / Lifestyle Tab Switch (just like profile.html) -->
+          <div class="bp-domain-switch">
+            <button type="button" class="bp-domain-btn active" id="bpDomainMedia" onclick="BannerPicker.setDomain('media')">
+              <i class="fas fa-play"></i> <span>Media</span>
+            </button>
+            <button type="button" class="bp-domain-btn" id="bpDomainLifestyle" onclick="BannerPicker.setDomain('lifestyle')">
+              <i class="fas fa-compass"></i> <span>Lifestyle</span>
+            </button>
+          </div>
         </div>
 
         <!-- Body: Two-Column on Desktop -->
