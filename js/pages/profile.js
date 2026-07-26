@@ -309,6 +309,8 @@
                     }
                     
                     currentUser = user;
+                    window.currentUser = user;
+                    try { if (user && user.id) localStorage.setItem('zo2y_current_user_id', user.id); } catch (_e) {}
                     if (window.ListUtils && typeof ListUtils.setTierSyncContext === 'function') {
                         ListUtils.setTierSyncContext(supabase, currentUser.id);
                     }
@@ -1210,28 +1212,55 @@
             }
 
             async function loadProfileBannerConfig(userId) {
-                if (!supabase || !userId) return;
-                try {
-                    const { data: bannerRow } = await supabase
-                        .from('profile_showcase')
-                        .select('*')
-                        .eq('user_id', userId)
-                        .eq('media_type', 'banner')
-                        .maybeSingle();
+                if (!userId) return;
+                let config = null;
 
-                    if (bannerRow && bannerRow.list_id) {
-                        showcaseData['banner'] = bannerRow;
-                        const config = JSON.parse(bannerRow.list_id);
-                        if (config && Array.isArray(config.items) && config.items.length > 0) {
-                            if (config.pos_y !== undefined && userProfile) userProfile.banner_position_y = config.pos_y;
-                            if (config.pos_x !== undefined && userProfile) userProfile.banner_position_x = config.pos_x;
-                            await ProfileBackdropEngine.init(config.items, config.mode || 'rotate');
-                            return;
+                const isUuid = (str) => typeof str === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+
+                // 1. Check profile_showcase
+                if (supabase && isUuid(userId)) {
+                    try {
+                        const { data: bannerRow } = await supabase
+                            .from('profile_showcase')
+                            .select('*')
+                            .eq('user_id', userId)
+                            .eq('media_type', 'banner')
+                            .maybeSingle();
+
+                        if (bannerRow && bannerRow.list_id) {
+                            showcaseData['banner'] = bannerRow;
+                            config = JSON.parse(bannerRow.list_id);
                         }
+                    } catch (e) {
+                        console.warn('Notice loading banner config from profile_showcase:', e);
                     }
-                } catch (e) {
-                    console.warn('Failed to load banner config from profile_showcase:', e);
                 }
+
+                // 2. Check userProfile.banner_url directly from user_profiles table
+                if ((!config || !config.items || !config.items.length) && userProfile && userProfile.banner_url) {
+                    config = {
+                        items: [{ media_type: 'banner', media_id: 'custom', title: 'Banner', url: userProfile.banner_url, pos_y: userProfile.banner_position_y || 15 }],
+                        mode: 'static',
+                        pos_y: userProfile.banner_position_y || 15,
+                        pos_x: userProfile.banner_position_x || 50
+                    };
+                }
+
+                // 3. Check LocalStorage backup
+                if (!config || !Array.isArray(config.items) || config.items.length === 0) {
+                    try {
+                        const stored = localStorage.getItem('zo2y_banner_config_' + userId);
+                        if (stored) config = JSON.parse(stored);
+                    } catch (_e) {}
+                }
+
+                if (config && Array.isArray(config.items) && config.items.length > 0) {
+                    if (config.pos_y !== undefined && userProfile) userProfile.banner_position_y = config.pos_y;
+                    if (config.pos_x !== undefined && userProfile) userProfile.banner_position_x = config.pos_x;
+                    await ProfileBackdropEngine.init(config.items, config.mode || 'rotate');
+                    return;
+                }
+
                 ProfileBackdropEngine.init();
             }
 
@@ -1329,6 +1358,7 @@
                 }
 
                 userProfile = profile || {};
+                window.userProfile = userProfile;
                 if (profile) return;
 
                 const idSuffix = String(currentUser?.id || '').replace(/-/g, '').slice(0, 6) || 'user';
@@ -11566,6 +11596,8 @@ const alreadyActive = isMobile
                 confirmLogout,
                 escapeHtml,
                 getFavoriteBackdropUrls: getFavoriteBackdropUrls,
+                getCurrentUserId: function() { return currentUser?.id || targetUserId || userProfile?.id || userProfile?.user_id || null; },
+                getUserProfile: function() { return userProfile; },
                 favoriteIds: favoriteIds,
                 showcaseData: showcaseData,
                 showcaseConfig: showcaseConfig,

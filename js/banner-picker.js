@@ -68,11 +68,15 @@ window.BannerPicker = (function () {
   }
 
   function getUserId() {
-    if (window.userProfile && (window.userProfile.id || window.userProfile.user_id)) {
-      return window.userProfile.id || window.userProfile.user_id;
+    if (window.ProfileManager && typeof window.ProfileManager.getCurrentUserId === 'function') {
+      const pId = window.ProfileManager.getCurrentUserId();
+      if (pId) return pId;
     }
     if (window.currentUser && window.currentUser.id) {
       return window.currentUser.id;
+    }
+    if (window.userProfile && (window.userProfile.id || window.userProfile.user_id)) {
+      return window.userProfile.id || window.userProfile.user_id;
     }
     if (window.ZO2Y_AUTH) {
       if (typeof window.ZO2Y_AUTH.getUser === 'function') {
@@ -83,7 +87,23 @@ window.BannerPicker = (function () {
         return window.ZO2Y_AUTH.session.user.id;
       }
     }
-    return null;
+    try {
+      const storedId = localStorage.getItem('zo2y_current_user_id');
+      if (storedId) return storedId;
+    } catch (_e) {}
+    try {
+      const authSession = localStorage.getItem('sb-zo2y-auth-token') || localStorage.getItem('supabase.auth.token');
+      if (authSession) {
+        const parsed = JSON.parse(authSession);
+        if (parsed?.user?.id) return parsed.user.id;
+        if (parsed?.currentSession?.user?.id) return parsed.currentSession.user.id;
+      }
+    } catch (_e) {}
+    return 'default_user';
+  }
+
+  function isUuid(str) {
+    return typeof str === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
   }
 
   function getUserProfile() {
@@ -1090,42 +1110,67 @@ window.BannerPicker = (function () {
       if (emptyEl) emptyEl.style.display = 'none';
     }
 
-    /* --- Persist to database --- */
+    /* --- Persist to database & localStorage --- */
+    const bannerUrl = finalItems.length > 0 ? (finalItems[0].url || '') : '';
+    const bannerConfig = {
+      items: finalItems,
+      mode: currentMode,
+      pos_y: Math.round(posY),
+      pos_x: posX,
+      banner_url: bannerUrl
+    };
+
     const sb = getSupabase();
     const userId = getUserId();
 
-    if (sb && userId) {
-      /* 1. Update user_profiles */
-      const profilePayload = {
+    if (userId) {
+      try {
+        localStorage.setItem('zo2y_banner_config_' + userId, JSON.stringify(bannerConfig));
+        if (bannerUrl) localStorage.setItem('zo2y_banner_url_' + userId, bannerUrl);
+      } catch (_e) {}
+    }
+
+    if (sb && userId && isUuid(userId)) {
+      /* 1. Update user_profiles with banner_url, position_y, position_x */
+      const fullPayload = {
+        banner_url: bannerUrl,
         banner_position_y: Math.round(posY),
         banner_position_x: posX
       };
+      const basicPayload = {
+        banner_position_y: Math.round(posY),
+        banner_position_x: posX
+      };
+
       try {
-        const { error: err1 } = await sb.from('user_profiles').update(profilePayload).eq('id', userId);
+        const { error: err1 } = await sb.from('user_profiles').update(fullPayload).eq('id', userId);
         if (err1) {
-          await sb.from('user_profiles').update(profilePayload).eq('user_id', userId);
+          // If banner_url column is not on user_profiles yet, update position
+          await sb.from('user_profiles').update(basicPayload).eq('id', userId);
         }
       } catch (e) {
-        console.warn('Banner: failed to update user_profiles', e);
+        console.warn('Banner: user_profiles update notice', e);
       }
 
       /* 2. Upsert profile_showcase (banner config) */
-      const bannerConfig = {
-        items: finalItems,
-        mode: currentMode,
-        pos_y: Math.round(posY),
-        pos_x: posX
-      };
       try {
-        await sb.from('profile_showcase').upsert({
-          user_id: userId,
-          media_type: 'banner',
-          list_id: JSON.stringify(bannerConfig),
-          display_order: 0,
-          is_hidden: false
-        }, { onConflict: 'user_id, media_type' });
+        if (window.ProfileShowcase && typeof window.ProfileShowcase.setProfileShowcase === 'function') {
+          await window.ProfileShowcase.setProfileShowcase(userId, 'banner', JSON.stringify(bannerConfig), { display_order: 0, is_hidden: false });
+        } else {
+          const bannerRow = {
+            user_id: userId,
+            media_type: 'banner',
+            list_id: JSON.stringify(bannerConfig),
+            display_order: 0,
+            is_hidden: false
+          };
+          const { error: showcaseErr } = await sb.from('profile_showcase').upsert(bannerRow, { onConflict: 'user_id,media_type,list_id' });
+          if (showcaseErr) {
+            await sb.from('profile_showcase').upsert(bannerRow, { onConflict: 'user_id,media_type' });
+          }
+        }
       } catch (e) {
-        console.warn('Banner: failed to upsert profile_showcase', e);
+        console.warn('Banner: profile_showcase upsert notice', e);
       }
     }
 
