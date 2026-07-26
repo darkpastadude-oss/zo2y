@@ -1,0 +1,776 @@
+[
+  {
+    "id": "94e4b5c0-1b7a-4877-be3e-980035e041e8",
+    "name": "Abercrombie & Fitch",
+    "domain": "abercrombie.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/abercrombie-com.png"
+  },
+  {
+    "id": "d3a9992d-47c0-49a1-8890-083221d2bf52",
+    "name": "Acne Studios",
+    "domain": "acnestudios.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/acnestudios-com.png"
+  },
+  {
+    "id": "e705dfac-6d39-4804-8939-6dd14c2214a4",
+    "name": "Adidas",
+    "domain": "adidas.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/adidas-com.png"
+  },
+  {
+    "id": "6b508141-4c0b-48ed-9777-c2e782c23df9",
+    "name": "Alexander McQueen",
+    "domain": "alexandermcqueen.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/alexandermcqueen-com.png"
+  },
+  {
+    "id": "f91a04bc-0b4f-42e8-b63a-70f81f45af58",
+    "name": "Allbirds",
+    "domain": "allbirds.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/allbirds-com.png"
+  },
+  {
+    "id": "1dca921a-f9a3-4cde-9b2d-3bbcb4f4113f",
+    "name": "AllSaints",
+    "domain": "allsaints.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/allsaints-com.png"
+  },
+  {
+    "id": "fc49c41d-8bcf-4e00-bb43-f14f8bc162c7",
+    "name": "Alo Yoga",
+    "domain": "aloyoga.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/aloyoga-com.png"
+  },
+  {
+    "id": "053dc7b1-dca4-44e5-89da-c79655338060",
+    "name": "American Eagle",
+    "domain": "ae.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/ae-com.png"
+  },
+  {
+    "id": "f1bb5e15-4510-4616-9a94-4bd0e9f0f8c7",
+    "name": "Amiri",
+    "domain": "amiri.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/amiri-com.png"
+  },
+  {
+    "id": "cf002db6-08b9-4273-834f-bc68f340e196",
+    "name": "Arc'teryx",
+    "domain": "arcteryx.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/arcteryx-com.png"
+  },
+  {
+    "id": "1c3ec533-324b-4a85-9977-95d22dfc9fb9",
+    "name": "Aritzia",
+    "domain": "aritzia.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/aritzia-com.png"
+  },
+  {
+    "id": "414ae29d-35d1-4ee0-a24c-de0aec14cfc6",
+    "name": "ASICS",
+    "domain": "asics.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/asics-com.png"
+  },
+  {
+    "id": "5a96dea7-9c1d-46fa-a50a-1d92d12b7a47",
+    "name": "Audemars Piguet",
+    "domain": "audemarspiguet.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/audemarspiguet-com.png"
+  },
+  {
+    "id": "d66bde14-5cf7-4215-962c-c816546b341b",
+    "name": "Balenciaga",
+    "domain": "balenciaga.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/balenciaga-com.png"
+  },
+  {
+    "id": "a25dfc01-8eb0-48b3-8794-7d1b99d8568d",
+    "name": "BAPE",
+    "domain": "bape.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/bape-com.png"
+  },
+  {
+    "id": "23138455-b648-4ca3-8532-b7ed9283ef64",
+    "name": "Birkenstock",
+    "domain": "birkenstock.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/birkenstock-com.png"
+  },
+  {
+    "id": "106f6c8d-f5c2-4743-a630-a443f3f3fa62",
+    "name": "Boohoo",
+    "domain": "boohoo.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/boohoo-com.png"
+  },
+  {
+    "id": "f61f074d-733a-44ea-9d56-d6a97a887dad",
+    "name": "Bottega Veneta",
+    "domain": "bottegaveneta.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/bottegaveneta-com.png"
+  },
+  {
+    "id": "c9819310-b6e0-4d8b-a195-89644e1db49c",
+    "name": "Breitling",
+    "domain": "breitling.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/breitling-com.png"
+  },
+  {
+    "id": "e73c5933-3f5d-434a-9b0d-8152e9c65ff7",
+    "name": "Canada Goose",
+    "domain": "canadagoose.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/canadagoose-com.png"
+  },
+  {
+    "id": "f70bbe8f-5d5a-4a09-bf83-7bc82673c41f",
+    "name": "Carhartt WIP",
+    "domain": "carhartt-wip.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/carhartt-wip-com.png"
+  },
+  {
+    "id": "4c2363d5-08d0-49e9-9810-4dc77e0b4c23",
+    "name": "Cartier",
+    "domain": "cartier.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/cartier-com.png"
+  },
+  {
+    "id": "1a4f7197-15b6-41a3-8d4e-5f3b3b71fef6",
+    "name": "Casio",
+    "domain": "casio.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/casio-com.png"
+  },
+  {
+    "id": "2bc826b6-5364-48ca-b051-e7cfed9119d1",
+    "name": "Celine",
+    "domain": "celine.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/celine-com.png"
+  },
+  {
+    "id": "ba5f298f-0a57-44af-aba7-1ae0c35c1c9e",
+    "name": "Champion",
+    "domain": "champion.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/champion-com.png"
+  },
+  {
+    "id": "b3e7c26a-66ff-4966-9e2b-0ae0659a5d2d",
+    "name": "Christian Louboutin",
+    "domain": "christianlouboutin.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/christianlouboutin-com.png"
+  },
+  {
+    "id": "49480741-639f-49ea-a87b-bff8b59e870a",
+    "name": "Chrome Hearts",
+    "domain": "chromehearts.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/chromehearts-com.png"
+  },
+  {
+    "id": "178d28bc-288a-442a-a327-2140c550715c",
+    "name": "Clarks",
+    "domain": "clarks.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/clarks-com.png"
+  },
+  {
+    "id": "7112da07-7f69-412b-bad0-67852d31ed83",
+    "name": "Cole Haan",
+    "domain": "colehaan.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/colehaan-com.png"
+  },
+  {
+    "id": "1e68df54-2d7c-452e-8322-f8cc1bb57b53",
+    "name": "Comme des Garçons",
+    "domain": "comme-des-garcons.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/comme-des-garcons-com.png"
+  },
+  {
+    "id": "a2195965-7f39-4d09-89ab-5667999ff47c",
+    "name": "Converse",
+    "domain": "converse.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/converse-com.png"
+  },
+  {
+    "id": "37fc5dd3-f2ee-465b-9a99-1aa3d85666c6",
+    "name": "COS",
+    "domain": "cos.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/cos-com.png"
+  },
+  {
+    "id": "06527358-8466-4a6b-b81b-48b645cdd93e",
+    "name": "Crocs",
+    "domain": "crocs.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/crocs-com.png"
+  },
+  {
+    "id": "3340620d-34c5-46d6-a89f-9dc846e0522c",
+    "name": "Dr. Martens",
+    "domain": "drmartens.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/drmartens-com.png"
+  },
+  {
+    "id": "18cc0972-08fa-439d-873c-69b132b8ee74",
+    "name": "Essentials",
+    "domain": "fearofgod.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/fearofgod-com.png"
+  },
+  {
+    "id": "adb076ee-0987-4534-9c87-148efd1991bf",
+    "name": "Everlane",
+    "domain": "everlane.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/everlane-com.png"
+  },
+  {
+    "id": "a01cbf40-d596-4098-ac94-d37b8fcf0f9d",
+    "name": "Express",
+    "domain": "express.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/express-com.png"
+  },
+  {
+    "id": "cfb91a11-d77e-48e5-8392-53587d608008",
+    "name": "Fear of God",
+    "domain": "fearofgod.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/fearofgod-com.png"
+  },
+  {
+    "id": "e35fcbfd-193c-42ef-911f-c7af8ab6afbb",
+    "name": "Fendi",
+    "domain": "fendi.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/fendi-com.png"
+  },
+  {
+    "id": "1dff445a-d4dd-46fe-941a-2602365d7805",
+    "name": "FILA",
+    "domain": "fila.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/fila-com.png"
+  },
+  {
+    "id": "c7fe4967-4331-462a-8a8e-f8b8b26079cb",
+    "name": "Forever 21",
+    "domain": "forever21.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/forever21-com.png"
+  },
+  {
+    "id": "5ddd6eb7-d5f3-407d-8931-b838a495a8c5",
+    "name": "GANNI",
+    "domain": "ganni.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/ganni-com.png"
+  },
+  {
+    "id": "406988a3-ebb9-4e0d-b481-3825e05813cf",
+    "name": "Gap",
+    "domain": "gap.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/gap-com.png"
+  },
+  {
+    "id": "43a4082d-227b-4e48-9ad9-d80273298dcc",
+    "name": "Givenchy",
+    "domain": "givenchy.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/givenchy-com.png"
+  },
+  {
+    "id": "ab89723c-7f48-4d18-bfbe-4a4b53a66a94",
+    "name": "Gucci",
+    "domain": "gucci.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/gucci-com.png"
+  },
+  {
+    "id": "ab360cde-d1c9-45f6-8610-492f414baa8a",
+    "name": "Guess",
+    "domain": "guess.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/guess-com.png"
+  },
+  {
+    "id": "13bdc03a-c81f-45b0-ad16-14a81c3bf8d1",
+    "name": "Gymshark",
+    "domain": "gymshark.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/gymshark-com.png"
+  },
+  {
+    "id": "cf4712a1-3906-407d-b817-3f0da64c816d",
+    "name": "H&M",
+    "domain": "hm.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/hm-com.png"
+  },
+  {
+    "id": "2aaaaaf4-e36f-4cfd-a219-b0df9676118f",
+    "name": "Hoka One One",
+    "domain": "hoka.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/hoka-com.png"
+  },
+  {
+    "id": "3786939c-6768-4e58-984e-1b97f86b72f1",
+    "name": "Hollister",
+    "domain": "hollisterco.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/hollisterco-com.png"
+  },
+  {
+    "id": "2a1b9eca-0860-4626-bd67-7fb2f1b3ab4e",
+    "name": "HUGO BOSS",
+    "domain": "hugoboss.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/hugoboss-com.png"
+  },
+  {
+    "id": "70d0cf16-bff1-48a9-bfc9-a24ffdfb82cc",
+    "name": "J.Crew",
+    "domain": "jcrew.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/jcrew-com.png"
+  },
+  {
+    "id": "ad753971-b614-495f-83f9-9a689c34d955",
+    "name": "Jacquemus",
+    "domain": "jacquemus.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/jacquemus-com.png"
+  },
+  {
+    "id": "5d9f97b8-7fc9-4c94-9a1a-bee05dda581b",
+    "name": "Jil Sander",
+    "domain": "jilsander.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/jilsander-com.png"
+  },
+  {
+    "id": "878e4420-51e7-439f-91fb-2b5274ed4279",
+    "name": "Jimmy Choo",
+    "domain": "jimmychoo.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/jimmychoo-com.png"
+  },
+  {
+    "id": "ca96890f-85e2-43bc-ba3a-9b8722249ee7",
+    "name": "Kith",
+    "domain": "kith.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/kith-com.png"
+  },
+  {
+    "id": "1b267c3d-e050-42bc-a7ac-de5e100c2afc",
+    "name": "Lacoste",
+    "domain": "lacoste.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/lacoste-com.png"
+  },
+  {
+    "id": "a856f070-ba8b-4742-bbf1-96e25864d340",
+    "name": "Levi/s",
+    "domain": "levi.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/levi-com.png"
+  },
+  {
+    "id": "ee18daa0-d264-419a-8849-96b9919bc790",
+    "name": "Loewe",
+    "domain": "loewe.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/loewe-com.png"
+  },
+  {
+    "id": "c9aacf66-ada5-4da4-bad8-c0ab0890f240",
+    "name": "Longchamp",
+    "domain": "longchamp.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/longchamp-com.png"
+  },
+  {
+    "id": "ef59b223-8c37-4616-bfbe-96fc2ec7dfc7",
+    "name": "Longines",
+    "domain": "longines.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/longines-com.png"
+  },
+  {
+    "id": "8c915f0c-3b4a-4b00-a381-b2ed682853c9",
+    "name": "Louis Vuitton",
+    "domain": "louisvuitton.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/louisvuitton-com.png"
+  },
+  {
+    "id": "48b63b91-25f2-4191-9c7c-d1795e4a310b",
+    "name": "Lululemon",
+    "domain": "lululemon.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/lululemon-com.png"
+  },
+  {
+    "id": "6edde379-a4c4-4c53-8394-ed0e5cf3fd32",
+    "name": "Maison Margiela",
+    "domain": "maisonmargiela.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/maisonmargiela-com.png"
+  },
+  {
+    "id": "61ee4abf-3433-4ffc-aead-abd41ac3e44c",
+    "name": "Mango",
+    "domain": "mango.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/mango-com.png"
+  },
+  {
+    "id": "060c4b80-2fd4-4ee1-a13d-fd4fd292556a",
+    "name": "Manolo Blahnik",
+    "domain": "manoloblahnik.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/manoloblahnik-com.png"
+  },
+  {
+    "id": "c9db261e-6b39-4b16-93ed-56621a9e0014",
+    "name": "Marni",
+    "domain": "marni.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/marni-com.png"
+  },
+  {
+    "id": "5d913972-c477-4a1a-8c52-427ae189e662",
+    "name": "Merrell",
+    "domain": "merrell.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/merrell-com.png"
+  },
+  {
+    "id": "a5894b66-395b-483a-8d5a-1b9254073017",
+    "name": "Michael Kors",
+    "domain": "michaelkors.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/michaelkors-com.png"
+  },
+  {
+    "id": "018fc990-4eb1-44e5-832c-ce6b16fa30e1",
+    "name": "Moncler",
+    "domain": "moncler.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/moncler-com.png"
+  },
+  {
+    "id": "08949fc8-3490-4948-874e-35e9eff4b923",
+    "name": "Montblanc",
+    "domain": "montblanc.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/montblanc-com.png"
+  },
+  {
+    "id": "c6e2de1a-b82a-486a-b5d6-bb0c5ec8a3b7",
+    "name": "New Balance",
+    "domain": "newbalance.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/newbalance-com.png"
+  },
+  {
+    "id": "37210920-2508-4d84-9998-7349665bc22d",
+    "name": "Nike",
+    "domain": "nike.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/nike-com.png"
+  },
+  {
+    "id": "ab27d625-5f6a-4f7a-8e9c-e020a14835c4",
+    "name": "Oakley",
+    "domain": "oakley.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/oakley-com.png"
+  },
+  {
+    "id": "915488c8-c11b-4294-b60f-b611adf0084c",
+    "name": "Off-White",
+    "domain": "off---white.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/off---white-com.png"
+  },
+  {
+    "id": "f7c4d664-fedf-402c-b19b-4322d75ffd89",
+    "name": "Omega",
+    "domain": "omegawatches.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/omegawatches-com.png"
+  },
+  {
+    "id": "265307ab-ebcd-4f3f-bc89-5b7fde29e22e",
+    "name": "On Running",
+    "domain": "on-running.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/on-running-com.png"
+  },
+  {
+    "id": "5bb6854f-7b98-4e8e-95d1-512e8d777650",
+    "name": "Palace",
+    "domain": "palaceskateboards.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/palaceskateboards-com.png"
+  },
+  {
+    "id": "e6eb0633-618b-4ea0-8c6e-38d0588de61e",
+    "name": "Palm Angels",
+    "domain": "palmangels.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/palmangels-com.png"
+  },
+  {
+    "id": "3bd67e95-3695-4cab-a2bf-ef025fca9dad",
+    "name": "Pandora",
+    "domain": "pandora.net",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/pandora-net.png"
+  },
+  {
+    "id": "847dcbdc-a494-43e6-bd94-893d87b713b3",
+    "name": "Patagonia",
+    "domain": "patagonia.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/patagonia-com.png"
+  },
+  {
+    "id": "a205a1e7-328c-4dc4-879c-f09eccc9caec",
+    "name": "Patek Philippe",
+    "domain": "patek.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/patek-com.png"
+  },
+  {
+    "id": "1900a7d3-40d8-47e8-98d0-dfe6c0401786",
+    "name": "Prada",
+    "domain": "prada.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/prada-com.png"
+  },
+  {
+    "id": "7f4d61c4-e742-4cc4-a5cc-b2c52de4d5e5",
+    "name": "Puma",
+    "domain": "puma.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/puma-com.png"
+  },
+  {
+    "id": "fc96d1ed-5427-4685-96d9-808af11204bc",
+    "name": "Ralph Lauren",
+    "domain": "ralphlauren.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/ralphlauren-com.png"
+  },
+  {
+    "id": "44ec09dd-f186-4dd1-bfe8-f9424e9c5ee8",
+    "name": "Ray-Ban",
+    "domain": "ray-ban.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/ray-ban-com.png"
+  },
+  {
+    "id": "7d9f8a31-27d6-42f8-86cf-4f660ddb3670",
+    "name": "Reebok",
+    "domain": "reebok.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/reebok-com.png"
+  },
+  {
+    "id": "5971c451-458a-44ea-a0fb-065721b153f3",
+    "name": "Reformation",
+    "domain": "therestation.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/therestation-com.png"
+  },
+  {
+    "id": "d201185a-296e-47c2-a6d0-579b3ef04215",
+    "name": "Reiss",
+    "domain": "reiss.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/reiss-com.png"
+  },
+  {
+    "id": "69a98a26-6ab4-4dde-a87f-8c785bb132af",
+    "name": "Rick Owens",
+    "domain": "rickowens.eu",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/rickowens-eu.png"
+  },
+  {
+    "id": "b93e5bd5-fd13-4fef-9a02-4d89e3400f6b",
+    "name": "Rolex",
+    "domain": "rolex.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/rolex-com.png"
+  },
+  {
+    "id": "37812d50-ca2d-4f07-a07d-dfef314ff543",
+    "name": "Saint Laurent",
+    "domain": "ysl.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/ysl-com.png"
+  },
+  {
+    "id": "40bf60b3-5c5d-472d-95db-da0d81126e9f",
+    "name": "Salomon",
+    "domain": "salomon.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/salomon-com.png"
+  },
+  {
+    "id": "69dfcf50-1ec5-4c9d-9a12-6a1b992b5b87",
+    "name": "Saucony",
+    "domain": "saucony.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/saucony-com.png"
+  },
+  {
+    "id": "dfc5a1af-472a-4f80-b622-aa5931b1b8fa",
+    "name": "Seiko",
+    "domain": "seikowatches.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/seikowatches-com.png"
+  },
+  {
+    "id": "4d888c26-df2c-4638-b705-aefd9f02aaac",
+    "name": "Sephora",
+    "domain": "sephora.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/sephora-com.png"
+  },
+  {
+    "id": "a367dcbb-27d4-44e2-bd08-b78982221d07",
+    "name": "Stella McCartney",
+    "domain": "stellamccartney.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/stellamccartney-com.png"
+  },
+  {
+    "id": "365be8bd-e082-4728-a99c-761bbb8aba9e",
+    "name": "Stone Island",
+    "domain": "stoneisland.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/stoneisland-com.png"
+  },
+  {
+    "id": "94a79ff1-8904-415a-af2e-885d5447d6ad",
+    "name": "Stüssy",
+    "domain": "stussy.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/stussy-com.png"
+  },
+  {
+    "id": "72f2093f-e247-4af4-9cbf-39842d87a83d",
+    "name": "Supreme",
+    "domain": "supremenewyork.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/supremenewyork-com.png"
+  },
+  {
+    "id": "a17da0d8-112d-49b8-a80d-8cd0b0e12995",
+    "name": "Swarovski",
+    "domain": "swarovski.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/swarovski-com.png"
+  },
+  {
+    "id": "c965daaf-3a15-4a3d-8df5-2b18b2c13cba",
+    "name": "Swatch",
+    "domain": "swatch.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/swatch-com.png"
+  },
+  {
+    "id": "7e9ac90f-e7b9-4ce9-9bf9-6926a6a90bce",
+    "name": "TAG Heuer",
+    "domain": "tagheuer.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/tagheuer-com.png"
+  },
+  {
+    "id": "b374cb19-c127-49a8-b69b-a2f55a369bef",
+    "name": "The North Face",
+    "domain": "thenorthface.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/thenorthface-com.png"
+  },
+  {
+    "id": "a63c3ef8-5a5a-45e3-9311-4d43c916df8e",
+    "name": "Tiffany & Co.",
+    "domain": "tiffany.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/tiffany-com.png"
+  },
+  {
+    "id": "9bee41fa-0bdd-4159-ac68-a702912b8039",
+    "name": "Timberland",
+    "domain": "timberland.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/timberland-com.png"
+  },
+  {
+    "id": "b038d1d7-0d08-468b-a287-72a71c26f433",
+    "name": "Tissot",
+    "domain": "tissotwatches.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/tissotwatches-com.png"
+  },
+  {
+    "id": "7f73fa24-b6e9-40bc-bfc8-a05daf7a01c7",
+    "name": "Tommy Hilfiger",
+    "domain": "tommy.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/tommy-com.png"
+  },
+  {
+    "id": "a1495323-ab5c-490b-a6f7-ad5445c58676",
+    "name": "Tory Burch",
+    "domain": "toryburch.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/toryburch-com.png"
+  },
+  {
+    "id": "84adaf11-1da8-465a-aa8f-f1fb47419a75",
+    "name": "Tudor",
+    "domain": "tudorwatch.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/tudorwatch-com.png"
+  },
+  {
+    "id": "3d70929a-59f0-4e99-aae4-524148cbaffb",
+    "name": "UGG",
+    "domain": "ugg.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/ugg-com.png"
+  },
+  {
+    "id": "6658698c-69c6-47b5-8aaf-c166f65242c4",
+    "name": "Umbro",
+    "domain": "umbro.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/umbro-com.png"
+  },
+  {
+    "id": "d53d1805-9109-41a8-8cb4-63053d9e1d79",
+    "name": "Under Armour",
+    "domain": "underarmour.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/underarmour-com.png"
+  },
+  {
+    "id": "e260a863-86fd-4a7d-b00b-4af20dced62a",
+    "name": "Uniqlo",
+    "domain": "uniqlo.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/uniqlo-com.png"
+  },
+  {
+    "id": "d268d8fe-cb66-466f-bedb-4c987c7fe289",
+    "name": "Urban Outfitters",
+    "domain": "urbanoutfitters.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/urbanoutfitters-com.png"
+  },
+  {
+    "id": "3569e334-c2e2-4c06-902b-d7ba42c54af9",
+    "name": "Vacheron Constantin",
+    "domain": "vacheron-constantin.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/vacheron-constantin-com.png"
+  },
+  {
+    "id": "b71bf4b4-e5c6-4781-8882-ae31a997921a",
+    "name": "Valentino",
+    "domain": "valentino.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/valentino-com.png"
+  },
+  {
+    "id": "9fae2ae5-b5d6-459a-83fb-9316fe59542e",
+    "name": "Vans",
+    "domain": "vans.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/vans-com.png"
+  },
+  {
+    "id": "a83bb917-0d65-441c-8937-f038c39c332e",
+    "name": "Versace",
+    "domain": "versace.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/versace-com.png"
+  },
+  {
+    "id": "20b95b84-f9c7-43ae-8a64-ff537101bf7a",
+    "name": "Victoria\\s Secret",
+    "domain": "victoriassecret.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/victoriassecret-com.png"
+  },
+  {
+    "id": "a2e65438-8653-4992-9985-7bab2e92ec99",
+    "name": "Vivienne Westwood",
+    "domain": "viviennewestwood.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/viviennewestwood-com.png"
+  },
+  {
+    "id": "e7fd6ed0-c547-4b73-b3d2-7ae36ced383c",
+    "name": "Vuori",
+    "domain": "vuoriclothing.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/vuoriclothing-com.png"
+  },
+  {
+    "id": "f84357b8-b7d2-4ae6-b145-d9e4a4a91e1b",
+    "name": "Weekday",
+    "domain": "weekday.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/weekday-com.png"
+  },
+  {
+    "id": "e31b3d45-997d-454e-9503-98066162bc2b",
+    "name": "Wrangler",
+    "domain": "wrangler.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/wrangler-com.png"
+  },
+  {
+    "id": "2f48f73c-063d-4ae4-bd68-737d49623508",
+    "name": "YSL",
+    "domain": "ysl.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/ysl-com.png"
+  },
+  {
+    "id": "45aafe28-b6ae-410e-a51d-19a9577c49c9",
+    "name": "Zalando",
+    "domain": "zalando.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/zalando-com.png"
+  },
+  {
+    "id": "fdbcf860-80a5-41a2-8e56-9a993b507f7f",
+    "name": "Zara",
+    "domain": "zara.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/zara-com.png"
+  },
+  {
+    "id": "02e4f2b3-aab8-4599-9a0f-74c390224750",
+    "name": "Zegna",
+    "domain": "zegna.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/zegna-com.png"
+  },
+  {
+    "id": "a11352b2-ca71-4ea1-8459-9a4eb93aa83c",
+    "name": "Zenith",
+    "domain": "zenith-watches.com",
+    "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/zenith-watches-com.png"
+  }
+]

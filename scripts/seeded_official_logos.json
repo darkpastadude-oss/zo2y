@@ -1,0 +1,1756 @@
+{
+  "fashion": [
+    {
+      "name": "Abercrombie & Fitch",
+      "domain": "abercrombie.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/abercrombie-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Abercrombie%20%26%20Fitch%20logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Acne Studios",
+      "domain": "acnestudios.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/acnestudios-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Acne%20Studios%20Logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Adidas",
+      "domain": "adidas.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/adidas-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Adidas%202022%20logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Alexander McQueen",
+      "domain": "alexandermcqueen.com",
+      "logo_url": "https://upload.wikimedia.org/wikipedia/commons/0/00/Alexander_McQueen_logo.svg",
+      "source": "https://upload.wikimedia.org/wikipedia/commons/0/00/Alexander_McQueen_logo.svg",
+      "type": "fashion"
+    },
+    {
+      "name": "Allbirds",
+      "domain": "allbirds.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/allbirds-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Allbirds%20logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "AllSaints",
+      "domain": "allsaints.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/allsaints-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Allsaints%20logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Alo Yoga",
+      "domain": "aloyoga.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/aloyoga-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Alo%20Yoga%20logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "American Eagle",
+      "domain": "ae.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/ae-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/American%20Eagle%20Outfitters%20text%20logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Amiri",
+      "domain": "amiri.com",
+      "logo_url": "https://upload.wikimedia.org/wikipedia/commons/4/4c/Amiri_brand_logo.svg",
+      "source": "https://upload.wikimedia.org/wikipedia/commons/4/4c/Amiri_brand_logo.svg",
+      "type": "fashion"
+    },
+    {
+      "name": "Arc'teryx",
+      "domain": "arcteryx.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/arcteryx-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/arcteryx-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Aritzia",
+      "domain": "aritzia.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/aritzia-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Aritzia%20logo%20(2017).svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "ASICS",
+      "domain": "asics.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/asics-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Asics%20Logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Audemars Piguet",
+      "domain": "audemarspiguet.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/audemarspiguet-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Logo%20Audemars%20Piguet.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Balenciaga",
+      "domain": "balenciaga.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/balenciaga-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Balenciaga%20Logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "BAPE",
+      "domain": "bape.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/bape-com.png",
+      "source": "https://upload.wikimedia.org/wikipedia/en/0/03/A_Bathing_Ape_%28logo%29.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Birkenstock",
+      "domain": "birkenstock.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/birkenstock-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Birkenstock%202021%20logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Boohoo",
+      "domain": "boohoo.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/boohoo-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/boohoo-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Bottega Veneta",
+      "domain": "bottegaveneta.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/bottegaveneta-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Logo%20of%20Bottega%20Veneta.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Breitling",
+      "domain": "breitling.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/breitling-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/breitling-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Canada Goose",
+      "domain": "canadagoose.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/canadagoose-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Canada%20Goose%20logo%20label.jpg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Carhartt WIP",
+      "domain": "carhartt-wip.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/carhartt-wip-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/carhartt-wip-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Cartier",
+      "domain": "cartier.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/cartier-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/cartier-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Casio",
+      "domain": "casio.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/casio-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Casio%20logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Celine",
+      "domain": "celine.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/celine-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/celine-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Champion",
+      "domain": "champion.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/champion-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/champion-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Christian Louboutin",
+      "domain": "christianlouboutin.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/christianlouboutin-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/christianlouboutin-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Chrome Hearts",
+      "domain": "chromehearts.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/chromehearts-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/chromehearts-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Clarks",
+      "domain": "clarks.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/clarks-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/clarks-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Cole Haan",
+      "domain": "colehaan.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/colehaan-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Cole%20Haan%20Logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Comme des Garçons",
+      "domain": "comme-des-garcons.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/comme-des-garcons-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Comme%20des%20Garcons%20logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Converse",
+      "domain": "converse.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/converse-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/converse-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "COS",
+      "domain": "cos.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/cos-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/COS%20Logo.png?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Crocs",
+      "domain": "crocs.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/crocs-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Crocs%20wordmark.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Dr. Martens",
+      "domain": "drmartens.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/drmartens-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Dr.%20Martens%20Logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Essentials",
+      "domain": "fearofgod.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/fearofgod-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/fearofgod-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Everlane",
+      "domain": "everlane.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/everlane-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/everlane-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Express",
+      "domain": "express.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/express-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/express-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Fear of God",
+      "domain": "fearofgod.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/fearofgod-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/fearofgod-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Fendi",
+      "domain": "fendi.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/fendi-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Fendi%20logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "FILA",
+      "domain": "fila.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/fila-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Fila%20logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Forever 21",
+      "domain": "forever21.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/forever21-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Forever%2021%20logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "GANNI",
+      "domain": "ganni.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/ganni-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/ganni-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Gap",
+      "domain": "gap.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/gap-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/gap-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Givenchy",
+      "domain": "givenchy.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/givenchy-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Givenchy%20-%20wordmark%20(France%2C%202003).svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Gucci",
+      "domain": "gucci.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/gucci-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Gucci%20logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Guess",
+      "domain": "guess.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/guess-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/guess-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Gymshark",
+      "domain": "gymshark.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/gymshark-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/gymshark-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "H&M",
+      "domain": "hm.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/hm-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/H%26M-Logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Hoka One One",
+      "domain": "hoka.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/hoka-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/hoka-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Hollister",
+      "domain": "hollisterco.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/hollisterco-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/hollisterco-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "HUGO BOSS",
+      "domain": "hugoboss.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/hugoboss-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/hugoboss-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "J.Crew",
+      "domain": "jcrew.com",
+      "logo_url": "https://commons.wikimedia.org/wiki/Special:FilePath/JCrewLogo.png?width=800",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/JCrewLogo.png?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Jacquemus",
+      "domain": "jacquemus.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/jacquemus-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/jacquemus-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Jil Sander",
+      "domain": "jilsander.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/jilsander-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Jil%20Sander%20logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Jimmy Choo",
+      "domain": "jimmychoo.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/jimmychoo-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/jimmychoo-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Kith",
+      "domain": "kith.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/kith-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/kith-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Lacoste",
+      "domain": "lacoste.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/lacoste-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Lacoste%20wordmark%202011.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Levi/s",
+      "domain": "levi.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/levi-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/levi-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Loewe",
+      "domain": "loewe.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/loewe-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/loewe-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Longchamp",
+      "domain": "longchamp.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/longchamp-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/longchamp-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Longines",
+      "domain": "longines.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/longines-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Longines%20wordmark%20logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Louis Vuitton",
+      "domain": "louisvuitton.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/louisvuitton-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Louis%20Vuitton%20logo%20and%20wordmark.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Lululemon",
+      "domain": "lululemon.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/lululemon-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Lululemon%20Athletica%20logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Maison Margiela",
+      "domain": "maisonmargiela.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/maisonmargiela-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Maison%20Margiela%20logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Mango",
+      "domain": "mango.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/mango-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/mango-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Manolo Blahnik",
+      "domain": "manoloblahnik.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/manoloblahnik-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/manoloblahnik-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Marni",
+      "domain": "marni.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/marni-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/marni-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Merrell",
+      "domain": "merrell.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/merrell-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/merrell-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Michael Kors",
+      "domain": "michaelkors.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/michaelkors-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Michael%20Kors%20Logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Moncler",
+      "domain": "moncler.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/moncler-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Logo%20Moncler%20Group.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Montblanc",
+      "domain": "montblanc.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/montblanc-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/montblanc-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "New Balance",
+      "domain": "newbalance.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/newbalance-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/New%20Balance%20logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Nike",
+      "domain": "nike.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/nike-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Logo%20NIKE.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Oakley",
+      "domain": "oakley.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/oakley-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/oakley-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Off-White",
+      "domain": "off---white.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/off---white-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/off---white-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Omega",
+      "domain": "omegawatches.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/omegawatches-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Omega%20Logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "On Running",
+      "domain": "on-running.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/on-running-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/On-cloud-logo-white-background.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Palace",
+      "domain": "palaceskateboards.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/palaceskateboards-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/palaceskateboards-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Palm Angels",
+      "domain": "palmangels.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/palmangels-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Palm%20Angels%20logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Pandora",
+      "domain": "pandora.net",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/pandora-net.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/pandora-net.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Patagonia",
+      "domain": "patagonia.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/patagonia-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Patagonia%20(Unternehmen)%20logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Patek Philippe",
+      "domain": "patek.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/patek-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Patek%20Philippe%20%26%20Co.%20sign%20on%20Gran%20Via%20in%20Madrid%2C%20photographed%20in%20black%20and%20white.JPG?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Prada",
+      "domain": "prada.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/prada-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Prada-Logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Puma",
+      "domain": "puma.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/puma-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/puma-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Ralph Lauren",
+      "domain": "ralphlauren.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/ralphlauren-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/ralphlauren-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Ray-Ban",
+      "domain": "ray-ban.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/ray-ban-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Ray-Ban%20logo%202.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Reebok",
+      "domain": "reebok.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/reebok-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Reebok%20red%20logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Reformation",
+      "domain": "therestation.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/therestation-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/therestation-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Reiss",
+      "domain": "reiss.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/reiss-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/reiss-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Rick Owens",
+      "domain": "rickowens.eu",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/rickowens-eu.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/rickowens-eu.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Rolex",
+      "domain": "rolex.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/rolex-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Logo%20da%20Rolex.png?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Saint Laurent",
+      "domain": "ysl.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/ysl-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Logo%20of%20Yves%20Saint%20Laurent%20SAS.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Salomon",
+      "domain": "salomon.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/salomon-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/salomon-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Saucony",
+      "domain": "saucony.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/saucony-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Logo%20Saucony.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Seiko",
+      "domain": "seikowatches.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/seikowatches-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Seiko%20logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Sephora",
+      "domain": "sephora.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/sephora-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Sephora%20logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Stella McCartney",
+      "domain": "stellamccartney.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/stellamccartney-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/stellamccartney-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Stone Island",
+      "domain": "stoneisland.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/stoneisland-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Stone-Island-Logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Stüssy",
+      "domain": "stussy.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/stussy-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/%E3%82%B9%E3%83%86%E3%83%A5%E3%83%BC%E3%82%B7%E3%83%BC.jpg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Supreme",
+      "domain": "supremenewyork.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/supremenewyork-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/supremenewyork-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Swarovski",
+      "domain": "swarovski.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/swarovski-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Swarovski%20new%20logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Swatch",
+      "domain": "swatch.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/swatch-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Swatch%20Logo%20RGB.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "TAG Heuer",
+      "domain": "tagheuer.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/tagheuer-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/TAG%20HEUER%20logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "The North Face",
+      "domain": "thenorthface.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/thenorthface-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/TheNorthFace%20logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Tiffany & Co.",
+      "domain": "tiffany.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/tiffany-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Tiffany%20%26%20Co.%20wordmark%202003.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Timberland",
+      "domain": "timberland.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/timberland-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/timberland-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Tissot",
+      "domain": "tissotwatches.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/tissotwatches-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Tissot%20Logo%20(2023).png?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Tommy Hilfiger",
+      "domain": "tommy.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/tommy-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/tommy-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Tory Burch",
+      "domain": "toryburch.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/toryburch-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/toryburch-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Tudor",
+      "domain": "tudorwatch.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/tudorwatch-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/tudorwatch-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "UGG",
+      "domain": "ugg.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/ugg-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/ugg-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Umbro",
+      "domain": "umbro.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/umbro-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Umbro%202024%20logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Under Armour",
+      "domain": "underarmour.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/underarmour-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Under%20armour%20logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Uniqlo",
+      "domain": "uniqlo.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/uniqlo-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/UNIQLO%20logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Urban Outfitters",
+      "domain": "urbanoutfitters.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/urbanoutfitters-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Urban%20Outfitters%20logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Vacheron Constantin",
+      "domain": "vacheron-constantin.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/vacheron-constantin-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Vacheron%20Constantin%20logo.png?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Valentino",
+      "domain": "valentino.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/valentino-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/valentino-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Vans",
+      "domain": "vans.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/vans-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Vans%20company%20logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Versace",
+      "domain": "versace.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/versace-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Versace%20old%20logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Victoria\\s Secret",
+      "domain": "victoriassecret.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/victoriassecret-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/victoriassecret-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Vivienne Westwood",
+      "domain": "viviennewestwood.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/viviennewestwood-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/VivienneWestwood.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Vuori",
+      "domain": "vuoriclothing.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/vuoriclothing-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/vuoriclothing-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Weekday",
+      "domain": "weekday.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/weekday-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/weekday-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Wrangler",
+      "domain": "wrangler.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/wrangler-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/wrangler-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "YSL",
+      "domain": "ysl.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/ysl-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Logo%20of%20Yves%20Saint%20Laurent%20SAS.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Zalando",
+      "domain": "zalando.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/zalando-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Zalando%20logo.svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Zara",
+      "domain": "zara.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/zara-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/zara-com.png",
+      "type": "fashion"
+    },
+    {
+      "name": "Zegna",
+      "domain": "zegna.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/zegna-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Ermenegildo%20Zegna%20group%20-%20logo%20(Italy).svg?width=800",
+      "type": "fashion"
+    },
+    {
+      "name": "Zenith",
+      "domain": "zenith-watches.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/zenith-watches-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/zenith-watches-com.png",
+      "type": "fashion"
+    }
+  ],
+  "food": [
+    {
+      "name": "7-Eleven Slurpee & Fresh",
+      "domain": "7-eleven.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/7-eleven-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/7-Eleven%20logo%202021.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Applebee's",
+      "domain": "applebees.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/applebees-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/AB%20Brand%20Refresh%20Logo%20R.png?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Arby's",
+      "domain": "arbys.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/arbys-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Arby's%20logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Auntie Anne's",
+      "domain": "auntieannes.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/auntieannes-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Auntie%20Anne's%20logo%20and%20slogan.png?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Ben & Jerry's",
+      "domain": "benjerry.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/benjerry-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Ben%20%26%20Jerry's.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Benihana",
+      "domain": "benihana.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/benihana-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Benihana%20Japanese%20Steakhouse%20logo.png?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Blaze Pizza",
+      "domain": "blazepizza.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/blazepizza-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/blazepizza-com.png",
+      "type": "food"
+    },
+    {
+      "name": "Bob Evans",
+      "domain": "bobevans.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/bobevans-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/bobevans-com.png",
+      "type": "food"
+    },
+    {
+      "name": "Bojangles",
+      "domain": "bojangles.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/bojangles-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/bojangles-com.png",
+      "type": "food"
+    },
+    {
+      "name": "Buc-ee's",
+      "domain": "buc-ees.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/buc-ees-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/buc-ees-com.png",
+      "type": "food"
+    },
+    {
+      "name": "Buffalo Wild Wings",
+      "domain": "buffalowildwings.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/buffalowildwings-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/buffalowildwings-com.png",
+      "type": "food"
+    },
+    {
+      "name": "Burger King",
+      "domain": "bk.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/bk-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Burger%20King%202020.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Cargill",
+      "domain": "cargill.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/cargill-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/CargillLogo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Carrabba's Italian Grill",
+      "domain": "carrabbas.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/carrabbas-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/carrabbas-com.png",
+      "type": "food"
+    },
+    {
+      "name": "Carvel",
+      "domain": "carvel.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/carvel-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/carvel-com.png",
+      "type": "food"
+    },
+    {
+      "name": "Casey's General Store",
+      "domain": "caseys.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/caseys-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Casey's%20logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Cava",
+      "domain": "cava.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/cava-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/cava-com.png",
+      "type": "food"
+    },
+    {
+      "name": "Chick-fil-A",
+      "domain": "chick-fil-a.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/chick-fil-a-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Chick-fil-A%20Logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Chili's",
+      "domain": "chilis.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/chilis-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Chili's%20Logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Chipotle",
+      "domain": "chipotle.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/chipotle-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/chipotle-com.png",
+      "type": "food"
+    },
+    {
+      "name": "Chuck E. Cheese",
+      "domain": "chuckecheese.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/chuckecheese-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Chuck%20E.%20Cheese%202019%20wordmark.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Church's Texas Chicken",
+      "domain": "churchs.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/churchs-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/churchs-com.png",
+      "type": "food"
+    },
+    {
+      "name": "Cici's Pizza",
+      "domain": "cicis.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/cicis-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Logo%20of%20CiCis%20Pizza.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Cinnabon",
+      "domain": "cinnabon.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/cinnabon-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Cinnabon%20logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Cold Stone Creamery",
+      "domain": "coldstonecreamery.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/coldstonecreamery-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/coldstonecreamery-com.png",
+      "type": "food"
+    },
+    {
+      "name": "Costa Coffee",
+      "domain": "costa.co.uk",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/costa-co-uk.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Costa%20Coffee%20Logo%20white%20on%20red.png?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Cracker Barrel",
+      "domain": "crackerbarrel.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/crackerbarrel-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Cracker%20Barrel%20logo%202025.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Culver's",
+      "domain": "culvers.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/culvers-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Culver's%20logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Culver's Frozen Custard",
+      "domain": "culvers.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/culvers-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Culver's%20logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Dairy Queen",
+      "domain": "dairyqueen.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/dairyqueen-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Dairy%20Queen%20logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Danone",
+      "domain": "danone.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/danone-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/danone-com.png",
+      "type": "food"
+    },
+    {
+      "name": "Dave & Buster's",
+      "domain": "daveandbusters.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/daveandbusters-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/DaveAndBusters.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Del Taco",
+      "domain": "deltaco.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/deltaco-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Logo%20of%20Del%20Taco.png?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Denny's",
+      "domain": "dennys.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/dennys-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Denny's%20Logo%2006.2022.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Domino's",
+      "domain": "dominos.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/dominos-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Domino's%202025.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Domino's Pizza",
+      "domain": "dominos.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/dominos-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Domino's%202025.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Dunkin'",
+      "domain": "dunkindonuts.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/dunkindonuts-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Dunkin1.JPG?width=800",
+      "type": "food"
+    },
+    {
+      "name": "El Pollo Loco",
+      "domain": "elpolloloco.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/elpolloloco-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/elpolloloco-com.png",
+      "type": "food"
+    },
+    {
+      "name": "Ferrero Rocher",
+      "domain": "ferrerorocher.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/ferrerorocher-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Ferrerorocher%20brand%20logo.png?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Firehouse Subs",
+      "domain": "firehousesubs.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/firehousesubs-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Firehosue%20Subs%20Logo%202024.png?width=800",
+      "type": "food"
+    },
+    {
+      "name": "First Watch",
+      "domain": "firstwatch.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/firstwatch-com.png",
+      "source": "https://upload.wikimedia.org/wikipedia/en/9/9a/First-watch-logo.png",
+      "type": "food"
+    },
+    {
+      "name": "Five Guys",
+      "domain": "fiveguys.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/fiveguys-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Five%20Guys%20logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Giordano's",
+      "domain": "giordanos.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/giordanos-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/GiordanosLogo.jpg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Godiva",
+      "domain": "godiva.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/godiva-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/godiva-com.png",
+      "type": "food"
+    },
+    {
+      "name": "Golden Corral",
+      "domain": "goldencorral.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/goldencorral-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Golden%20Corral%20logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Häagen-Dazs",
+      "domain": "haagendazs.us",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/haagendazs-us.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/H%C3%A4agen-Dazs%20Logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Heinz",
+      "domain": "heinz.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/heinz-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/H.%20J.%20Heinz%20Company%20-%20Logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Hungry Howie's",
+      "domain": "hungryhowies.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/hungryhowies-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/hungryhowies-com.png",
+      "type": "food"
+    },
+    {
+      "name": "IHOP",
+      "domain": "ihop.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/ihop-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/IHOP%20Restaurant%20logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "In-N-Out Burger",
+      "domain": "in-n-out.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/in-n-out-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/InNOut%202021%20logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Jack in the Box",
+      "domain": "jackinthebox.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/jackinthebox-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Jack%20in%20the%20Box%202009%20logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Jamba Juice",
+      "domain": "jamba.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/jamba-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Jamba%20logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Jersey Mike's Subs",
+      "domain": "jerseymikes.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/jerseymikes-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Jersey%20Mike's%20logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Jet's Pizza",
+      "domain": "jetspizza.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/jetspizza-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/jetspizza-com.png",
+      "type": "food"
+    },
+    {
+      "name": "Jimmy John's",
+      "domain": "jimmyjohns.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/jimmyjohns-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Jimmy%20Johns%20logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Jollibee",
+      "domain": "jollibee.com.ph",
+      "logo_url": "https://upload.wikimedia.org/wikipedia/en/8/84/Jollibee_2011_logo.svg",
+      "source": "https://upload.wikimedia.org/wikipedia/en/8/84/Jollibee_2011_logo.svg",
+      "type": "food"
+    },
+    {
+      "name": "Kellogg's",
+      "domain": "kelloggs.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/kelloggs-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Kellogg's-Logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "KFC",
+      "domain": "kfc.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/kfc-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Kfc%20textlogo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Krispy Kreme",
+      "domain": "krispykreme.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/krispykreme-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Logo.KrispyKreme.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Lindt",
+      "domain": "lindt-spruengli.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/lindt-spruengli-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Lindt%20sprungli%20textlogo.png?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Little Caesars",
+      "domain": "littlecaesars.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/littlecaesars-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/littlecaesars-com.png",
+      "type": "food"
+    },
+    {
+      "name": "LongHorn Steakhouse",
+      "domain": "longhornsteakhouse.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/longhornsteakhouse-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/longhornsteakhouse-com.png",
+      "type": "food"
+    },
+    {
+      "name": "Lou Malnati's",
+      "domain": "loumalnatis.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/loumalnatis-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Lou%20Malnati's%20Pizzeria%20logo.png?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Marco's Pizza",
+      "domain": "marcos.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/marcos-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/marcos-com.png",
+      "type": "food"
+    },
+    {
+      "name": "McDonald's",
+      "domain": "mcdonalds.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/mcdonalds-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/McDonald's%20with%20slogan%202020.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Mellow Mushroom",
+      "domain": "mellowmushroom.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/mellowmushroom-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/mellowmushroom-com.png",
+      "type": "food"
+    },
+    {
+      "name": "MOD Pizza",
+      "domain": "modpizza.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/modpizza-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/modpizza-com.png",
+      "type": "food"
+    },
+    {
+      "name": "Moe's Southwest Grill",
+      "domain": "moes.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/moes-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Moes%20Southwest%20Grill%20logo.png?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Nando's",
+      "domain": "nandos.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/nandos-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Nando's%20wordmark.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Nestlé",
+      "domain": "nestle.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/nestle-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Nestl%C3%A9%20textlogo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Nutella",
+      "domain": "nutella.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/nutella-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Logo%20Nutella.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Olive Garden",
+      "domain": "olivegarden.com",
+      "logo_url": "https://upload.wikimedia.org/wikipedia/commons/0/05/Olive_Garden_logo.svg",
+      "source": "https://upload.wikimedia.org/wikipedia/commons/0/05/Olive_Garden_logo.svg",
+      "type": "food"
+    },
+    {
+      "name": "Outback Steakhouse",
+      "domain": "outback.com",
+      "logo_url": "https://upload.wikimedia.org/wikipedia/commons/6/6f/Outback_Steakhouse_logo.svg",
+      "source": "https://upload.wikimedia.org/wikipedia/commons/6/6f/Outback_Steakhouse_logo.svg",
+      "type": "food"
+    },
+    {
+      "name": "P.F. Chang's",
+      "domain": "pfchangs.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/pfchangs-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/P%20F%20Chang's%20Logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Panda Express",
+      "domain": "pandaexpress.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/pandaexpress-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Panda%20Express%20at%20Ala%20Moana%20Center.jpg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Panera Bread",
+      "domain": "panerabread.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/panerabread-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Panera%20Bread%20wordmark.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Papa John's",
+      "domain": "papajohns.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/papajohns-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Papa%20John's%20Logo%202019.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Peet's Coffee",
+      "domain": "peets.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/peets-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Peet's%20Coffee%20logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Perkins Restaurant & Bakery",
+      "domain": "perkinsrestaurants.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/perkinsrestaurants-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Perkins%20Logo.gif?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Pizza Hut",
+      "domain": "pizzahut.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/pizzahut-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Pizza%20Hut%20classic%20logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Popeyes",
+      "domain": "popeyes.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/popeyes-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/popeyes-com.png",
+      "type": "food"
+    },
+    {
+      "name": "Portillo's",
+      "domain": "portillos.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/portillos-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Portillos.png?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Pret A Manger",
+      "domain": "pret.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/pret-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/PretAManger%20logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Qdoba",
+      "domain": "qdoba.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/qdoba-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Qdoba%20Logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "QuikTrip",
+      "domain": "quiktrip.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/quiktrip-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/QuikTrip%20new%20logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Raising Cane's",
+      "domain": "raisingcanes.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/raisingcanes-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Raising%20Cane's%20Chicken%20Fingers%20logo.png?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Red Lobster",
+      "domain": "redlobster.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/redlobster-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/redlobster-com.png",
+      "type": "food"
+    },
+    {
+      "name": "Red Robin",
+      "domain": "redrobin.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/redrobin-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Red%20Robin%20logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Round Table Pizza",
+      "domain": "roundtablepizza.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/roundtablepizza-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/roundtablepizza-com.png",
+      "type": "food"
+    },
+    {
+      "name": "Shake Shack",
+      "domain": "shakeshack.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/shakeshack-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Shake%20Shack%20logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Sheetz Fresh Food",
+      "domain": "sheetz.com",
+      "logo_url": "https://upload.wikimedia.org/wikipedia/commons/8/87/Sheetz_logo.svg",
+      "source": "https://upload.wikimedia.org/wikipedia/commons/8/87/Sheetz_logo.svg",
+      "type": "food"
+    },
+    {
+      "name": "Smashburger",
+      "domain": "smashburger.com",
+      "logo_url": "https://upload.wikimedia.org/wikipedia/commons/7/7b/Smashburger_logo.svg",
+      "source": "https://upload.wikimedia.org/wikipedia/commons/7/7b/Smashburger_logo.svg",
+      "type": "food"
+    },
+    {
+      "name": "Smoothie King",
+      "domain": "smoothieking.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/smoothieking-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Smoothie%20King%20logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Snooze A.M. Eatery",
+      "domain": "snoozeeatery.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/snoozeeatery-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/snoozeeatery-com.png",
+      "type": "food"
+    },
+    {
+      "name": "Sonic Drive-In",
+      "domain": "sonicdrivein.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/sonicdrivein-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/SONIC%20New%20Logo%202020.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Starbucks",
+      "domain": "starbucks.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/starbucks-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Starbucks%20coffee%20wordmark.png?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Subway",
+      "domain": "subway.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/subway-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Subway%202016%20logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Sweetgreen",
+      "domain": "sweetgreen.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/sweetgreen-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Sweetgreen%20logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Taco Bell",
+      "domain": "tacobell.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/tacobell-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/1984TacoBellSign.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Taco Bell",
+      "domain": "tacobell.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/tacobell-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/1984TacoBellSign.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Texas Roadhouse",
+      "domain": "texasroadhouse.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/texasroadhouse-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/texasroadhouse-com.png",
+      "type": "food"
+    },
+    {
+      "name": "TGI Fridays",
+      "domain": "tgifridays.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/tgifridays-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Tgi%20fridays%20logo13.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "The Capital Grille",
+      "domain": "thecapitalgrille.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/thecapitalgrille-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Capital%20Grille.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "The Cheesecake Factory",
+      "domain": "thecheesecakefactory.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/thecheesecakefactory-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/CheesecakeFactoryLogo1.png?width=800",
+      "type": "food"
+    },
+    {
+      "name": "The Habit Burger Grill",
+      "domain": "habitburger.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/habitburger-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Habit%20Burger%20%26%20Grill%20logo.png?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Tim Hortons",
+      "domain": "timhortons.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/timhortons-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Tim%20Hortons%20Logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "TLJUS",
+      "domain": "tljus.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/tljus-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/tljus-com.png",
+      "type": "food"
+    },
+    {
+      "name": "Torchy's Tacos",
+      "domain": "torchystacos.com",
+      "logo_url": "https://images.squarespace-cdn.com/content/v1/5c1a79854eddecbb1b2e666a/1550508756911-3W711T6X1A9N6XZV6XZV/torchys-logo.png",
+      "source": "https://images.squarespace-cdn.com/content/v1/5c1a79854eddecbb1b2e666a/1550508756911-3W711T6X1A9N6XZV6XZV/torchys-logo.png",
+      "type": "food"
+    },
+    {
+      "name": "TX Chicken",
+      "domain": "txchicken.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/txchicken-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/txchicken-com.png",
+      "type": "food"
+    },
+    {
+      "name": "Waffle House",
+      "domain": "wafflehouse.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/wafflehouse-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Waffle%20House%20Logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Wagamama",
+      "domain": "wagamama.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/wagamama-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Wagamama-Logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Wawa Fresh Food",
+      "domain": "wawa.com",
+      "logo_url": "https://upload.wikimedia.org/wikipedia/commons/3/36/Wawa_logo.svg",
+      "source": "https://upload.wikimedia.org/wikipedia/commons/3/36/Wawa_logo.svg",
+      "type": "food"
+    },
+    {
+      "name": "Wendy's",
+      "domain": "wendys.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/wendys-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Wendy's%20logo%202012.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Whataburger",
+      "domain": "whataburger.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/whataburger-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Whataburger%20logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "White Castle",
+      "domain": "whitecastle.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/whitecastle-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/White%20Castle%20Sign.JPG?width=800",
+      "type": "food"
+    },
+    {
+      "name": "White Castle Slider",
+      "domain": "whitecastle.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/whitecastle-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/White%20Castle%20Sign.JPG?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Wingstop",
+      "domain": "wingstop.com",
+      "logo_url": "https://upload.wikimedia.org/wikipedia/en/9/91/Wingstop_logo.svg",
+      "source": "https://upload.wikimedia.org/wikipedia/en/9/91/Wingstop_logo.svg",
+      "type": "food"
+    },
+    {
+      "name": "YO! Sushi",
+      "domain": "yosushi.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/yosushi-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/yosushi-com.png",
+      "type": "food"
+    },
+    {
+      "name": "Zaxby's",
+      "domain": "zaxbys.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/zaxbys-com.png",
+      "source": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/zaxbys-com.png",
+      "type": "food"
+    },
+    {
+      "name": "Zippy's",
+      "domain": "zippys.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/zippys-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Zippy's%20logo.svg?width=800",
+      "type": "food"
+    },
+    {
+      "name": "Zoe's Kitchen",
+      "domain": "zoeskitchen.com",
+      "logo_url": "https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/zoeskitchen-com.png",
+      "source": "https://commons.wikimedia.org/wiki/Special:FilePath/Zoeslogo.jpg?width=800",
+      "type": "food"
+    }
+  ]
+}
