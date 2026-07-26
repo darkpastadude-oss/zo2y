@@ -1941,31 +1941,16 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                     <input type="text" class="form-input" id="editCustomBadges" placeholder="Comma separated badges (e.g., Collector, Top Critic)">
                                     <small class="text-muted d-block mt-4">Automatic milestone badges are added based on activity.</small>
                                 </div>
-                                <div class="form-group">
-                                    <button type="button" class="btn btn-secondary" onclick="ProfileManager.showAvatarModal()">
-                                        <i class="fas fa-user-circle"></i> Change Avatar
-                                    </button>
-                                </div>
-                            </div>
-
                             <!-- Tab 2: Appearance -->
-                            <div class="edit-tab-pane" id="editTabAppearance">
-                                <h2 class="appearance-title">appearance</h2>
-                                <p class="appearance-subtitle">customize how your profile looks</p>
-                            </div>
-                                          <div class="appearance-banner-avatar-overlay">
-                                              <div class="bp-live-avatar" style="width: 48px; height: 48px; font-size: 1.2rem;">u</div>
-                                          </div>
-                                      </div>
-                                      <p class="appearance-banner-hint">this is the banner displayed on your profile.</p>
-                                      <button type="button" class="btn btn-primary appearance-banner-btn" onclick="BannerPicker.openPicker()" style="background: var(--color-accent); color: #000; border: none;">
-                                          <i class="fas fa-image"></i> choose banner
-                                      </button>
-                                </div>
-                            </div>
+<div class="edit-tab-pane" id="editTabAppearance">
+  <h2 class="appearance-title">appearance</h2>
+  <p class="appearance-subtitle">customize how your profile looks</p>
+  <div id="appearanceMiniBackdrop" class="mini-backdrop" style="width:100%;height:180px;background:#222;background-size:cover;background-position:center;"></div>
+  <button type="button" class="btn btn-primary appearance-banner-btn" onclick="BannerPicker.openPicker()">Choose Banner</button>
+</div>
 
-                            <!-- Tab 3: Showcase -->
-                            <div class="edit-tab-pane" id="editTabShowcase">
+<!-- Tab 3: Showcase -->
+<div class="edit-tab-pane" id="editTabShowcase">
                                 <p class="text-muted small mb-16">Pick your absolute top favorite titles to display as visual cover badges directly below your bio.</p>
                                 
                                 <div class="form-group">
