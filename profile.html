@@ -1967,7 +1967,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                           </div>
                                       </div>
                                       <p class="appearance-banner-hint">this is the banner displayed on your profile.</p>
-                                      <button type="button" class="btn btn-primary appearance-banner-btn" onclick="MockupBannerPicker.open()" style="background: var(--color-accent); color: #000; border: none;">
+                                      <button type="button" class="btn btn-primary appearance-banner-btn" onclick="BannerPicker.openPicker()" style="background: var(--color-accent); color: #000; border: none;">
                                           <i class="fas fa-image"></i> choose banner
                                       </button>
                                 </div>
@@ -2606,77 +2606,133 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   })();
   </script>
 
-    <!-- Mockup Banner Picker Modal -->
-    <div class="modal banner-picker-modal" id="mockupBannerPickerModal">
+    <!-- Banner Picker Modal -->
+    <div class="modal banner-picker-modal" id="bannerPickerModal">
         <div class="bp-header">
-            <button class="bp-icon-btn" onclick="MockupBannerPicker.close()">
-                <i class="fas fa-arrow-left"></i>
-            </button>
+            <button class="bp-back-btn" onclick="BannerPicker.closePicker()"><i class="fas fa-arrow-left"></i></button>
             <div class="bp-title-wrap">
-                <h2>Choose Banner</h2>
-            </div>
-            <div class="bp-search-wrap">
-                <i class="fas fa-search bp-search-icon"></i>
-                <input type="text" class="bp-search-input" placeholder="Search movies, games, brands...">
-            </div>
-            <button class="bp-icon-btn bp-close-btn" onclick="MockupBannerPicker.close()">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        
-        <div class="bp-body">
-            <div class="bp-sidebar">
-                <div class="bp-cat-btn active">Suggested</div>
-                <div class="bp-cat-btn">Favorites</div>
-                <div class="bp-cat-btn">Movies</div>
-                <div class="bp-cat-btn">TV</div>
-                <div class="bp-cat-btn">Games</div>
-                <div class="bp-cat-btn">Books</div>
-                <div class="bp-cat-btn">Music</div>
-                <div class="bp-cat-btn">Fashion</div>
-                <div class="bp-cat-btn">Food</div>
-                <div class="bp-cat-btn">Cars</div>
-                <div class="bp-cat-btn">Sports</div>
+                <h2 class="bp-title">Choose Banner</h2>
+                <span class="bp-subtitle">Select a backdrop to display on your profile</span>
             </div>
             
-            <div class="bp-content">
-                <div class="bp-live-preview-wrap">
+            <div class="bp-search-wrap">
+                <i class="fas fa-search bp-search-icon"></i>
+                <input type="text" class="bp-search-input" id="bpSearchInput" placeholder="Search movies, shows, games, brands..." oninput="BannerPicker.onSearchInput(event)" onfocus="BannerPicker.onSearchFocus()">
+            </div>
+
+            <div class="bp-modes">
+                <label class="bp-mode-btn" id="bpModeStaticBtn">
+                    <input type="radio" name="bpMode" value="static" id="bpModeStatic" onchange="BannerPicker.setMode('static')" checked>
+                    <div class="bp-mode-content">
+                        <i class="fas fa-image"></i>
+                        <div class="bp-mode-text">
+                            <div class="bp-mode-title">Static Banner</div>
+                            <div class="bp-mode-desc">Show one banner</div>
+                        </div>
+                    </div>
+                </label>
+                <label class="bp-mode-btn" id="bpModeRotateBtn">
+                    <input type="radio" name="bpMode" value="rotate" id="bpModeRotate" onchange="BannerPicker.setMode('rotate')">
+                    <div class="bp-mode-content">
+                        <i class="fas fa-sync"></i>
+                        <div class="bp-mode-text">
+                            <div class="bp-mode-title">Rotate Favorites</div>
+                            <div class="bp-mode-desc">Rotate through a list</div>
+                        </div>
+                    </div>
+                </label>
+            </div>
+            <button class="modal-close bp-close-btn" onclick="BannerPicker.closePicker()">&times;</button>
+        </div>
+
+        <div class="bp-body">
+            <div class="bp-sidebar" id="bpSidebar">
+                <!-- Rendered by JS -->
+            </div>
+
+            <div class="bp-content" id="bpMainContent">
+                
+                <!-- Live Preview (Always visible at the top when picking backdrops) -->
+                <div class="bp-live-preview-wrap" id="bpLivePreviewWrap" style="display: none;">
                     <div class="bp-live-preview-label">Live Preview</div>
-                    <div class="bp-live-img"></div>
-                    <div class="bp-selection-info">
-                        <div class="bp-selection-title">No selection</div>
+                    <div class="bp-live-preview">
+                        <div class="mph2-banner">
+                            <div class="mph2-banner-backdrops" id="bpLiveBanner">
+                                <img src="" id="bpLiveImage" class="bp-live-img">
+                            </div>
+                            <div class="mph2-banner-overlay"></div>
+                            <div class="mph2-banner-vignette"></div>
+                            <div class="bp-drag-hint">Drag to reposition</div>
+                        </div>
+                        <div class="mph2-hero-body" style="margin-top:-32px; padding: 0 20px 20px;">
+                            <div class="mph2-avatar" id="bpLiveAvatar" style="width:72px;height:72px;font-size:30px;">@</div>
+                            <div class="mph2-identity" style="margin-top:12px;">
+                                <div class="mph2-name" id="bpLiveName" style="font-size:1.2rem;">User</div>
+                                <div class="mph2-username" id="bpLiveUsername">@user</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                
-                <h3 class="bp-section-title">Trending</h3>
-                <div class="bp-backdrop-grid">
-                    <div class="bp-backdrop-card"></div>
-                    <div class="bp-backdrop-card"></div>
-                    <div class="bp-backdrop-card"></div>
-                    <div class="bp-backdrop-card"></div>
-                    <div class="bp-backdrop-card"></div>
-                    <div class="bp-backdrop-card"></div>
+
+                <!-- Media Info (Breadcrumb) -->
+                <div class="bp-media-info" id="bpMediaInfo" style="display: none;">
+                    <div class="bp-breadcrumb" id="bpBreadcrumb"></div>
                 </div>
+
+                <!-- Suggested Section (Default State) -->
+                <div class="bp-suggested-section" id="bpSuggestedSection">
+                    <h3 class="bp-section-title">Suggested For You</h3>
+                    <div class="bp-poster-grid" id="bpSuggestedGrid"></div>
+                    
+                    <h3 class="bp-section-title mt-24" id="bpRecentlyUsedTitle" style="display:none;">Recently Used</h3>
+                    <div class="bp-backdrop-grid" id="bpRecentlyUsedGrid" style="display:none;"></div>
+                </div>
+
+                <!-- Search Results Section -->
+                <div class="bp-search-section" id="bpSearchSection" style="display: none;">
+                    <h3 class="bp-section-title" id="bpSearchTitle">Search Results</h3>
+                    <div class="bp-poster-grid" id="bpSearchGrid"></div>
+                    <div class="bp-empty-state" id="bpEmptyState" style="display: none;">
+                        <div class="bp-empty-icon"><i class="fas fa-search"></i></div>
+                        <div class="bp-empty-title">Couldn't find anything.</div>
+                        <div class="bp-empty-desc">Try another title.</div>
+                        <div class="bp-popular-searches">
+                            <div class="bp-popular-title">Popular searches</div>
+                            <div class="bp-popular-chips">
+                                <span onclick="BannerPicker.setSearch('Interstellar')">Interstellar</span>
+                                <span onclick="BannerPicker.setSearch('Spider-Man')">Spider-Man</span>
+                                <span onclick="BannerPicker.setSearch('Breaking Bad')">Breaking Bad</span>
+                                <span onclick="BannerPicker.setSearch('Nike')">Nike</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Category Section -->
+                <div class="bp-category-section" id="bpCategorySection" style="display: none;">
+                    <h3 class="bp-section-title" id="bpCategoryTitle">Category</h3>
+                    <div class="bp-poster-grid" id="bpCategoryGrid"></div>
+                </div>
+
+                <!-- Available Backdrops Grid (Static Mode) -->
+                <div id="bpAvailableContainer" style="display: none;">
+                    <h3 class="bp-section-title">Available Backdrops</h3>
+                    <div class="bp-backdrop-grid" id="bpBackdropGrid"></div>
+                </div>
+
+                <!-- Rotation Queue (Rotate Mode) -->
+                <div id="bpQueueContainer" style="display: none;">
+                    <h3 class="bp-section-title">Rotation Queue</h3>
+                    <div class="bp-queue-list" id="bpQueueList"></div>
+                </div>
+
             </div>
         </div>
-        
+
         <div class="bp-footer">
-            <button class="btn btn-secondary" onclick="MockupBannerPicker.close()">Cancel</button>
-            <button class="btn btn-primary" disabled>Apply Banner</button>
+            <button class="btn btn-secondary" onclick="BannerPicker.closePicker()">Cancel</button>
+            <button class="btn btn-primary" id="bpApplyBtn" onclick="BannerPicker.applyBanner()" disabled>Apply Banner</button>
         </div>
     </div>
-
-    <script>
-    window.MockupBannerPicker = {
-        open: function() {
-            document.getElementById('mockupBannerPickerModal').classList.add('show');
-            document.body.style.overflow = 'hidden';
-        },
-        close: function() {
-            document.getElementById('mockupBannerPickerModal').classList.remove('show');
-            document.body.style.overflow = '';
-        }
-    };
-    </script>
-</body>
+\n    <script src="js/banner-picker.js"></script>\n</body>
 </html>
