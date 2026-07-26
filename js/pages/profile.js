@@ -11357,8 +11357,21 @@ const alreadyActive = isMobile
                     let itemsToLoad = featuredItems;
                     let loadMode = mode;
                     
-                    // Check if there's a saved banner config in showcaseData
-                    if (showcaseData && showcaseData['banner'] && showcaseData['banner'].list_id) {
+                    if (featuredItems && Array.isArray(featuredItems) && featuredItems.length > 0) {
+                        itemsToLoad = featuredItems;
+                        loadMode = mode;
+                        if (showcaseData) {
+                            showcaseData['banner'] = {
+                                media_type: 'banner',
+                                list_id: JSON.stringify({
+                                    items: featuredItems,
+                                    mode: mode,
+                                    pos_y: userProfile?.banner_position_y || 15,
+                                    pos_x: userProfile?.banner_position_x || 50
+                                })
+                            };
+                        }
+                    } else if (showcaseData && showcaseData['banner'] && showcaseData['banner'].list_id) {
                         try {
                             const config = JSON.parse(showcaseData['banner'].list_id);
                             if (config && Array.isArray(config.items) && config.items.length > 0) {

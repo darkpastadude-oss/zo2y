@@ -64,7 +64,26 @@ window.BannerPicker = (function () {
   const jsEsc = (s) => String(s || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
   function getSupabase() {
-    return window.sb || null;
+    return window.supabase || window.sb || window.ZO2Y_AUTH?.supabase || null;
+  }
+
+  function getUserId() {
+    if (window.userProfile && (window.userProfile.id || window.userProfile.user_id)) {
+      return window.userProfile.id || window.userProfile.user_id;
+    }
+    if (window.currentUser && window.currentUser.id) {
+      return window.currentUser.id;
+    }
+    if (window.ZO2Y_AUTH) {
+      if (typeof window.ZO2Y_AUTH.getUser === 'function') {
+        const u = window.ZO2Y_AUTH.getUser();
+        if (u && u.id) return u.id;
+      }
+      if (window.ZO2Y_AUTH.session?.user?.id) {
+        return window.ZO2Y_AUTH.session.user.id;
+      }
+    }
+    return null;
   }
 
   function getUserProfile() {
@@ -1073,17 +1092,19 @@ window.BannerPicker = (function () {
 
     /* --- Persist to database --- */
     const sb = getSupabase();
-    const session = window.ZO2Y_AUTH?.session;
-    if (sb && session) {
-      const userId = session.user.id;
+    const userId = getUserId();
 
+    if (sb && userId) {
       /* 1. Update user_profiles */
       const profilePayload = {
         banner_position_y: Math.round(posY),
         banner_position_x: posX
       };
       try {
-        await sb.from('user_profiles').update(profilePayload).eq('id', userId);
+        const { error: err1 } = await sb.from('user_profiles').update(profilePayload).eq('id', userId);
+        if (err1) {
+          await sb.from('user_profiles').update(profilePayload).eq('user_id', userId);
+        }
       } catch (e) {
         console.warn('Banner: failed to update user_profiles', e);
       }
