@@ -2642,5 +2642,78 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     window.ProfileManager.closeOverflowMenu  = closeOverflowMenu;
   })();
   </script>
+
+    <!-- Mockup Banner Picker Modal -->
+    <div class="modal banner-picker-modal" id="mockupBannerPickerModal">
+        <div class="bp-header">
+            <button class="bp-icon-btn" onclick="MockupBannerPicker.close()">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <div class="bp-title-wrap">
+                <h2>Choose Banner</h2>
+            </div>
+            <div class="bp-search-wrap">
+                <i class="fas fa-search bp-search-icon"></i>
+                <input type="text" class="bp-search-input" placeholder="Search movies, games, brands...">
+            </div>
+            <button class="bp-icon-btn bp-close-btn" onclick="MockupBannerPicker.close()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="bp-body">
+            <div class="bp-sidebar">
+                <div class="bp-cat-btn active">Suggested</div>
+                <div class="bp-cat-btn">Favorites</div>
+                <div class="bp-cat-btn">Movies</div>
+                <div class="bp-cat-btn">TV</div>
+                <div class="bp-cat-btn">Games</div>
+                <div class="bp-cat-btn">Books</div>
+                <div class="bp-cat-btn">Music</div>
+                <div class="bp-cat-btn">Fashion</div>
+                <div class="bp-cat-btn">Food</div>
+                <div class="bp-cat-btn">Cars</div>
+                <div class="bp-cat-btn">Sports</div>
+            </div>
+            
+            <div class="bp-content">
+                <div class="bp-live-preview-wrap">
+                    <div class="bp-live-preview-label">Live Preview</div>
+                    <div class="bp-live-img"></div>
+                    <div class="bp-selection-info">
+                        <div class="bp-selection-title">No selection</div>
+                    </div>
+                </div>
+                
+                <h3 class="bp-section-title">Trending</h3>
+                <div class="bp-backdrop-grid">
+                    <div class="bp-backdrop-card"></div>
+                    <div class="bp-backdrop-card"></div>
+                    <div class="bp-backdrop-card"></div>
+                    <div class="bp-backdrop-card"></div>
+                    <div class="bp-backdrop-card"></div>
+                    <div class="bp-backdrop-card"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bp-footer">
+            <button class="btn btn-secondary" onclick="MockupBannerPicker.close()">Cancel</button>
+            <button class="btn btn-primary" disabled>Apply Banner</button>
+        </div>
+    </div>
+
+    <script>
+    window.MockupBannerPicker = {
+        open: function() {
+            document.getElementById('mockupBannerPickerModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        },
+        close: function() {
+            document.getElementById('mockupBannerPickerModal').classList.remove('show');
+            document.body.style.overflow = '';
+        }
+    };
+    </script>
 </body>
 </html>
