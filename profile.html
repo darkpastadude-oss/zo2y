@@ -2642,6 +2642,18 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
           <!-- RIGHT: Browse Panel -->
           <div class="bp-browse-panel">
 
+            <!-- Category Filter Bar -->
+            <div class="bp-category-filter-bar" id="bpCategoryFilterBar">
+              <button type="button" class="bp-cat-pill active" data-cat="all" onclick="BannerPicker.setCategoryFilter('all')">All</button>
+              <button type="button" class="bp-cat-pill" data-cat="movie" onclick="BannerPicker.setCategoryFilter('movie')"><i class="fas fa-film"></i> Movies</button>
+              <button type="button" class="bp-cat-pill" data-cat="tv" onclick="BannerPicker.setCategoryFilter('tv')"><i class="fas fa-tv"></i> TV Shows</button>
+              <button type="button" class="bp-cat-pill" data-cat="anime" onclick="BannerPicker.setCategoryFilter('anime')"><i class="fas fa-dragon"></i> Anime</button>
+              <button type="button" class="bp-cat-pill" data-cat="game" onclick="BannerPicker.setCategoryFilter('game')"><i class="fas fa-gamepad"></i> Games</button>
+              <button type="button" class="bp-cat-pill" data-cat="book" onclick="BannerPicker.setCategoryFilter('book')"><i class="fas fa-book"></i> Books</button>
+              <button type="button" class="bp-cat-pill" data-cat="music" onclick="BannerPicker.setCategoryFilter('music')"><i class="fas fa-music"></i> Music</button>
+              <button type="button" class="bp-cat-pill" data-cat="brand" onclick="BannerPicker.setCategoryFilter('brand')"><i class="fas fa-tag"></i> Brands</button>
+            </div>
+
             <!-- Breadcrumb -->
             <div class="bp-breadcrumb-bar" id="bpBreadcrumbBar" style="display:none">
               <div class="bp-breadcrumb" id="bpBreadcrumb"></div>

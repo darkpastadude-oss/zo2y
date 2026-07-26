@@ -11263,7 +11263,9 @@ const alreadyActive = isMobile
                 let activeLayer = 'A';
 
                 async function fetchBackdropUrl(item) {
-                    if (!item || !item.media_type || !item.media_id) return null;
+                    if (!item) return null;
+                    if (item.url) return item.url;
+                    if (!item.media_type || !item.media_id) return null;
                     try {
                         const type = item.media_type;
                         const id = item.media_id;

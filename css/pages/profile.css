@@ -9211,6 +9211,45 @@ body.in-collection-detail .mobile-section {
   transform: scale(1);
 }
 
+/* Category Filter Pills */
+.bp-category-filter-bar {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+  scrollbar-width: none;
+}
+.bp-category-filter-bar::-webkit-scrollbar { display: none; }
+
+.bp-cat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.bp-cat-pill:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.bp-cat-pill.active {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--color-accent, #f59e0b);
+  border-color: var(--color-accent, #f59e0b);
+}
+
 /* Header */
 .bp-header {
   display: flex;

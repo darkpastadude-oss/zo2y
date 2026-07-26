@@ -32,6 +32,7 @@ window.BannerPicker = (function () {
   /* ── helpers ──────────────────────────────────────────── */
   const $ = (id) => document.getElementById(id);
   const escHtml = (s) => String(s || '').replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c]));
+  const jsEsc = (s) => String(s || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
   function getSupabase() {
     return window.sb || null;
@@ -182,6 +183,19 @@ window.BannerPicker = (function () {
     }
   }
 
+  function setCategoryFilter(cat) {
+    activeCategoryFilter = cat;
+    document.querySelectorAll('.bp-cat-pill').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-cat') === cat);
+    });
+    const query = ($('bpSearchInput')?.value || '').trim();
+    if (query) {
+      performSearch(query);
+    } else {
+      loadSuggested();
+    }
+  }
+
   async function performSearch(query) {
     showSection('search');
     const grid = $('bpSearchGrid');
@@ -196,106 +210,160 @@ window.BannerPicker = (function () {
     const signal = controller.signal;
 
     try {
-      const results = [];
+      let results = [];
 
-      /* TMDB: Movies, TV, Anime */
-      try {
-        const res = await fetch(`/api/tmdb/search/multi?query=${encodeURIComponent(query)}&language=en`, { signal });
-        const data = await res.json();
-        if (data.results) {
-          data.results.filter(r => r.media_type === 'movie' || r.media_type === 'tv').slice(0, 10).forEach(r => {
-            results.push({
-              type: r.media_type,
-              id: String(r.id),
-              title: r.title || r.name,
-              year: (r.release_date || r.first_air_date || '').split('-')[0],
-              poster: r.poster_path ? `https://image.tmdb.org/t/p/w342${r.poster_path}` : '',
-              label: r.media_type === 'movie' ? 'MOVIE' : 'TV'
-            });
-          });
-        }
-      } catch (_e) { /* ignore */ }
-
-      /* Games (IGDB) */
-      try {
-        const gRes = await fetch(`/api/igdb/games?search=${encodeURIComponent(query)}&page=1&page_size=6`, { signal });
-        const gData = await gRes.json();
-        if (gData.results) {
-          gData.results.slice(0, 6).forEach(g => {
-            if (g.name) {
-              results.push({
-                type: 'game',
-                id: String(g.id || g.slug || ''),
-                title: g.name,
-                year: '',
-                poster: g.cover || g.image || '',
-                label: 'GAME'
+      /* 1. TMDB: Movies, TV, Anime */
+      if (activeCategoryFilter === 'all' || activeCategoryFilter === 'movie' || activeCategoryFilter === 'tv' || activeCategoryFilter === 'anime') {
+        try {
+          const res = await fetch(`/api/tmdb/search/multi?query=${encodeURIComponent(query)}&language=en`, { signal });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.results) {
+              data.results.filter(r => r.media_type === 'movie' || r.media_type === 'tv').slice(0, 12).forEach(r => {
+                results.push({
+                  type: r.media_type,
+                  id: String(r.id),
+                  title: r.title || r.name || 'Untitled',
+                  year: (r.release_date || r.first_air_date || '').split('-')[0],
+                  poster: r.poster_path ? `https://image.tmdb.org/t/p/w342${r.poster_path}` : '',
+                  label: r.media_type === 'movie' ? 'MOVIE' : 'TV'
+                });
               });
             }
-          });
-        }
-      } catch (_e) { /* ignore */ }
+          }
+        } catch (_e) { /* ignore */ }
+      }
 
-      /* Books */
-      try {
-        const bRes = await fetch(`/api/books/search?q=${encodeURIComponent(query)}&limit=6`, { signal });
-        const bData = await bRes.json();
-        const bookItems = bData.items || bData.results || (Array.isArray(bData) ? bData : []);
-        bookItems.slice(0, 6).forEach(b => {
-          const vol = b.volumeInfo || b;
-          results.push({
-            type: 'book',
-            id: String(b.id || ''),
-            title: vol.title || b.title || '',
-            year: (vol.publishedDate || '').split('-')[0],
-            poster: vol.imageLinks?.thumbnail || b.cover_url || b.image || '',
-            label: 'BOOK'
-          });
-        });
-      } catch (_e) { /* ignore */ }
-
-      /* Music */
-      try {
-        const mRes = await fetch(`/api/music/search?q=${encodeURIComponent(query)}&limit=6`, { signal });
-        const mData = await mRes.json();
-        const musicItems = mData.results || (Array.isArray(mData) ? mData : []);
-        musicItems.slice(0, 6).forEach(m => {
-          results.push({
-            type: 'music',
-            id: String(m.id || ''),
-            title: m.title || m.name || '',
-            year: (m.release_date || m.year || '').toString().split('-')[0],
-            poster: m.cover_medium || m.album?.cover_medium || m.image || '',
-            label: 'MUSIC'
-          });
-        });
-      } catch (_e) { /* ignore */ }
-
-      /* Brands (fashion + food via Supabase) */
-      const sb = getSupabase();
-      if (sb) {
-        const brandTables = [
-          { table: 'fashion_brands', label: 'FASHION', type: 'brand' },
-          { table: 'food_brands', label: 'FOOD', type: 'brand' }
-        ];
-        for (const bt of brandTables) {
-          try {
-            const { data: rows } = await sb.from(bt.table).select('id, name, logo_url').ilike('name', `%${query}%`).limit(4);
-            if (rows) rows.forEach(r => {
-              results.push({
-                type: bt.type,
-                id: String(r.id),
-                title: r.name,
-                year: '',
-                poster: r.logo_url || '',
-                label: bt.label
-              });
+      /* 2. Games (IGDB + Supabase) */
+      if (activeCategoryFilter === 'all' || activeCategoryFilter === 'game') {
+        try {
+          const gRes = await fetch(`/api/igdb/games?search=${encodeURIComponent(query)}&page=1&page_size=8`, { signal });
+          if (gRes.ok) {
+            const gData = await gRes.json();
+            const items = gData.results || (Array.isArray(gData) ? gData : []);
+            items.slice(0, 8).forEach(g => {
+              if (g.name) {
+                results.push({
+                  type: 'game',
+                  id: String(g.id || g.slug || ''),
+                  title: g.name,
+                  year: '',
+                  poster: g.cover || g.image || '',
+                  label: 'GAME'
+                });
+              }
             });
+          }
+        } catch (_e) { /* ignore */ }
+
+        const sb = getSupabase();
+        if (sb) {
+          try {
+            const { data: games } = await sb.from('games').select('id, name, cover_url, hero_url, background_url').ilike('name', `%${query}%`).limit(6);
+            if (games) {
+              games.forEach(g => {
+                if (g.name && !results.some(r => r.type === 'game' && String(r.id) === String(g.id))) {
+                  results.push({
+                    type: 'game',
+                    id: String(g.id),
+                    title: g.name,
+                    year: '',
+                    poster: g.cover_url || g.hero_url || '',
+                    label: 'GAME'
+                  });
+                }
+              });
+            }
           } catch (_e) { /* ignore */ }
         }
       }
 
+      /* 3. Books */
+      if (activeCategoryFilter === 'all' || activeCategoryFilter === 'book') {
+        try {
+          const bRes = await fetch(`/api/books/search?q=${encodeURIComponent(query)}&limit=8`, { signal });
+          if (bRes.ok) {
+            const bData = await bRes.json();
+            const bookItems = bData.books || bData.items || bData.results || (Array.isArray(bData) ? bData : []);
+            bookItems.slice(0, 8).forEach(b => {
+              const vol = b.volumeInfo || b;
+              results.push({
+                type: 'book',
+                id: String(b.id || b.book_id || ''),
+                title: vol.title || b.title || 'Untitled Book',
+                year: (vol.publishedDate || '').split('-')[0],
+                poster: vol.imageLinks?.thumbnail || b.cover_url || b.image || b.cover || '',
+                label: 'BOOK'
+              });
+            });
+          }
+        } catch (_e) { /* ignore */ }
+      }
+
+      /* 4. Music */
+      if (activeCategoryFilter === 'all' || activeCategoryFilter === 'music') {
+        try {
+          const mRes = await fetch(`/api/music/search?q=${encodeURIComponent(query)}&limit=8`, { signal });
+          if (mRes.ok) {
+            const mData = await mRes.json();
+            const musicItems = mData.results || mData.items || (Array.isArray(mData) ? mData : []);
+            musicItems.slice(0, 8).forEach(m => {
+              results.push({
+                type: 'music',
+                id: String(m.id || ''),
+                title: m.title || m.name || 'Untitled Album',
+                year: (m.release_date || m.year || '').toString().split('-')[0],
+                poster: m.cover_medium || m.album?.cover_medium || m.image || '',
+                label: 'MUSIC'
+              });
+            });
+          }
+        } catch (_e) { /* ignore */ }
+      }
+
+      /* 5. Brands */
+      if (activeCategoryFilter === 'all' || activeCategoryFilter === 'brand') {
+        const sb = getSupabase();
+        if (sb) {
+          const brandTables = [
+            { table: 'fashion_brands', label: 'FASHION', type: 'brand' },
+            { table: 'food_brands', label: 'FOOD', type: 'brand' }
+          ];
+          for (const bt of brandTables) {
+            try {
+              const { data: rows } = await sb.from(bt.table).select('id, name, logo_url').ilike('name', `%${query}%`).limit(4);
+              if (rows) {
+                rows.forEach(r => {
+                  results.push({
+                    type: bt.type,
+                    id: String(r.id),
+                    title: r.name,
+                    year: '',
+                    poster: r.logo_url || '',
+                    label: bt.label
+                  });
+                });
+              }
+            } catch (_e) { /* ignore */ }
+          }
+        }
+      }
+
       if (signal.aborted) return;
+
+      /* Apply strict category filter if specific pill selected */
+      if (activeCategoryFilter !== 'all') {
+        results = results.filter(r => {
+          if (activeCategoryFilter === 'movie') return r.type === 'movie';
+          if (activeCategoryFilter === 'tv') return r.type === 'tv';
+          if (activeCategoryFilter === 'anime') return r.type === 'anime' || (r.type === 'tv' && (r.title.toLowerCase().includes('anime') || r.label === 'ANIME'));
+          if (activeCategoryFilter === 'game') return r.type === 'game';
+          if (activeCategoryFilter === 'book') return r.type === 'book';
+          if (activeCategoryFilter === 'music') return r.type === 'music';
+          if (activeCategoryFilter === 'brand') return r.type === 'brand';
+          return true;
+        });
+      }
 
       if (results.length === 0) {
         if (grid) grid.innerHTML = '';
@@ -304,12 +372,12 @@ window.BannerPicker = (function () {
         return;
       }
 
-      if (title) { title.textContent = 'Search Results'; title.style.display = ''; }
+      if (title) { title.textContent = `Search Results (${results.length})`; title.style.display = ''; }
       if (grid) {
         grid.innerHTML = results.map(item => `
-          <div class="bp-poster-card" onclick="BannerPicker.selectMedia('${escHtml(item.type)}', '${escHtml(item.id)}', '${escHtml(item.title)}', '${escHtml(item.year)}')">
+          <div class="bp-poster-card" onclick="BannerPicker.selectMedia('${jsEsc(item.type)}', '${jsEsc(item.id)}', '${jsEsc(item.title)}', '${jsEsc(item.year)}')">
             <div class="bp-poster-img-wrap">
-              ${item.poster ? `<img src="${escHtml(item.poster)}" loading="lazy" alt="">` : '<div class="bp-poster-placeholder"><i class="fas fa-image"></i></div>'}
+              ${item.poster ? `<img src="${jsEsc(item.poster)}" loading="lazy" alt="">` : '<div class="bp-poster-placeholder"><i class="fas fa-image"></i></div>'}
             </div>
             <div class="bp-poster-title">${escHtml(item.title)}</div>
             <div class="bp-poster-meta">${escHtml(item.label)} ${item.year ? '• ' + escHtml(item.year) : ''}</div>
@@ -356,7 +424,6 @@ window.BannerPicker = (function () {
 
     if (sb && userId) {
       try {
-        /* favourites */
         const { data: favItems } = await sb
           .from('list_items')
           .select('item_id, media_type, title')
@@ -380,13 +447,10 @@ window.BannerPicker = (function () {
     /* carousel — show recently used + favourites as backdrop cards */
     if (carousel) {
       const carouselItems = [...recentlyUsed];
-      if (carouselItems.length === 0 && suggested.length > 0) {
-        /* show first few suggested items in carousel */
-      }
       if (carouselItems.length > 0) {
         carousel.innerHTML = carouselItems.map(item => `
-          <div class="bp-carousel-card" onclick="BannerPicker.quickSelect('${escHtml(item.media_type)}', '${escHtml(item.media_id)}', '${escHtml(item.title)}', '${escHtml(item.url)}')">
-            <img src="${escHtml(item.url)}" loading="lazy" alt="">
+          <div class="bp-carousel-card" onclick="BannerPicker.quickSelect('${jsEsc(item.media_type)}', '${jsEsc(item.media_id)}', '${jsEsc(item.title)}', '${jsEsc(item.url)}')">
+            <img src="${jsEsc(item.url)}" loading="lazy" alt="">
             <div class="bp-carousel-label">${escHtml(item.title)}</div>
           </div>
         `).join('');
@@ -395,21 +459,33 @@ window.BannerPicker = (function () {
       }
     }
 
-    /* grid — popular movies fallback + suggested items */
+    /* grid — popular items filtered by activeCategoryFilter */
     try {
-      const res = await fetch('/api/tmdb/movie/popular?language=en-US&page=1');
-      const data = await res.json();
-      if (data && data.results && grid) {
-        const popular = data.results.slice(0, 18);
-        grid.innerHTML = popular.map(item => `
-          <div class="bp-poster-card" onclick="BannerPicker.selectMedia('movie', '${item.id}', '${escHtml(item.title || item.name)}', '${(item.release_date || '').split('-')[0]}')">
-            <div class="bp-poster-img-wrap">
-              ${item.poster_path ? `<img src="https://image.tmdb.org/t/p/w342${item.poster_path}" loading="lazy" alt="">` : '<div class="bp-poster-placeholder"><i class="fas fa-image"></i></div>'}
+      let endpoint = '/api/tmdb/movie/popular?language=en-US&page=1';
+      let mediaType = 'movie';
+      let mediaLabel = 'MOVIE';
+
+      if (activeCategoryFilter === 'tv') {
+        endpoint = '/api/tmdb/tv/popular?language=en-US&page=1';
+        mediaType = 'tv';
+        mediaLabel = 'TV';
+      }
+
+      const res = await fetch(endpoint);
+      if (res.ok) {
+        const data = await res.json();
+        const results = data.results || (Array.isArray(data) ? data : []);
+        if (grid && results.length > 0) {
+          grid.innerHTML = results.slice(0, 18).map(item => `
+            <div class="bp-poster-card" onclick="BannerPicker.selectMedia('${mediaType}', '${item.id}', '${jsEsc(item.title || item.name)}', '${(item.release_date || item.first_air_date || '').split('-')[0]}')">
+              <div class="bp-poster-img-wrap">
+                ${item.poster_path ? `<img src="https://image.tmdb.org/t/p/w342${item.poster_path}" loading="lazy" alt="">` : '<div class="bp-poster-placeholder"><i class="fas fa-image"></i></div>'}
+              </div>
+              <div class="bp-poster-title">${escHtml(item.title || item.name)}</div>
+              <div class="bp-poster-meta">${mediaLabel}${(item.release_date || item.first_air_date) ? ' • ' + (item.release_date || item.first_air_date).split('-')[0] : ''}</div>
             </div>
-            <div class="bp-poster-title">${escHtml(item.title || item.name)}</div>
-            <div class="bp-poster-meta">MOVIE${item.release_date ? ' • ' + item.release_date.split('-')[0] : ''}</div>
-          </div>
-        `).join('');
+          `).join('');
+        }
       }
     } catch (_e) {
       if (grid) grid.innerHTML = '<p class="text-muted">Could not load suggestions.</p>';
@@ -436,8 +512,8 @@ window.BannerPicker = (function () {
     container.style.display = '';
     if (label) label.style.display = '';
     container.innerHTML = recentlyUsed.map(item => `
-      <div class="bp-carousel-card" onclick="BannerPicker.quickSelect('${escHtml(item.media_type)}', '${escHtml(item.media_id)}', '${escHtml(item.title)}', '${escHtml(item.url)}')">
-        <img src="${escHtml(item.url)}" loading="lazy" alt="">
+      <div class="bp-carousel-card" onclick="BannerPicker.quickSelect('${jsEsc(item.media_type)}', '${jsEsc(item.media_id)}', '${jsEsc(item.title)}', '${jsEsc(item.url)}')">
+        <img src="${jsEsc(item.url)}" loading="lazy" alt="">
         <div class="bp-carousel-label">${escHtml(item.title)}</div>
       </div>
     `).join('');
@@ -810,6 +886,7 @@ window.BannerPicker = (function () {
     openPicker,
     closePicker,
     setMode,
+    setCategoryFilter,
     onSearchInput,
     onSearchFocus,
     selectMedia,
