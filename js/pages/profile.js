@@ -1200,11 +1200,39 @@
                 }
                 
                 updateProfileUI();
+                await loadProfileBannerConfig(currentUser?.id);
+
                 // Enforce the dedicated onboarding username flow (no email-derived fallbacks).
                 if (maybeRedirectUsernameOnboarding()) return;
 
                 // Load stats in background (don't block UI)
                 updateStats().catch(err => console.error('Stats error:', err));
+            }
+
+            async function loadProfileBannerConfig(userId) {
+                if (!supabase || !userId) return;
+                try {
+                    const { data: bannerRow } = await supabase
+                        .from('profile_showcase')
+                        .select('*')
+                        .eq('user_id', userId)
+                        .eq('media_type', 'banner')
+                        .maybeSingle();
+
+                    if (bannerRow && bannerRow.list_id) {
+                        showcaseData['banner'] = bannerRow;
+                        const config = JSON.parse(bannerRow.list_id);
+                        if (config && Array.isArray(config.items) && config.items.length > 0) {
+                            if (config.pos_y !== undefined && userProfile) userProfile.banner_position_y = config.pos_y;
+                            if (config.pos_x !== undefined && userProfile) userProfile.banner_position_x = config.pos_x;
+                            await ProfileBackdropEngine.init(config.items, config.mode || 'rotate');
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Failed to load banner config from profile_showcase:', e);
+                }
+                ProfileBackdropEngine.init();
             }
 
             async function loadOtherUserProfile() {
@@ -1263,6 +1291,7 @@
                 targetUser = profile;
                 updateProfileUI(profile);
                 updateTabTitlesForOtherUser(profile.username || profile.full_name || 'User');
+                await loadProfileBannerConfig(targetUserId);
                 await updateFollowButton();
                 await updateStats(targetUserId);
             }
