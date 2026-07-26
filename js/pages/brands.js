@@ -327,16 +327,8 @@
       };
       const fallbackSrc = '/newlogo.webp?v=' + LOGO_CACHE_BUST;
       const handleError = () => {
-        if (img.src.endsWith(fallbackSrc) || img.src.endsWith('/newlogo.webp')) {
+        if (img.src.includes('/newlogo.webp') || img.src === fallbackSrc) {
           markReady();
-          return;
-        }
-        const card = img.closest('.card');
-        const brandTitle = card?.querySelector('.card-name')?.textContent || '';
-        if (brandTitle) {
-          const apiFallback = '/api/logo?title=' + encodeURIComponent(brandTitle) + '&mode=logo';
-          img.removeAttribute('data-defer-src');
-          img.src = apiFallback;
           return;
         }
         img.removeAttribute('data-defer-src');
