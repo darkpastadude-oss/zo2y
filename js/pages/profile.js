@@ -11054,6 +11054,23 @@ const alreadyActive = isMobile
                         console.warn('Could not sync auth metadata after profile update:', authMetadataResult.error);
                     }
                     
+                    // Save Banner Config via profile_showcase
+                    const bannerMode = document.getElementById('modeStatic')?.checked ? 'static' : 'rotate';
+                    const bannerConfig = {
+                        items: selectedFeaturedBackdrops,
+                        mode: bannerMode,
+                        pos_y: bannerPositionY,
+                        pos_x: bannerPositionX
+                    };
+                    await supabase.from('profile_showcase').upsert({
+                        user_id: currentUser.id,
+                        media_type: 'banner',
+                        list_id: JSON.stringify(bannerConfig),
+                        display_order: 0,
+                        is_hidden: false
+                    }, { onConflict: 'user_id, media_type' });
+                    showcaseData['banner'] = { list_id: JSON.stringify(bannerConfig) };
+                    
                     updateProfileUI(userProfile);
 
                     const usernameInput = document.getElementById('editUsername');
@@ -11224,7 +11241,6 @@ const alreadyActive = isMobile
                         } catch (_e) { return null; }
                     }));
                     results.forEach(function(url) { if (url) urls.push(url); });
-return;
                 }
 
                 var unique = [];
@@ -11268,36 +11284,77 @@ return;
 
             // ===== FEATURED BACKDROPS SELECTION ENGINE =====
             let selectedFeaturedBackdrops = [];
-
+            let backdropSearchTimeout;
             function searchTrackedMediaForBackdrops(query) {
                 const resultsContainer = document.getElementById('backdropSearchResults');
                 if (!resultsContainer) return;
-                query = String(query || '').trim().toLowerCase();
+                query = String(query || '').trim();
                 if (!query) {
                     resultsContainer.classList.remove('open');
                     resultsContainer.innerHTML = '';
                     return;
                 }
 
-                const matches = [];
-                Object.keys(favoriteIds || {}).forEach(type => {
-                    (favoriteIds[type] || []).forEach(id => {
-                        matches.push({ media_type: type, media_id: String(id), title: `${type.toUpperCase()} #${id}` });
-                    });
-                });
-
-                const filtered = matches.filter(m => m.title.toLowerCase().includes(query) || m.media_type.includes(query)).slice(0, 8);
-
-                if (!filtered.length) {
-                    resultsContainer.innerHTML = '<div class="backdrop-search-item">No matches in your tracked media</div>';
-                } else {
-                    resultsContainer.innerHTML = filtered.map(item => `
-                        <div class="backdrop-search-item" onclick="ProfileManager.addFeaturedBackdrop('${item.media_type}', '${item.media_id}', '${escapeHtml(item.title)}')">
-                            <i class="fas fa-plus-circle text-accent"></i> ${escapeHtml(item.title)}
-                        </div>
-                    `).join('');
-                }
+                resultsContainer.innerHTML = '<div class="backdrop-search-item"><i class="fas fa-spinner fa-spin"></i> Searching...</div>';
                 resultsContainer.classList.add('open');
+
+                clearTimeout(backdropSearchTimeout);
+                backdropSearchTimeout = setTimeout(async () => {
+                    try {
+                        const matches = [];
+                        
+                        // 1. Search TMDB
+                        const TMDB_PROXY = '/api/tmdb';
+                        const tmdbRes = await fetch(TMDB_PROXY + '/search/multi?query=' + encodeURIComponent(query) + '&language=en');
+                        if (tmdbRes.ok) {
+                            const tmdbData = await tmdbRes.json();
+                            if (tmdbData.results) {
+                                tmdbData.results.filter(r => (r.media_type === 'movie' || r.media_type === 'tv') && r.backdrop_path).slice(0, 5).forEach(r => {
+                                    matches.push({ media_type: r.media_type, media_id: String(r.id), title: r.title || r.name });
+                                });
+                            }
+                        }
+
+                        // 2. Search Games
+                        if (supabase) {
+                            const { data: games } = await supabase.from('games')
+                                .select('id, name, hero_url, background_url')
+                                .ilike('name', '%' + query + '%')
+                                .limit(3);
+                            if (games && games.length) {
+                                games.forEach(g => {
+                                    if (g.hero_url || g.background_url) {
+                                        matches.push({ media_type: 'game', media_id: String(g.id), title: g.name });
+                                    }
+                                });
+                            }
+                        }
+                        
+                        // 3. Search Brands
+                        if (supabase) {
+                            const { data: fashion } = await supabase.from('fashion_brands').select('id, name').ilike('name', '%' + query + '%').limit(2);
+                            const { data: food } = await supabase.from('food_brands').select('id, name').ilike('name', '%' + query + '%').limit(2);
+                            const allBrands = [...(fashion || []), ...(food || [])];
+                            if (allBrands.length) {
+                                allBrands.forEach(b => {
+                                    matches.push({ media_type: 'brand', media_id: String(b.id), title: b.name });
+                                });
+                            }
+                        }
+
+                        if (!matches.length) {
+                            resultsContainer.innerHTML = '<div class="backdrop-search-item">No results found</div>';
+                        } else {
+                            resultsContainer.innerHTML = matches.map(item => `
+                                <div class="backdrop-search-item" onclick="ProfileManager.addFeaturedBackdrop('${item.media_type}', '${item.media_id}', '${escapeHtml(item.title)}')">
+                                    <i class="fas fa-plus-circle text-accent"></i> <span style="opacity:0.6;font-size:0.85em;text-transform:uppercase;">(${item.media_type})</span> ${escapeHtml(item.title)}
+                                </div>
+                            `).join('');
+                        }
+                    } catch (e) {
+                        resultsContainer.innerHTML = '<div class="backdrop-search-item">Error searching</div>';
+                    }
+                }, 300);
             }
 
             function addFeaturedBackdrop(media_type, media_id, title) {
@@ -11357,6 +11414,13 @@ return;
                             const data = res && res.data;
                             if (data && data.hero_url) return data.hero_url;
                             if (data && data.background_url) return data.background_url;
+                            return null;
+                        } else if (type === 'brand') {
+                            const coversRes = await fetch('/assets/data/brand_covers.json');
+                            if (coversRes.ok) {
+                                const covers = await coversRes.json();
+                                if (covers[id]) return covers[id];
+                            }
                             return null;
                         }
                     } catch (_e) {
@@ -11422,10 +11486,42 @@ return;
 
                 async function init(featuredItems, mode = 'rotate') {
                     stop();
-                    if (!featuredItems || !featuredItems.length) {
+                    let itemsToLoad = featuredItems;
+                    let loadMode = mode;
+                    
+                    // Check if there's a saved banner config in showcaseData
+                    if (showcaseData && showcaseData['banner'] && showcaseData['banner'].list_id) {
+                        try {
+                            const config = JSON.parse(showcaseData['banner'].list_id);
+                            if (config && Array.isArray(config.items) && config.items.length > 0) {
+                                itemsToLoad = config.items;
+                                loadMode = config.mode || 'rotate';
+                                // Apply saved positions to userProfile temporarily so preloadAndFade uses them
+                                if (config.pos_x !== undefined) userProfile.banner_position_x = config.pos_x;
+                                if (config.pos_y !== undefined) userProfile.banner_position_y = config.pos_y;
+                                
+                                // Also update the edit modal if we are viewing our own profile
+                                if (!viewUserId || viewUserId === currentUser?.id) {
+                                    selectedFeaturedBackdrops = [...itemsToLoad];
+                                    renderFeaturedBackdropsChips();
+                                    const modeStatic = document.getElementById('modeStatic');
+                                    const modeRotate = document.getElementById('modeRotate');
+                                    if (loadMode === 'static' && modeStatic) modeStatic.checked = true;
+                                    else if (modeRotate) modeRotate.checked = true;
+                                    
+                                    _setBannerPos(config.pos_y !== undefined ? config.pos_y : 15);
+                                    _setBannerPosX(config.pos_x !== undefined ? config.pos_x : 50);
+                                }
+                            }
+                        } catch (e) {
+                            console.warn('Failed to parse banner config', e);
+                        }
+                    }
+                    
+                    if (!itemsToLoad || !itemsToLoad.length) {
                         const autoList = [];
                         try {
-                            const userId = currentUser?.id;
+                            const userId = viewUserId || currentUser?.id;
                             if (userId && supabase) {
                                 const { data: favItems } = await supabase
                                     .from('list_items')
@@ -11443,17 +11539,22 @@ return;
                                 }
                             }
                         } catch (_e) {}
-                        featuredItems = autoList;
+                        itemsToLoad = autoList;
                     }
 
-                    if (!featuredItems || !featuredItems.length) return;
+                    if (!itemsToLoad || !itemsToLoad.length) return;
 
-                    const resolved = await Promise.all(featuredItems.map(fetchBackdropUrl));
+                    // If static, only use the first item
+                    if (loadMode === 'static') {
+                        itemsToLoad = [itemsToLoad[0]];
+                    }
+
+                    const resolved = await Promise.all(itemsToLoad.map(fetchBackdropUrl));
                     backdropUrls = resolved.filter(Boolean);
 
                     if (!backdropUrls.length) return;
 
-                    const shuffled = backdropUrls.slice().sort(() => Math.random() - 0.5);
+                    const shuffled = loadMode === 'static' ? backdropUrls : backdropUrls.slice().sort(() => Math.random() - 0.5);
                     for (const url of shuffled) {
                         const ok = await preloadAndFade(url);
                         if (ok) break;
