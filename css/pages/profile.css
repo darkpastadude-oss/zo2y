@@ -8511,6 +8511,44 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   margin-top: 12px;
 }
 
+.appearance-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 4px;
+  color: var(--color-text-primary);
+}
+
+.appearance-subtitle {
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+  margin: 0 0 20px;
+}
+
+.appearance-section-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-transform: lowercase;
+  margin-bottom: 8px;
+}
+
+.appearance-banner-avatar-overlay {
+  position: absolute;
+  bottom: -24px;
+  left: 16px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 3px solid var(--color-bg-primary);
+  overflow: hidden;
+  background: var(--color-bg-tertiary);
+}
+
+.appearance-banner-avatar-overlay img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 /* ============================================================
    DEDICATED COLLECTION PAGE REDESIGN V2
    ============================================================ */
