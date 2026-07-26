@@ -1957,19 +1957,19 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                 <div class="form-group">
                                     <label class="form-label appearance-section-label">profile banner</label>
                                     <div class="appearance-banner-preview" id="appearanceBannerPreview">
-                                        <img id="appearanceBannerImg" src="" alt="Profile banner" />
-                                        <div class="appearance-banner-empty" id="appearanceBannerEmpty">
-                                            <i class="fas fa-image"></i>
-                                            <span>No banner set</span>
-                                        </div>
-                                        <div class="appearance-banner-avatar-overlay">
-                                            <img id="appearanceAvatarOverlay" src="" alt="Avatar" />
-                                        </div>
-                                    </div>
-                                    <p class="appearance-banner-hint">this is the banner displayed on your profile.</p>
-                                    <button type="button" class="btn btn-primary appearance-banner-btn" onclick="ProfileManager.chooseBanner && ProfileManager.chooseBanner()">
-                                        <i class="fas fa-camera"></i> choose banner
-                                    </button>
+                                          <img id="appearanceBannerImg" src="https://image.tmdb.org/t/p/original/90ez6ArvpO8bvpyIngBuwZa5JRV.jpg" alt="Profile banner" />
+                                          <div class="appearance-banner-empty" id="appearanceBannerEmpty" style="display:none;">
+                                              <i class="fas fa-image"></i>
+                                              <span>No banner set</span>
+                                          </div>
+                                          <div class="appearance-banner-avatar-overlay">
+                                              <div class="bp-live-avatar" style="width: 48px; height: 48px; font-size: 1.2rem;">u</div>
+                                          </div>
+                                      </div>
+                                      <p class="appearance-banner-hint">this is the banner displayed on your profile.</p>
+                                      <button type="button" class="btn btn-primary appearance-banner-btn" onclick="MockupBannerPicker.open()" style="background: var(--color-accent); color: #000; border: none;">
+                                          <i class="fas fa-image"></i> choose banner
+                                      </button>
                                 </div>
                             </div>
 
