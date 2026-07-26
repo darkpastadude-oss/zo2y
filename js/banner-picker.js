@@ -135,7 +135,7 @@ window.BannerPicker = (function() {
     async function performSearch(query) {
         hideAllSections();
         getEl('bpSearchSection').style.display = 'block';
-        getEl('bpSearchTitle').textContent = \`Searching for "\${query}"...\`;
+        getEl('bpSearchTitle').textContent = `Searching for "${query}"...`;
         getEl('bpSearchTitle').textContent = `Searching for "${query}"...`;
         
         const grid = getEl('bpSearchGrid');
@@ -190,15 +190,15 @@ window.BannerPicker = (function() {
                 const res = await fetch('/api/tmdb/movie/popular?language=en-US&page=1');
                 const data = await res.json();
                 if (data && data.results) {
-                    grid.innerHTML = data.results.slice(0, 12).map(item => \`
-                        <div class="bp-poster-card" onclick="BannerPicker.selectMedia('movie', '\${item.id}', '\${escapeHtml(item.title || item.name)}', '\${(item.release_date || '').split('-')[0]}')">
+                    grid.innerHTML = data.results.slice(0, 12).map(item => `
+                        <div class="bp-poster-card" onclick="BannerPicker.selectMedia('movie', '${item.id}', '${escapeHtml(item.title || item.name)}', '${(item.release_date || '').split('-')[0]}')">
                             <div class="bp-poster-img-wrap">
-                                <img src="https://image.tmdb.org/t/p/w342\${item.poster_path}" loading="lazy">
+                                <img src="https://image.tmdb.org/t/p/w342${item.poster_path}" loading="lazy">
                             </div>
-                            <div class="bp-poster-title">\${escapeHtml(item.title || item.name)}</div>
+                            <div class="bp-poster-title">${escapeHtml(item.title || item.name)}</div>
                             <div class="bp-poster-meta">MOVIE</div>
                         </div>
-                    \`).join('');
+                    `).join('');
                 }
             } catch(e) {
                 grid.innerHTML = '<p class="text-muted">Could not load suggestions.</p>';
@@ -226,7 +226,7 @@ window.BannerPicker = (function() {
         if (type === 'brand') icon = '👕';
         
         const catName = type.toUpperCase();
-        getEl('bpBreadcrumb').innerHTML = \`\${icon} \${catName} &gt; <span>\${escapeHtml(title)}</span> \${year ? '&gt; ' + year : ''}\`;
+        getEl('bpBreadcrumb').innerHTML = `${icon} ${catName} &gt; <span>${escapeHtml(title)}</span> ${year ? '&gt; ' + year : ''}`;
 
         // If Rotate Mode, add to queue
         if (currentMode === 'rotate') {
@@ -260,11 +260,11 @@ window.BannerPicker = (function() {
             let urls = [];
             if (type === 'movie' || type === 'tv' || type === 'anime') {
                 const endpoint = type === 'movie' ? 'movie' : 'tv';
-                const res = await fetch(\`/api/tmdb/\${endpoint}/\${id}/images\`);
+                const res = await fetch(`/api/tmdb/${endpoint}/${id}/images`);
                 const data = await res.json();
                 if (data && data.backdrops && data.backdrops.length > 0) {
                     // Sort by vote_average or just take top 20
-                    urls = data.backdrops.slice(0, 20).map(b => \`https://image.tmdb.org/t/p/w1280\${b.file_path}\`);
+                    urls = data.backdrops.slice(0, 20).map(b => `https://image.tmdb.org/t/p/w1280${b.file_path}`);
                 }
             } else {
                 // Fallback: just fetch the single one we have
@@ -278,11 +278,11 @@ window.BannerPicker = (function() {
             }
 
             activeBackdrops = urls;
-            grid.innerHTML = urls.map((url, idx) => \`
-                <div class="bp-backdrop-card \${draftStaticItem && draftStaticItem.url === url ? 'selected' : ''}" onclick="BannerPicker.selectBackdrop('\${url}')">
-                    <img src="\${url}" loading="lazy">
+            grid.innerHTML = urls.map((url, idx) => `
+                <div class="bp-backdrop-card ${draftStaticItem && draftStaticItem.url === url ? 'selected' : ''}" onclick="BannerPicker.selectBackdrop('${url}')">
+                    <img src="${url}" loading="lazy">
                 </div>
-            \`).join('');
+            `).join('');
             
         } catch(e) {
             grid.innerHTML = '<p class="text-muted">Failed to load backdrops.</p>';
@@ -314,16 +314,20 @@ window.BannerPicker = (function() {
         const img = getEl('bpLiveImage');
         if (!img) return;
         
+        if (url && url.includes('/original/')) {
+            url = url.replace('/original/', '/w1280/');
+        }
+        
         if (img.src !== url && url) {
             // Crossfade
             img.classList.add('fade-out');
             setTimeout(() => {
                 img.src = url;
-                img.style.objectPosition = \`center \${posY}%\`;
+                img.style.objectPosition = `center ${posY}%`;
                 img.onload = () => img.classList.remove('fade-out');
             }, 200);
         } else {
-            img.style.objectPosition = \`center \${posY}%\`;
+            img.style.objectPosition = `center ${posY}%`;
         }
     }
 
@@ -364,17 +368,17 @@ window.BannerPicker = (function() {
             return;
         }
         
-        list.innerHTML = draftRotateQueue.map((item, idx) => \`
-            <div class="bp-queue-item" data-index="\${idx}">
+        list.innerHTML = draftRotateQueue.map((item, idx) => `
+            <div class="bp-queue-item" data-index="${idx}">
                 <i class="fas fa-bars bp-queue-handle"></i>
-                <img src="\${item.url}" class="bp-queue-img">
+                <img src="${item.url}" class="bp-queue-img">
                 <div class="bp-queue-info">
-                    <div class="bp-queue-title">\${escapeHtml(item.title)}</div>
-                    <div class="bp-queue-meta">\${item.media_type.toUpperCase()}</div>
+                    <div class="bp-queue-title">${escapeHtml(item.title)}</div>
+                    <div class="bp-queue-meta">${item.media_type.toUpperCase()}</div>
                 </div>
-                <button class="bp-queue-remove" onclick="BannerPicker.removeFromQueue(\${idx})"><i class="fas fa-trash"></i></button>
+                <button class="bp-queue-remove" onclick="BannerPicker.removeFromQueue(${idx})"><i class="fas fa-trash"></i></button>
             </div>
-        \`).join('');
+        `).join('');
     }
 
     function removeFromQueue(idx) {
@@ -403,20 +407,20 @@ window.BannerPicker = (function() {
             { id: 'music', name: 'Music', icon: '🎵' },
             { id: 'fashion', name: 'Fashion', icon: '👕' }
         ];
-        getEl('bpSidebar').innerHTML = cats.map(c => \`
-            <div class="bp-cat-btn \${activeCategory === c.id ? 'active' : ''}" onclick="BannerPicker.loadCategory('\${c.id}')">
-                <i>\${c.icon}</i> \${c.name}
+        getEl('bpSidebar').innerHTML = cats.map(c => `
+            <div class="bp-cat-btn ${activeCategory === c.id ? 'active' : ''}" onclick="BannerPicker.loadCategory('${c.id}')">
+                <i>${c.icon}</i> ${c.name}
             </div>
-        \`).join('');
+        `).join('');
     }
 
     function generateSkeletons(count, type) {
         let html = '';
         for(let i=0; i<count; i++) {
             if (type === 'poster') {
-                html += \`<div class="bp-poster-card"><div class="bp-poster-img-wrap bp-skeleton"></div><div style="height:12px;width:70%;margin-bottom:4px;" class="bp-skeleton"></div><div style="height:10px;width:40%;" class="bp-skeleton"></div></div>\`;
+                html += `<div class="bp-poster-card"><div class="bp-poster-img-wrap bp-skeleton"></div><div style="height:12px;width:70%;margin-bottom:4px;" class="bp-skeleton"></div><div style="height:10px;width:40%;" class="bp-skeleton"></div></div>`;
             } else {
-                html += \`<div class="bp-backdrop-card bp-skeleton"></div>\`;
+                html += `<div class="bp-backdrop-card bp-skeleton"></div>`;
             }
         }
         return html;
@@ -458,12 +462,12 @@ window.BannerPicker = (function() {
         }
         grid.style.display = 'grid';
         title.style.display = 'block';
-        grid.innerHTML = recentlyUsed.map(item => \`
-            <div class="bp-backdrop-card" onclick="BannerPicker.selectMedia('\${item.media_type}', '\${item.media_id}', '\${escapeHtml(item.title)}'); setTimeout(()=>BannerPicker.selectBackdrop('\${item.url}'), 500);">
-                <img src="\${item.url}" loading="lazy">
-                <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.7);padding:6px;font-size:0.75rem;">\${escapeHtml(item.title)}</div>
+        grid.innerHTML = recentlyUsed.map(item => `
+            <div class="bp-backdrop-card" onclick="BannerPicker.selectMedia('${item.media_type}', '${item.media_id}', '${escapeHtml(item.title)}'); setTimeout(()=>BannerPicker.selectBackdrop('${item.url}'), 500);">
+                <img src="${item.url}" loading="lazy">
+                <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.7);padding:6px;font-size:0.75rem;">${escapeHtml(item.title)}</div>
             </div>
-        \`).join('');
+        `).join('');
     }
 
     // --- Save Pipeline ---
@@ -480,8 +484,8 @@ window.BannerPicker = (function() {
         // Update Appearance Mini Preview
         const miniBackdrop = getEl('appearanceMiniBackdrop');
         if (miniBackdrop && finalItems.length > 0) {
-            miniBackdrop.style.backgroundImage = \`url('\${finalItems[0].url}')\`;
-            miniBackdrop.style.backgroundPosition = \`center \${finalItems[0].pos_y || 15}%\`;
+            miniBackdrop.style.backgroundImage = `url('${finalItems[0].url}')`;
+            miniBackdrop.style.backgroundPosition = `center ${finalItems[0].pos_y || 15}%`;
         } else if (miniBackdrop) {
             miniBackdrop.style.backgroundImage = 'none';
         }

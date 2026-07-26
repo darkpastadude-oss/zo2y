@@ -8467,7 +8467,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   width: 100%;
   aspect-ratio: 21 / 9;
   border-radius: 12px;
-  /* Removed overflow: hidden so avatar can overflow */
+  overflow: visible !important;
   background: var(--color-bg-tertiary);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
