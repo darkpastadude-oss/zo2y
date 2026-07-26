@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="172" height="22" viewBox="0 0 172 22" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}">
 	<style data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}">
 		.logo-invert{
-			fill: white;
+			fill: #0f0f0f;
 		}
-		.bl { fill: white; }
-		.gr { fill: #fff; }
+		.bl { fill: #0f0f0f; }
+		.gr { fill: #0f0f0f; }
 
 		.original_o {
 			animation: o-fade 12s cubic-bezier(0.55, 0, 0.1, 1) infinite;
@@ -42,9 +42,9 @@
 
 	<!-- monogram -->
 	<path fill="black" d="M20.42.998H0v20.42h20.42z" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}"/>
-	<path fill="white" class="letterT" d="M17.632 3.785H2.787v4.092h5.286v10.79h4.273V7.876h5.286z" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}"/>
+	<path fill="#0f0f0f" class="letterT" d="M17.632 3.785H2.787v4.092h5.286v10.79h4.273V7.876h5.286z" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}"/>
 	<path fill="#FF0000" d="M43.63.998H23.209v20.42h20.42z" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}"/>
-	<path fill="white" class="plus" d="M40.877 9.108h-5.322V3.785h-4.273v5.323h-5.286v4.272h5.286v5.286h4.273V13.38h5.322z" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}"/>
+	<path fill="#0f0f0f" class="plus" d="M40.877 9.108h-5.322V3.785h-4.273v5.323h-5.286v4.272h5.286v5.286h4.273V13.38h5.322z" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}"/>
 
 	<defs data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}">
 		<clipPath id="title-mask" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}">
