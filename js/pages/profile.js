@@ -10982,8 +10982,6 @@ const alreadyActive = isMobile
                 const rawUsername = String(document.getElementById('editUsername')?.value || '').trim();
                 const bio = String(document.getElementById('editBio')?.value || '').trim();
                 const location = String(document.getElementById('editLocation')?.value || '').trim();
-                const themeInput = document.getElementById('editProfileTheme');
-                const profileTheme = themeInput ? normalizeProfileTheme(themeInput.value) : null;
                 const customBadges = normalizeProfileBadges(document.getElementById('editCustomBadges')?.value || '');
                 const isPrivate = document.getElementById('editIsPrivate')?.checked || false;
                 
@@ -10993,10 +10991,6 @@ const alreadyActive = isMobile
                 }
                 
                 try {
-                    const bannerPosSlider = document.getElementById('bannerPositionSlider');
-                    const bannerPositionY = bannerPosSlider ? parseInt(bannerPosSlider.value) || 15 : null;
-                    const bannerPosXSlider = document.getElementById('bannerPositionXSlider');
-                    const bannerPositionX = bannerPosXSlider ? parseInt(bannerPosXSlider.value) || 50 : null;
                     const normalizedUsername = await ensureProfileUsernameAvailable(rawUsername, currentUser?.id);
                     const updatePayload = {
                         full_name: normalizedUsername,
@@ -11007,20 +11001,14 @@ const alreadyActive = isMobile
                         is_private: isPrivate,
                         updated_at: new Date().toISOString()
                     };
-                    if (profileTheme) updatePayload.profile_theme = profileTheme;
-                    if (bannerPositionY !== null) updatePayload.banner_position_y = bannerPositionY;
-                    if (bannerPositionX !== null) updatePayload.banner_position_x = bannerPositionX;
                     let { error } = await supabase
                         .from('user_profiles')
                         .update(updatePayload)
                         .eq('id', currentUser.id);
 
-                    if (error && (String(error.message || '').includes('profile_theme') || String(error.message || '').includes('profile_badges') || String(error.message || '').includes('banner_position_y') || String(error.message || '').includes('banner_position_x'))) {
+                    if (error && String(error.message || '').includes('profile_badges')) {
                         const fallbackPayload = { ...updatePayload };
-                        delete fallbackPayload.profile_theme;
                         delete fallbackPayload.profile_badges;
-                        delete fallbackPayload.banner_position_y;
-                        delete fallbackPayload.banner_position_x;
                         ({ error } = await supabase
                             .from('user_profiles')
                             .update(fallbackPayload)
@@ -11038,9 +11026,6 @@ const alreadyActive = isMobile
                         profile_badges: customBadges,
                         is_private: isPrivate
                     };
-                    if (profileTheme) userProfile.profile_theme = profileTheme;
-                    if (bannerPositionY !== null) userProfile.banner_position_y = bannerPositionY;
-                    if (bannerPositionX !== null) userProfile.banner_position_x = bannerPositionX;
                     manualProfileBadges = [...customBadges];
 
                     const authMetadataResult = await supabase.auth.updateUser({
@@ -11053,23 +11038,6 @@ const alreadyActive = isMobile
                     if (authMetadataResult?.error) {
                         console.warn('Could not sync auth metadata after profile update:', authMetadataResult.error);
                     }
-                    
-                    // Save Banner Config via profile_showcase
-                    const bannerMode = document.getElementById('modeStatic')?.checked ? 'static' : 'rotate';
-                    const bannerConfig = {
-                        items: selectedFeaturedBackdrops,
-                        mode: bannerMode,
-                        pos_y: bannerPositionY,
-                        pos_x: bannerPositionX
-                    };
-                    await supabase.from('profile_showcase').upsert({
-                        user_id: currentUser.id,
-                        media_type: 'banner',
-                        list_id: JSON.stringify(bannerConfig),
-                        display_order: 0,
-                        is_hidden: false
-                    }, { onConflict: 'user_id, media_type' });
-                    showcaseData['banner'] = { list_id: JSON.stringify(bannerConfig) };
                     
                     updateProfileUI(userProfile);
 
@@ -11282,113 +11250,6 @@ const alreadyActive = isMobile
                 });
             }
 
-            // ===== FEATURED BACKDROPS SELECTION ENGINE =====
-            let selectedFeaturedBackdrops = [];
-            let backdropSearchTimeout;
-            function searchTrackedMediaForBackdrops(query) {
-                const resultsContainer = document.getElementById('backdropSearchResults');
-                if (!resultsContainer) return;
-                query = String(query || '').trim();
-                if (!query) {
-                    resultsContainer.classList.remove('open');
-                    resultsContainer.innerHTML = '';
-                    return;
-                }
-
-                resultsContainer.innerHTML = '<div class="backdrop-search-item"><i class="fas fa-spinner fa-spin"></i> Searching...</div>';
-                resultsContainer.classList.add('open');
-
-                clearTimeout(backdropSearchTimeout);
-                backdropSearchTimeout = setTimeout(async () => {
-                    try {
-                        const matches = [];
-                        
-                        // 1. Search TMDB
-                        const TMDB_PROXY = '/api/tmdb';
-                        const tmdbRes = await fetch(TMDB_PROXY + '/search/multi?query=' + encodeURIComponent(query) + '&language=en');
-                        if (tmdbRes.ok) {
-                            const tmdbData = await tmdbRes.json();
-                            if (tmdbData.results) {
-                                tmdbData.results.filter(r => (r.media_type === 'movie' || r.media_type === 'tv') && r.backdrop_path).slice(0, 5).forEach(r => {
-                                    matches.push({ media_type: r.media_type, media_id: String(r.id), title: r.title || r.name });
-                                });
-                            }
-                        }
-
-                        // 2. Search Games
-                        if (supabase) {
-                            const { data: games } = await supabase.from('games')
-                                .select('id, name, hero_url, background_url')
-                                .ilike('name', '%' + query + '%')
-                                .limit(3);
-                            if (games && games.length) {
-                                games.forEach(g => {
-                                    if (g.hero_url || g.background_url) {
-                                        matches.push({ media_type: 'game', media_id: String(g.id), title: g.name });
-                                    }
-                                });
-                            }
-                        }
-                        
-                        // 3. Search Brands
-                        if (supabase) {
-                            const { data: fashion } = await supabase.from('fashion_brands').select('id, name').ilike('name', '%' + query + '%').limit(2);
-                            const { data: food } = await supabase.from('food_brands').select('id, name').ilike('name', '%' + query + '%').limit(2);
-                            const allBrands = [...(fashion || []), ...(food || [])];
-                            if (allBrands.length) {
-                                allBrands.forEach(b => {
-                                    matches.push({ media_type: 'brand', media_id: String(b.id), title: b.name });
-                                });
-                            }
-                        }
-
-                        if (!matches.length) {
-                            resultsContainer.innerHTML = '<div class="backdrop-search-item">No results found</div>';
-                        } else {
-                            resultsContainer.innerHTML = matches.map(item => `
-                                <div class="backdrop-search-item" onclick="ProfileManager.addFeaturedBackdrop('${item.media_type}', '${item.media_id}', '${escapeHtml(item.title)}')">
-                                    <i class="fas fa-plus-circle text-accent"></i> <span style="opacity:0.6;font-size:0.85em;text-transform:uppercase;">(${item.media_type})</span> ${escapeHtml(item.title)}
-                                </div>
-                            `).join('');
-                        }
-                    } catch (e) {
-                        resultsContainer.innerHTML = '<div class="backdrop-search-item">Error searching</div>';
-                    }
-                }, 300);
-            }
-
-            function addFeaturedBackdrop(media_type, media_id, title) {
-                if (selectedFeaturedBackdrops.length >= 20) {
-                    showToast('Maximum 20 featured backdrops allowed', 'error');
-                    return;
-                }
-                if (selectedFeaturedBackdrops.some(b => b.media_type === media_type && String(b.media_id) === String(media_id))) {
-                    return;
-                }
-                selectedFeaturedBackdrops.push({ media_type, media_id: String(media_id), title: title || `${media_type.toUpperCase()} #${media_id}` });
-                renderFeaturedBackdropsChips();
-                const resultsContainer = document.getElementById('backdropSearchResults');
-                if (resultsContainer) resultsContainer.classList.remove('open');
-                const searchInput = document.getElementById('backdropSearchInput');
-                if (searchInput) searchInput.value = '';
-            }
-
-            function removeFeaturedBackdrop(index) {
-                selectedFeaturedBackdrops.splice(index, 1);
-                renderFeaturedBackdropsChips();
-            }
-
-            function renderFeaturedBackdropsChips() {
-                const container = document.getElementById('featuredBackdropsChips');
-                if (!container) return;
-                container.innerHTML = selectedFeaturedBackdrops.map((item, idx) => `
-                    <div class="backdrop-chip">
-                        <span>${escapeHtml(item.title || item.media_type + '#' + item.media_id)}</span>
-                        <button type="button" class="backdrop-chip-remove" onclick="ProfileManager.removeFeaturedBackdrop(${idx})">&times;</button>
-                    </div>
-                `).join('');
-            }
-
             // ===== PROFILE DYNAMIC BACKDROP ROTATION ENGINE =====
             const ProfileBackdropEngine = (function() {
                 let backdropUrls = [];
@@ -11446,7 +11307,6 @@ const alreadyActive = isMobile
                         tempImg.onload = function() {
                             const posY = (userProfile?.banner_position_y ?? 15);
                             const posX = (userProfile?.banner_position_x ?? 50);
-                            const posXY = posX + '% ' + posY + '%';
                             const nextLayerId = activeLayer === 'A' ? 'backdropLayerB' : 'backdropLayerA';
                             const currentLayerId = activeLayer === 'A' ? 'backdropLayerA' : 'backdropLayerB';
                             const nextEl = document.getElementById(nextLayerId);
@@ -11496,22 +11356,8 @@ const alreadyActive = isMobile
                             if (config && Array.isArray(config.items) && config.items.length > 0) {
                                 itemsToLoad = config.items;
                                 loadMode = config.mode || 'rotate';
-                                // Apply saved positions to userProfile temporarily so preloadAndFade uses them
                                 if (config.pos_x !== undefined) userProfile.banner_position_x = config.pos_x;
                                 if (config.pos_y !== undefined) userProfile.banner_position_y = config.pos_y;
-                                
-                                // Also update the edit modal if we are viewing our own profile
-                                if (!viewUserId || viewUserId === currentUser?.id) {
-                                    selectedFeaturedBackdrops = [...itemsToLoad];
-                                    renderFeaturedBackdropsChips();
-                                    const modeStatic = document.getElementById('modeStatic');
-                                    const modeRotate = document.getElementById('modeRotate');
-                                    if (loadMode === 'static' && modeStatic) modeStatic.checked = true;
-                                    else if (modeRotate) modeRotate.checked = true;
-                                    
-                                    _setBannerPos(config.pos_y !== undefined ? config.pos_y : 15);
-                                    _setBannerPosX(config.pos_x !== undefined ? config.pos_x : 50);
-                                }
                             }
                         } catch (e) {
                             console.warn('Failed to parse banner config', e);
@@ -11565,48 +11411,8 @@ const alreadyActive = isMobile
                     backdropUrls = [];
                 }
 
-                return { init, stop };
+                return { init, stop, fetchBackdropUrl };
             })();
-
-            function _setBannerPos(pos) {
-                const slider = document.getElementById('bannerPositionSlider');
-                const valueEl = document.getElementById('bannerPositionValue');
-                const presets = document.querySelectorAll('.banner-pos-presets [data-pos]');
-                if (slider) slider.value = pos;
-                if (valueEl) {
-                    const label = pos <= 30 ? 'Top' : pos >= 70 ? 'Bottom' : 'Center';
-                    valueEl.textContent = label;
-                }
-                presets.forEach(function(btn) {
-                    btn.classList.toggle('active', parseInt(btn.getAttribute('data-pos')) === pos);
-                });
-                const activeLayer = document.querySelector('.pv2-backdrop-layer.active');
-                if (activeLayer) {
-                    activeLayer.style.setProperty('--banner-pos-y', pos + '%');
-                }
-                const mobileImg = document.querySelector('.mobile-backdrop-img');
-                if (mobileImg) {
-                    mobileImg.style.objectPosition = 'center ' + pos + '%';
-                }
-            }
-
-            function _setBannerPosX(pos) {
-                const slider = document.getElementById('bannerPositionXSlider');
-                const valueEl = document.getElementById('bannerPositionXValue');
-                const presets = document.querySelectorAll('.banner-pos-presets [data-posx]');
-                if (slider) slider.value = pos;
-                if (valueEl) {
-                    const label = pos <= 30 ? 'Left' : pos >= 70 ? 'Right' : 'Center';
-                    valueEl.textContent = label;
-                }
-                presets.forEach(function(btn) {
-                    btn.classList.toggle('active', parseInt(btn.getAttribute('data-posx')) === pos);
-                });
-                const activeLayer = document.querySelector('.pv2-backdrop-layer.active');
-                if (activeLayer) {
-                    activeLayer.style.setProperty('--banner-pos-x', pos + '%');
-                }
-            }
 
             function toggleOverflowMenu() {
                 var menu = document.getElementById('profileOverflowMenu');
@@ -11626,11 +11432,6 @@ const alreadyActive = isMobile
                 closeGearMenu,
                 showEditProfileModal,
                 switchEditTab,
-                searchTrackedMediaForBackdrops,
-                addFeaturedBackdrop,
-                removeFeaturedBackdrop,
-                _setBannerPos,
-                _setBannerPosX,
                 ProfileBackdropEngine,
                 toggleOverflowMenu,
                 closeOverflowMenu,

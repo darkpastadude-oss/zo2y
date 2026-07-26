@@ -1943,10 +1943,21 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                 </div>
                             <!-- Tab 2: Appearance -->
 <div class="edit-tab-pane" id="editTabAppearance">
-  <h2 class="appearance-title">appearance</h2>
-  <p class="appearance-subtitle">customize how your profile looks</p>
-  <div id="appearanceMiniBackdrop" class="mini-backdrop" style="width:100%;height:180px;background:#222;background-size:cover;background-position:center;"></div>
-  <button type="button" class="btn btn-primary appearance-banner-btn" onclick="BannerPicker.openPicker()">Choose Banner</button>
+  <div class="appearance-section">
+    <h3 class="appearance-section-heading">Profile Banner</h3>
+    <div class="appearance-banner-preview" id="appearanceBannerPreview">
+      <div id="appearanceMiniBackdrop" class="appearance-mini-backdrop">
+        <div class="appearance-banner-empty" id="appearanceBannerEmpty">
+          <i class="fas fa-image"></i>
+          <span>No banner selected</span>
+        </div>
+      </div>
+    </div>
+    <p class="appearance-banner-caption">This banner is displayed on your public profile.</p>
+    <button type="button" class="btn btn-primary appearance-choose-btn" onclick="BannerPicker.openPicker()">
+      <i class="fas fa-image"></i> Choose Banner
+    </button>
+  </div>
 </div>
 
 <!-- Tab 3: Showcase -->
@@ -2582,133 +2593,119 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   })();
   </script>
 
-    <!-- Banner Picker Modal -->
-    <div class="modal banner-picker-modal" id="bannerPickerModal">
+    <!-- ===== BANNER PICKER V3 MODAL ===== -->
+    <div class="bp-overlay" id="bannerPickerModal">
+      <div class="bp-modal">
+
+        <!-- Header -->
         <div class="bp-header">
-            <button class="bp-back-btn" onclick="BannerPicker.closePicker()"><i class="fas fa-arrow-left"></i></button>
-            <div class="bp-title-wrap">
-                <h2 class="bp-title">Choose Banner</h2>
-                <span class="bp-subtitle">Select a backdrop to display on your profile</span>
-            </div>
-            
-            <div class="bp-search-wrap">
-                <i class="fas fa-search bp-search-icon"></i>
-                <input type="text" class="bp-search-input" id="bpSearchInput" placeholder="Search movies, shows, games, brands..." oninput="BannerPicker.onSearchInput(event)" onfocus="BannerPicker.onSearchFocus()">
-            </div>
-
-            <div class="bp-modes">
-                <label class="bp-mode-btn" id="bpModeStaticBtn">
-                    <input type="radio" name="bpMode" value="static" id="bpModeStatic" onchange="BannerPicker.setMode('static')" checked>
-                    <div class="bp-mode-content">
-                        <i class="fas fa-image"></i>
-                        <div class="bp-mode-text">
-                            <div class="bp-mode-title">Static Banner</div>
-                            <div class="bp-mode-desc">Show one banner</div>
-                        </div>
-                    </div>
-                </label>
-                <label class="bp-mode-btn" id="bpModeRotateBtn">
-                    <input type="radio" name="bpMode" value="rotate" id="bpModeRotate" onchange="BannerPicker.setMode('rotate')">
-                    <div class="bp-mode-content">
-                        <i class="fas fa-sync"></i>
-                        <div class="bp-mode-text">
-                            <div class="bp-mode-title">Rotate Favorites</div>
-                            <div class="bp-mode-desc">Rotate through a list</div>
-                        </div>
-                    </div>
-                </label>
-            </div>
-            <button class="modal-close bp-close-btn" onclick="BannerPicker.closePicker()">&times;</button>
+          <button class="bp-back-btn" onclick="BannerPicker.goBack()" aria-label="Back">
+            <i class="fas fa-arrow-left"></i>
+          </button>
+          <h2 class="bp-title">Choose Profile Banner</h2>
+          <div class="bp-search-wrap">
+            <i class="fas fa-search bp-search-icon"></i>
+            <input type="text" class="bp-search-input" id="bpSearchInput"
+                   placeholder="Search movies, shows, games, books..."
+                   oninput="BannerPicker.onSearchInput(event)"
+                   onfocus="BannerPicker.onSearchFocus()">
+          </div>
+          <button class="bp-close-btn" onclick="BannerPicker.closePicker()" aria-label="Close">
+            <i class="fas fa-times"></i>
+          </button>
         </div>
 
+        <!-- Mode Toggle -->
+        <div class="bp-mode-bar">
+          <label class="bp-mode-pill">
+            <input type="radio" name="bpMode" value="static" id="bpModeStatic" onchange="BannerPicker.setMode('static')" checked>
+            <span><i class="fas fa-image"></i> Static</span>
+          </label>
+          <label class="bp-mode-pill">
+            <input type="radio" name="bpMode" value="rotate" id="bpModeRotate" onchange="BannerPicker.setMode('rotate')">
+            <span><i class="fas fa-sync-alt"></i> Rotate</span>
+          </label>
+        </div>
+
+        <!-- Body: Two-Column on Desktop -->
         <div class="bp-body">
-            <div class="bp-sidebar" id="bpSidebar">
-                <!-- Rendered by JS -->
+
+          <!-- LEFT: Live Preview Panel -->
+          <div class="bp-preview-panel" id="bpLivePreviewWrap">
+            <div class="bp-preview-card">
+              <div class="bp-preview-banner" id="bpLiveBanner"
+                   onmousedown="BannerPicker.onDragStart(event)"
+                   ontouchstart="BannerPicker.onDragStart(event)">
+                <img src="" id="bpLiveImage" class="bp-preview-img" alt="">
+                <div class="bp-preview-overlay"></div>
+                <div class="bp-preview-vignette"></div>
+                <div class="bp-drag-hint" id="bpDragHint" style="display:none">
+                  <i class="fas fa-arrows-alt-v"></i> Drag to reposition
+                </div>
+              </div>
+              <div class="bp-preview-identity">
+                <div class="bp-preview-avatar" id="bpLiveAvatar">@</div>
+                <div class="bp-preview-info">
+                  <div class="bp-preview-name" id="bpLiveName">User</div>
+                  <div class="bp-preview-username" id="bpLiveUsername">@user</div>
+                  <div class="bp-preview-bio" id="bpLiveBio">No bio yet.</div>
+                </div>
+              </div>
             </div>
 
-            <div class="bp-content" id="bpMainContent">
-                
-                <!-- Live Preview (Always visible at the top when picking backdrops) -->
-                <div class="bp-live-preview-wrap" id="bpLivePreviewWrap" style="display: none;">
-                    <div class="bp-live-preview-label">Live Preview</div>
-                    <div class="bp-live-preview">
-                        <div class="mph2-banner">
-                            <div class="mph2-banner-backdrops" id="bpLiveBanner">
-                                <img src="" id="bpLiveImage" class="bp-live-img">
-                            </div>
-                            <div class="mph2-banner-overlay"></div>
-                            <div class="mph2-banner-vignette"></div>
-                            <div class="bp-drag-hint">Drag to reposition</div>
-                        </div>
-                        <div class="mph2-hero-body" style="margin-top:-32px; padding: 0 20px 20px;">
-                            <div class="mph2-avatar" id="bpLiveAvatar" style="width:72px;height:72px;font-size:30px;">@</div>
-                            <div class="mph2-identity" style="margin-top:12px;">
-                                <div class="mph2-name" id="bpLiveName" style="font-size:1.2rem;">User</div>
-                                <div class="mph2-username" id="bpLiveUsername">@user</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Media Info (Breadcrumb) -->
-                <div class="bp-media-info" id="bpMediaInfo" style="display: none;">
-                    <div class="bp-breadcrumb" id="bpBreadcrumb"></div>
-                </div>
-
-                <!-- Suggested Section (Default State) -->
-                <div class="bp-suggested-section" id="bpSuggestedSection">
-                    <h3 class="bp-section-title">Suggested For You</h3>
-                    <div class="bp-poster-grid" id="bpSuggestedGrid"></div>
-                    
-                    <h3 class="bp-section-title mt-24" id="bpRecentlyUsedTitle" style="display:none;">Recently Used</h3>
-                    <div class="bp-backdrop-grid" id="bpRecentlyUsedGrid" style="display:none;"></div>
-                </div>
-
-                <!-- Search Results Section -->
-                <div class="bp-search-section" id="bpSearchSection" style="display: none;">
-                    <h3 class="bp-section-title" id="bpSearchTitle">Search Results</h3>
-                    <div class="bp-poster-grid" id="bpSearchGrid"></div>
-                    <div class="bp-empty-state" id="bpEmptyState" style="display: none;">
-                        <div class="bp-empty-icon"><i class="fas fa-search"></i></div>
-                        <div class="bp-empty-title">Couldn't find anything.</div>
-                        <div class="bp-empty-desc">Try another title.</div>
-                        <div class="bp-popular-searches">
-                            <div class="bp-popular-title">Popular searches</div>
-                            <div class="bp-popular-chips">
-                                <span onclick="BannerPicker.setSearch('Interstellar')">Interstellar</span>
-                                <span onclick="BannerPicker.setSearch('Spider-Man')">Spider-Man</span>
-                                <span onclick="BannerPicker.setSearch('Breaking Bad')">Breaking Bad</span>
-                                <span onclick="BannerPicker.setSearch('Nike')">Nike</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Category Section -->
-                <div class="bp-category-section" id="bpCategorySection" style="display: none;">
-                    <h3 class="bp-section-title" id="bpCategoryTitle">Category</h3>
-                    <div class="bp-poster-grid" id="bpCategoryGrid"></div>
-                </div>
-
-                <!-- Available Backdrops Grid (Static Mode) -->
-                <div id="bpAvailableContainer" style="display: none;">
-                    <h3 class="bp-section-title">Available Backdrops</h3>
-                    <div class="bp-backdrop-grid" id="bpBackdropGrid"></div>
-                </div>
-
-                <!-- Rotation Queue (Rotate Mode) -->
-                <div id="bpQueueContainer" style="display: none;">
-                    <h3 class="bp-section-title">Rotation Queue</h3>
-                    <div class="bp-queue-list" id="bpQueueList"></div>
-                </div>
-
+            <!-- Rotation Queue (visible in rotate mode) -->
+            <div id="bpQueueSection" style="display:none">
+              <h4 class="bp-queue-heading">Rotation Queue</h4>
+              <div class="bp-queue-list" id="bpQueueList"></div>
             </div>
+          </div>
+
+          <!-- RIGHT: Browse Panel -->
+          <div class="bp-browse-panel">
+
+            <!-- Breadcrumb -->
+            <div class="bp-breadcrumb-bar" id="bpBreadcrumbBar" style="display:none">
+              <div class="bp-breadcrumb" id="bpBreadcrumb"></div>
+            </div>
+
+            <!-- Section: Suggested -->
+            <div id="bpSection_suggested">
+              <h4 class="bp-section-label" id="bpRecentlyUsedLabel" style="display:none">Recently Used</h4>
+              <div class="bp-carousel-row" id="bpRecentlyUsedRow" style="display:none"></div>
+              <h4 class="bp-section-label">Suggested</h4>
+              <div class="bp-carousel-row" id="bpSuggestedCarousel"></div>
+              <h4 class="bp-section-label">Popular</h4>
+              <div class="bp-poster-grid" id="bpSuggestedGrid"></div>
+            </div>
+
+            <!-- Section: Search Results -->
+            <div id="bpSection_search" style="display:none">
+              <h4 class="bp-section-label" id="bpSearchTitle">Search Results</h4>
+              <div class="bp-poster-grid" id="bpSearchGrid"></div>
+              <div class="bp-empty-state" id="bpEmptyState" style="display:none">
+                <div class="bp-empty-icon"><i class="fas fa-search"></i></div>
+                <div class="bp-empty-title">No results found</div>
+                <div class="bp-empty-desc">Try a different search term.</div>
+              </div>
+            </div>
+
+            <!-- Section: Available Backdrops (after selecting media) -->
+            <div id="bpSection_backdrops" style="display:none">
+              <div class="bp-backdrop-grid" id="bpBackdropGrid"></div>
+            </div>
+
+          </div>
         </div>
 
+        <!-- Footer -->
         <div class="bp-footer">
-            <button class="btn btn-secondary" onclick="BannerPicker.closePicker()">Cancel</button>
-            <button class="btn btn-primary" id="bpApplyBtn" onclick="BannerPicker.applyBanner()" disabled>Apply Banner</button>
+          <button class="btn btn-secondary bp-cancel-btn" onclick="BannerPicker.closePicker()">Cancel</button>
+          <button class="btn btn-primary bp-apply-btn" id="bpApplyBtn" onclick="BannerPicker.applyBanner()" disabled>Apply Banner</button>
         </div>
+
+      </div>
     </div>
-\n    <script src="js/banner-picker.js"></script>\n</body>
+
+    <script src="js/banner-picker.js"></script>
+</body>
 </html>

@@ -1,539 +1,822 @@
 /* =========================================================
-   BANNER PICKER ENGINE (V2 REDESIGN)
-========================================================= */
-window.BannerPicker = (function() {
-    let isOpen = false;
-    let currentMode = 'static'; // 'static' or 'rotate'
-    let activeCategory = 'suggested';
-    let searchQuery = '';
-    
-    // State
-    let selectedMedia = null; // { id, type, title, year }
-    let activeBackdrops = [];
-    
-    let draftStaticItem = null; // { media_type, media_id, title, url, pos_y }
-    let draftRotateQueue = []; // array of items
-    
-    let recentlyUsed = [];
+   BANNER PICKER V3 — Premium Visual Redesign
+   ========================================================= */
+window.BannerPicker = (function () {
+  'use strict';
+
+  /* ── state ────────────────────────────────────────────── */
+  let isOpen = false;
+  let currentMode = 'static';       // 'static' | 'rotate'
+  let selectedMedia = null;          // { type, id, title, year }
+
+  let draftStaticItem = null;        // { media_type, media_id, title, url, pos_y }
+  let draftRotateQueue = [];
+  let hasChanges = false;
+
+  /* crop drag */
+  let isDragging = false;
+  let dragStartY = 0;
+  let initialPosY = 15;
+
+  /* search */
+  let searchTimeout = null;
+  let currentSearchAbort = null;
+
+  /* recently used (localStorage) */
+  let recentlyUsed = [];
+  try {
+    const stored = localStorage.getItem('zo2y_recently_used_banners');
+    if (stored) recentlyUsed = JSON.parse(stored);
+  } catch (_e) { /* ignore */ }
+
+  /* ── helpers ──────────────────────────────────────────── */
+  const $ = (id) => document.getElementById(id);
+  const escHtml = (s) => String(s || '').replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c]));
+
+  function getSupabase() {
+    return window.sb || null;
+  }
+
+  function getUserProfile() {
+    return window.userProfile || {};
+  }
+
+  /* ── skeletons ────────────────────────────────────────── */
+  function skeletons(n, type) {
+    let h = '';
+    for (let i = 0; i < n; i++) {
+      if (type === 'poster') {
+        h += '<div class="bp-poster-card"><div class="bp-poster-img-wrap bp-skeleton"></div><div class="bp-skeleton" style="height:12px;width:70%;margin-top:8px;border-radius:4px"></div><div class="bp-skeleton" style="height:10px;width:40%;margin-top:4px;border-radius:4px"></div></div>';
+      } else if (type === 'backdrop') {
+        h += '<div class="bp-backdrop-card bp-skeleton"></div>';
+      } else if (type === 'carousel') {
+        h += '<div class="bp-carousel-card bp-skeleton"></div>';
+      }
+    }
+    return h;
+  }
+
+  /* ── init (attach global drag events) ─────────────────── */
+  function init() {
+    window.addEventListener('mousemove', onDragMove);
+    window.addEventListener('touchmove', onDragMove, { passive: false });
+    window.addEventListener('mouseup', onDragEnd);
+    window.addEventListener('touchend', onDragEnd);
+  }
+
+  /* ── open / close ─────────────────────────────────────── */
+  function openPicker() {
+    isOpen = true;
+    hasChanges = false;
+
+    const profile = getUserProfile();
+    currentMode = (profile.backdrop_mode === 'rotate') ? 'rotate' : 'static';
+    const items = profile.banner_items || [];
+    draftRotateQueue = items.map(i => ({ ...i }));
+    draftStaticItem = items.length > 0 ? { ...items[0] } : null;
+
+    /* populate preview */
+    const username = profile.username || 'user';
+    const name = profile.full_name || username;
+    const bio = profile.bio || '';
+    const avatarEl = $('profileAvatar');
+
+    const pName = $('bpLiveName');
+    const pUser = $('bpLiveUsername');
+    const pBio = $('bpLiveBio');
+    const pAvatar = $('bpLiveAvatar');
+    if (pName) pName.textContent = name;
+    if (pUser) pUser.textContent = '@' + username;
+    if (pBio) pBio.textContent = bio || 'No bio yet.';
+    if (pAvatar && avatarEl) pAvatar.innerHTML = avatarEl.innerHTML;
+
+    if (draftStaticItem && draftStaticItem.url) {
+      updateLivePreview(draftStaticItem.url, draftStaticItem.pos_y || 15);
+    } else {
+      updateLivePreview('', 15);
+    }
+
+    /* mode radios */
+    const modeStatic = $('bpModeStatic');
+    const modeRotate = $('bpModeRotate');
+    if (modeStatic) modeStatic.checked = currentMode === 'static';
+    if (modeRotate) modeRotate.checked = currentMode === 'rotate';
+    updateModeUI();
+
+    /* show modal */
+    const modal = $('bannerPickerModal');
+    if (modal) {
+      modal.classList.add('show');
+      modal.style.display = '';
+    }
+    document.body.style.overflow = 'hidden';
+
+    /* clear search */
+    const searchInput = $('bpSearchInput');
+    if (searchInput) searchInput.value = '';
+
+    /* load suggested */
+    loadSuggested();
+    updateApplyBtn();
+
+    /* render queue if rotate */
+    if (currentMode === 'rotate') renderQueue();
+  }
+
+  function closePicker() {
+    isOpen = false;
+    const modal = $('bannerPickerModal');
+    if (modal) modal.classList.remove('show');
+    document.body.style.overflow = '';
+    abortSearch();
+  }
+
+  /* ── mode switching ───────────────────────────────────── */
+  function setMode(mode) {
+    currentMode = mode;
+    updateModeUI();
+    markChanged();
+
+    if (mode === 'rotate') {
+      renderQueue();
+    }
+  }
+
+  function updateModeUI() {
+    const queueSection = $('bpQueueSection');
+    if (queueSection) {
+      queueSection.style.display = currentMode === 'rotate' ? 'block' : 'none';
+    }
+  }
+
+  /* ── search ───────────────────────────────────────────── */
+  function abortSearch() {
+    if (currentSearchAbort) {
+      currentSearchAbort.abort();
+      currentSearchAbort = null;
+    }
+    clearTimeout(searchTimeout);
+  }
+
+  function onSearchInput(e) {
+    const query = e.target.value.trim();
+    abortSearch();
+
+    if (!query) {
+      showSection('suggested');
+      return;
+    }
+
+    searchTimeout = setTimeout(() => performSearch(query), 350);
+  }
+
+  function onSearchFocus() {
+    if (window.innerWidth <= 900) {
+      setTimeout(() => {
+        const modal = $('bannerPickerModal');
+        if (modal) modal.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 300);
+    }
+  }
+
+  async function performSearch(query) {
+    showSection('search');
+    const grid = $('bpSearchGrid');
+    const title = $('bpSearchTitle');
+    const empty = $('bpEmptyState');
+    if (title) title.textContent = `Searching "${query}"...`;
+    if (grid) grid.innerHTML = skeletons(12, 'poster');
+    if (empty) empty.style.display = 'none';
+
+    const controller = new AbortController();
+    currentSearchAbort = controller;
+    const signal = controller.signal;
+
     try {
-        const stored = localStorage.getItem('zo2y_recently_used_banners');
-        if (stored) recentlyUsed = JSON.parse(stored);
-    } catch(e){}
+      const results = [];
 
-    let hasChanges = false;
-    let isDraggingPos = false;
-    let dragStartY = 0;
-    let initialPosY = 15;
-
-    // Elements
-    const getEl = (id) => document.getElementById(id);
-
-    function init() {
-        // Init cropper events on the live preview
-        const liveBanner = getEl('bpLiveBanner');
-        if (liveBanner) {
-            liveBanner.addEventListener('mousedown', onDragStart);
-            liveBanner.addEventListener('touchstart', onDragStart, {passive: true});
-            window.addEventListener('mousemove', onDragMove);
-            window.addEventListener('touchmove', onDragMove, {passive: false});
-            window.addEventListener('mouseup', onDragEnd);
-            window.addEventListener('touchend', onDragEnd);
+      /* TMDB: Movies, TV, Anime */
+      try {
+        const res = await fetch(`/api/tmdb/search/multi?query=${encodeURIComponent(query)}&language=en`, { signal });
+        const data = await res.json();
+        if (data.results) {
+          data.results.filter(r => r.media_type === 'movie' || r.media_type === 'tv').slice(0, 10).forEach(r => {
+            results.push({
+              type: r.media_type,
+              id: String(r.id),
+              title: r.title || r.name,
+              year: (r.release_date || r.first_air_date || '').split('-')[0],
+              poster: r.poster_path ? `https://image.tmdb.org/t/p/w342${r.poster_path}` : '',
+              label: r.media_type === 'movie' ? 'MOVIE' : 'TV'
+            });
+          });
         }
-    }
+      } catch (_e) { /* ignore */ }
 
-    function openPicker() {
-        isOpen = true;
-        
-        // Sync draft state with userProfile
-        currentMode = (window.userProfile && window.userProfile.backdrop_mode === 'rotate') ? 'rotate' : 'static';
-        getEl('bpModeStatic').checked = currentMode === 'static';
-        getEl('bpModeRotate').checked = currentMode === 'rotate';
-        
-        const existingItems = (window.userProfile && window.userProfile.banner_items) ? window.userProfile.banner_items : [];
-        if (currentMode === 'static' && existingItems.length > 0) {
-            draftStaticItem = {...existingItems[0]};
-            draftRotateQueue = [...existingItems];
-        } else {
-            draftRotateQueue = [...existingItems];
-            if (existingItems.length > 0) draftStaticItem = {...existingItems[0]};
-        }
-
-        hasChanges = false;
-        updateApplyBtn();
-
-        // Update live preview with current user data
-        const username = window.userProfile ? window.userProfile.username : 'user';
-        const name = window.userProfile ? window.userProfile.full_name || username : 'User';
-        getEl('bpLiveName').textContent = name;
-        getEl('bpLiveUsername').textContent = '@' + username;
-        getEl('bpLiveAvatar').innerHTML = getEl('profileAvatar') ? getEl('profileAvatar').innerHTML : '@';
-
-        if (draftStaticItem) {
-            updateLivePreview(draftStaticItem.url, draftStaticItem.pos_y || 15);
-        } else {
-            updateLivePreview('', 15);
-        }
-
-        getEl('bannerPickerModal').classList.add('show');
-        document.body.style.overflow = 'hidden';
-
-        loadCategory('suggested');
-        renderSidebar();
-    }
-
-    function closePicker() {
-        isOpen = false;
-        getEl('bannerPickerModal').classList.remove('show');
-        document.body.style.overflow = '';
-        
-        // Update mini preview on edit tab
-        if (hasChanges) {
-            // we don't update until apply, but if they cancel, we revert
-        }
-    }
-
-    function setMode(mode) {
-        currentMode = mode;
-        if (mode === 'static') {
-            getEl('bpQueueContainer').style.display = 'none';
-            if (selectedMedia) getEl('bpAvailableContainer').style.display = 'block';
-        } else {
-            getEl('bpAvailableContainer').style.display = 'none';
-            getEl('bpQueueContainer').style.display = 'block';
-            renderQueue();
-        }
-        markChanged();
-    }
-
-    function onSearchFocus() {
-        // Mobile keyboard scroll fix
-        if (window.innerWidth <= 900) {
-            setTimeout(() => {
-                getEl('bannerPickerModal').scrollTo({ top: 0, behavior: 'smooth' });
-            }, 300);
-        }
-    }
-
-    let searchTimeout;
-    function onSearchInput(e) {
-        searchQuery = e.target.value.trim();
-        clearTimeout(searchTimeout);
-        if (!searchQuery) {
-            loadCategory('suggested');
-            return;
-        }
-        searchTimeout = setTimeout(() => {
-            performSearch(searchQuery);
-        }, 400);
-    }
-
-    function setSearch(query) {
-        getEl('bpSearchInput').value = query;
-        onSearchInput({ target: { value: query } });
-    }
-
-    async function performSearch(query) {
-        hideAllSections();
-        getEl('bpSearchSection').style.display = 'block';
-        getEl('bpSearchTitle').textContent = `Searching for "${query}"...`;
-        getEl('bpSearchTitle').textContent = `Searching for "${query}"...`;
-        
-        const grid = getEl('bpSearchGrid');
-        grid.innerHTML = generateSkeletons(10, 'poster');
-        getEl('bpEmptyState').style.display = 'none';
-
-        try {
-            // Use TMDB Proxy
-            const res = await fetch(`/api/tmdb/search/multi?query=${encodeURIComponent(query)}&language=en`);
-            const data = await res.json();
-            const results = data.results ? data.results.filter(r => r.media_type === 'movie' || r.media_type === 'tv') : [];
-            
-            if (results.length === 0) {
-                grid.innerHTML = '';
-                getEl('bpEmptyState').style.display = 'block';
-                getEl('bpSearchTitle').style.display = 'none';
-                return;
+      /* Games (IGDB) */
+      try {
+        const gRes = await fetch(`/api/igdb/games?search=${encodeURIComponent(query)}&page=1&page_size=6`, { signal });
+        const gData = await gRes.json();
+        if (gData.results) {
+          gData.results.slice(0, 6).forEach(g => {
+            if (g.name) {
+              results.push({
+                type: 'game',
+                id: String(g.id || g.slug || ''),
+                title: g.name,
+                year: '',
+                poster: g.cover || g.image || '',
+                label: 'GAME'
+              });
             }
-            getEl('bpSearchTitle').style.display = 'block';
-            getEl('bpSearchTitle').textContent = 'Search Results';
-            
-            grid.innerHTML = results.map(item => `
-                <div class="bp-poster-card" onclick="BannerPicker.selectMedia('${item.media_type}', '${item.id}', '${escapeHtml(item.title || item.name)}', '${(item.release_date || item.first_air_date || '').split('-')[0]}')">
-                    <div class="bp-poster-img-wrap">
-                        ${item.poster_path ? `<img src="https://image.tmdb.org/t/p/w342${item.poster_path}" loading="lazy">` : `<div style="width:100%;height:100%;background:rgba(255,255,255,0.05);"></div>`}
-                    </div>
-                    <div class="bp-poster-title">${escapeHtml(item.title || item.name)}</div>
-                    <div class="bp-poster-meta">${item.media_type.toUpperCase()} ${(item.release_date || item.first_air_date) ? '• ' + (item.release_date || item.first_air_date).split('-')[0] : ''}</div>
-                </div>
-            `).join('');
-        } catch(e) {
-            grid.innerHTML = '';
-            getEl('bpEmptyState').style.display = 'block';
+          });
         }
-    }
+      } catch (_e) { /* ignore */ }
 
-    async function loadCategory(cat) {
-        activeCategory = cat;
-        renderSidebar();
-        hideAllSections();
-        
-        if (cat === 'suggested') {
-            getEl('bpSuggestedSection').style.display = 'block';
-            renderRecentlyUsed();
-            
-            // Load some default popular movies/games for suggested
-            const grid = getEl('bpSuggestedGrid');
-            grid.innerHTML = generateSkeletons(6, 'poster');
-            
-            try {
-                // Fetch popular movies as a fallback for suggestions
-                const res = await fetch('/api/tmdb/movie/popular?language=en-US&page=1');
-                const data = await res.json();
-                if (data && data.results) {
-                    grid.innerHTML = data.results.slice(0, 12).map(item => `
-                        <div class="bp-poster-card" onclick="BannerPicker.selectMedia('movie', '${item.id}', '${escapeHtml(item.title || item.name)}', '${(item.release_date || '').split('-')[0]}')">
-                            <div class="bp-poster-img-wrap">
-                                <img src="https://image.tmdb.org/t/p/w342${item.poster_path}" loading="lazy">
-                            </div>
-                            <div class="bp-poster-title">${escapeHtml(item.title || item.name)}</div>
-                            <div class="bp-poster-meta">MOVIE</div>
-                        </div>
-                    `).join('');
-                }
-            } catch(e) {
-                grid.innerHTML = '<p class="text-muted">Could not load suggestions.</p>';
-            }
-        } else {
-            getEl('bpCategorySection').style.display = 'block';
-            getEl('bpCategoryTitle').textContent = cat.charAt(0).toUpperCase() + cat.slice(1);
-            getEl('bpCategoryGrid').innerHTML = generateSkeletons(12, 'poster');
-            // Mock category load for now (in full implementation, fetch per category)
-            setTimeout(() => {
-                getEl('bpCategoryGrid').innerHTML = '<p class="text-muted">Use search to find specific items.</p>';
-            }, 500);
-        }
-    }
+      /* Books */
+      try {
+        const bRes = await fetch(`/api/books/search?q=${encodeURIComponent(query)}&limit=6`, { signal });
+        const bData = await bRes.json();
+        const bookItems = bData.items || bData.results || (Array.isArray(bData) ? bData : []);
+        bookItems.slice(0, 6).forEach(b => {
+          const vol = b.volumeInfo || b;
+          results.push({
+            type: 'book',
+            id: String(b.id || ''),
+            title: vol.title || b.title || '',
+            year: (vol.publishedDate || '').split('-')[0],
+            poster: vol.imageLinks?.thumbnail || b.cover_url || b.image || '',
+            label: 'BOOK'
+          });
+        });
+      } catch (_e) { /* ignore */ }
 
-    async function selectMedia(type, id, title, year) {
-        selectedMedia = { type, id, title, year };
-        hideAllSections();
-        getEl('bpMediaSection').style.display = 'block';
-        getEl('bpLivePreviewWrap').style.display = 'block'; // Ensure live preview is visible
+      /* Music */
+      try {
+        const mRes = await fetch(`/api/music/search?q=${encodeURIComponent(query)}&limit=6`, { signal });
+        const mData = await mRes.json();
+        const musicItems = mData.results || (Array.isArray(mData) ? mData : []);
+        musicItems.slice(0, 6).forEach(m => {
+          results.push({
+            type: 'music',
+            id: String(m.id || ''),
+            title: m.title || m.name || '',
+            year: (m.release_date || m.year || '').toString().split('-')[0],
+            poster: m.cover_medium || m.album?.cover_medium || m.image || '',
+            label: 'MUSIC'
+          });
+        });
+      } catch (_e) { /* ignore */ }
 
-        let icon = '🎬';
-        if (type === 'game') icon = '🎮';
-        if (type === 'tv' || type === 'anime') icon = '📺';
-        if (type === 'brand') icon = '👕';
-        
-        const catName = type.toUpperCase();
-        getEl('bpBreadcrumb').innerHTML = `${icon} ${catName} &gt; <span>${escapeHtml(title)}</span> ${year ? '&gt; ' + year : ''}`;
-
-        // If Rotate Mode, add to queue
-        if (currentMode === 'rotate') {
-            getEl('bpQueueContainer').style.display = 'block';
-            getEl('bpAvailableContainer').style.display = 'none';
-            
-            // Auto add to queue if not exists
-            if (!draftRotateQueue.find(q => String(q.media_id) === String(id) && q.media_type === type)) {
-                // We need a URL for it. We'll fetch one.
-                const url = await window.ProfileManager.ProfileBackdropEngine.fetchBackdropUrl({media_type: type, media_id: id});
-                draftRotateQueue.push({
-                    media_type: type,
-                    media_id: id,
-                    title: title,
-                    url: url || '',
-                    pos_y: 15
-                });
-                markChanged();
-            }
-            renderQueue();
-            return;
-        }
-
-        // Static mode: fetch all backdrops
-        getEl('bpQueueContainer').style.display = 'none';
-        getEl('bpAvailableContainer').style.display = 'block';
-        const grid = getEl('bpBackdropGrid');
-        grid.innerHTML = generateSkeletons(6, 'backdrop');
-
-        try {
-            let urls = [];
-            if (type === 'movie' || type === 'tv' || type === 'anime') {
-                const endpoint = type === 'movie' ? 'movie' : 'tv';
-                const res = await fetch(`/api/tmdb/${endpoint}/${id}/images`);
-                const data = await res.json();
-                if (data && data.backdrops && data.backdrops.length > 0) {
-                    // Sort by vote_average or just take top 20
-                    urls = data.backdrops.slice(0, 20).map(b => `https://image.tmdb.org/t/p/w1280${b.file_path}`);
-                }
-            } else {
-                // Fallback: just fetch the single one we have
-                const url = await window.ProfileManager.ProfileBackdropEngine.fetchBackdropUrl({media_type: type, media_id: id});
-                if (url) urls = [url];
-            }
-
-            if (urls.length === 0) {
-                grid.innerHTML = '<p class="text-muted">No high-res backdrops found for this title.</p>';
-                return;
-            }
-
-            activeBackdrops = urls;
-            grid.innerHTML = urls.map((url, idx) => `
-                <div class="bp-backdrop-card ${draftStaticItem && draftStaticItem.url === url ? 'selected' : ''}" onclick="BannerPicker.selectBackdrop('${url}')">
-                    <img src="${url}" loading="lazy">
-                </div>
-            `).join('');
-            
-        } catch(e) {
-            grid.innerHTML = '<p class="text-muted">Failed to load backdrops.</p>';
-        }
-    }
-
-    function selectBackdrop(url) {
-        if (!selectedMedia) return;
-        draftStaticItem = {
-            media_type: selectedMedia.type,
-            media_id: selectedMedia.id,
-            title: selectedMedia.title,
-            url: url,
-            pos_y: 15
-        };
-        
-        // Update Grid UI
-        const cards = getEl('bpBackdropGrid').querySelectorAll('.bp-backdrop-card');
-        cards.forEach(c => c.classList.remove('selected'));
-        const target = Array.from(cards).find(c => c.querySelector('img').src === url);
-        if (target) target.classList.add('selected');
-
-        updateLivePreview(url, 15);
-        markChanged();
-        addToRecentlyUsed(draftStaticItem);
-    }
-
-    function updateLivePreview(url, posY) {
-        const img = getEl('bpLiveImage');
-        if (!img) return;
-        
-        if (url && url.includes('/original/')) {
-            url = url.replace('/original/', '/w1280/');
-        }
-        
-        if (img.src !== url && url) {
-            // Crossfade
-            img.classList.add('fade-out');
-            setTimeout(() => {
-                img.src = url;
-                img.style.objectPosition = `center ${posY}%`;
-                img.onload = () => img.classList.remove('fade-out');
-            }, 200);
-        } else {
-            img.style.objectPosition = `center ${posY}%`;
-        }
-    }
-
-    // --- Drag to crop logic ---
-    function onDragStart(e) {
-        if (!getEl('bannerPickerModal').classList.contains('show')) return;
-        if (currentMode !== 'static' || !draftStaticItem) return;
-        isDraggingPos = true;
-        dragStartY = e.touches ? e.touches[0].clientY : e.clientY;
-        initialPosY = draftStaticItem.pos_y || 15;
-        if (e.cancelable) e.preventDefault();
-    }
-    function onDragMove(e) {
-        if (!isDraggingPos) return;
-        if (e.cancelable) e.preventDefault();
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        const deltaY = clientY - dragStartY;
-        const containerHeight = getEl('bpLiveBanner').offsetHeight;
-        let deltaPercent = (deltaY / containerHeight) * 100;
-        let newPosY = initialPosY - deltaPercent;
-        if (newPosY < 0) newPosY = 0;
-        if (newPosY > 100) newPosY = 100;
-        
-        draftStaticItem.pos_y = newPosY;
-        updateLivePreview(draftStaticItem.url, newPosY);
-        markChanged();
-    }
-    function onDragEnd() {
-        isDraggingPos = false;
-    }
-
-    // --- Rotation Queue ---
-    function renderQueue() {
-        const list = getEl('bpQueueList');
-        if (!list) return;
-        if (draftRotateQueue.length === 0) {
-            list.innerHTML = '<p class="text-muted">Search for media to add to your rotation.</p>';
-            return;
-        }
-        
-        list.innerHTML = draftRotateQueue.map((item, idx) => `
-            <div class="bp-queue-item" data-index="${idx}">
-                <i class="fas fa-bars bp-queue-handle"></i>
-                <img src="${item.url}" class="bp-queue-img">
-                <div class="bp-queue-info">
-                    <div class="bp-queue-title">${escapeHtml(item.title)}</div>
-                    <div class="bp-queue-meta">${item.media_type.toUpperCase()}</div>
-                </div>
-                <button class="bp-queue-remove" onclick="BannerPicker.removeFromQueue(${idx})"><i class="fas fa-trash"></i></button>
-            </div>
-        `).join('');
-    }
-
-    function removeFromQueue(idx) {
-        draftRotateQueue.splice(idx, 1);
-        renderQueue();
-        markChanged();
-    }
-
-    // --- Helpers ---
-    function hideAllSections() {
-        getEl('bpSuggestedSection').style.display = 'none';
-        getEl('bpSearchSection').style.display = 'none';
-        getEl('bpCategorySection').style.display = 'none';
-        getEl('bpMediaSection').style.display = 'none';
-        if (currentMode === 'rotate') getEl('bpLivePreviewWrap').style.display = 'none';
-    }
-
-    function renderSidebar() {
-        const cats = [
-            { id: 'suggested', name: 'Suggested', icon: '⭐' },
-            { id: 'movies', name: 'Movies', icon: '🎬' },
-            { id: 'tv', name: 'TV Shows', icon: '📺' },
-            { id: 'games', name: 'Games', icon: '🎮' },
-            { id: 'anime', name: 'Anime', icon: '⚔️' },
-            { id: 'books', name: 'Books', icon: '📚' },
-            { id: 'music', name: 'Music', icon: '🎵' },
-            { id: 'fashion', name: 'Fashion', icon: '👕' }
+      /* Brands (fashion + food via Supabase) */
+      const sb = getSupabase();
+      if (sb) {
+        const brandTables = [
+          { table: 'fashion_brands', label: 'FASHION', type: 'brand' },
+          { table: 'food_brands', label: 'FOOD', type: 'brand' }
         ];
-        getEl('bpSidebar').innerHTML = cats.map(c => `
-            <div class="bp-cat-btn ${activeCategory === c.id ? 'active' : ''}" onclick="BannerPicker.loadCategory('${c.id}')">
-                <i>${c.icon}</i> ${c.name}
+        for (const bt of brandTables) {
+          try {
+            const { data: rows } = await sb.from(bt.table).select('id, name, logo_url').ilike('name', `%${query}%`).limit(4);
+            if (rows) rows.forEach(r => {
+              results.push({
+                type: bt.type,
+                id: String(r.id),
+                title: r.name,
+                year: '',
+                poster: r.logo_url || '',
+                label: bt.label
+              });
+            });
+          } catch (_e) { /* ignore */ }
+        }
+      }
+
+      if (signal.aborted) return;
+
+      if (results.length === 0) {
+        if (grid) grid.innerHTML = '';
+        if (empty) empty.style.display = 'block';
+        if (title) title.style.display = 'none';
+        return;
+      }
+
+      if (title) { title.textContent = 'Search Results'; title.style.display = ''; }
+      if (grid) {
+        grid.innerHTML = results.map(item => `
+          <div class="bp-poster-card" onclick="BannerPicker.selectMedia('${escHtml(item.type)}', '${escHtml(item.id)}', '${escHtml(item.title)}', '${escHtml(item.year)}')">
+            <div class="bp-poster-img-wrap">
+              ${item.poster ? `<img src="${escHtml(item.poster)}" loading="lazy" alt="">` : '<div class="bp-poster-placeholder"><i class="fas fa-image"></i></div>'}
             </div>
+            <div class="bp-poster-title">${escHtml(item.title)}</div>
+            <div class="bp-poster-meta">${escHtml(item.label)} ${item.year ? '• ' + escHtml(item.year) : ''}</div>
+          </div>
         `).join('');
+      }
+    } catch (e) {
+      if (e.name === 'AbortError') return;
+      if (grid) grid.innerHTML = '';
+      if (empty) empty.style.display = 'block';
     }
+  }
 
-    function generateSkeletons(count, type) {
-        let html = '';
-        for(let i=0; i<count; i++) {
-            if (type === 'poster') {
-                html += `<div class="bp-poster-card"><div class="bp-poster-img-wrap bp-skeleton"></div><div style="height:12px;width:70%;margin-bottom:4px;" class="bp-skeleton"></div><div style="height:10px;width:40%;" class="bp-skeleton"></div></div>`;
-            } else {
-                html += `<div class="bp-backdrop-card bp-skeleton"></div>`;
-            }
+  /* ── section management ──────────────────────────────── */
+  function showSection(name) {
+    const sections = ['suggested', 'search', 'backdrops'];
+    sections.forEach(s => {
+      const el = $('bpSection_' + s);
+      if (el) el.style.display = s === name ? '' : 'none';
+    });
+
+    /* show/hide preview when backdrops are visible */
+    const previewWrap = $('bpLivePreviewWrap');
+    if (previewWrap) {
+      previewWrap.style.display = name === 'backdrops' || draftStaticItem ? '' : 'none';
+    }
+  }
+
+  /* ── load suggested ───────────────────────────────────── */
+  async function loadSuggested() {
+    showSection('suggested');
+    const carousel = $('bpSuggestedCarousel');
+    const grid = $('bpSuggestedGrid');
+    if (carousel) carousel.innerHTML = skeletons(8, 'carousel');
+    if (grid) grid.innerHTML = skeletons(12, 'poster');
+
+    /* Recently used */
+    renderRecentlyUsed();
+
+    /* Populate suggested from user's lists/showcase */
+    const suggested = [];
+    const sb = getSupabase();
+    const userId = window.ZO2Y_AUTH?.session?.user?.id;
+
+    if (sb && userId) {
+      try {
+        /* favourites */
+        const { data: favItems } = await sb
+          .from('list_items')
+          .select('item_id, media_type, title')
+          .eq('user_id', userId)
+          .eq('list_type', 'favorites')
+          .in('media_type', ['movie', 'tv', 'anime', 'game'])
+          .order('created_at', { ascending: false })
+          .limit(30);
+        if (favItems) {
+          favItems.forEach(r => {
+            suggested.push({
+              type: r.media_type,
+              id: String(r.item_id),
+              title: r.title || `${r.media_type} #${r.item_id}`
+            });
+          });
         }
-        return html;
+      } catch (_e) { /* ignore */ }
     }
 
-    function escapeHtml(str) {
-        if (!str) return '';
-        return String(str).replace(/[&<>'"]/g, match => ({
-            '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
-        }[match]));
+    /* carousel — show recently used + favourites as backdrop cards */
+    if (carousel) {
+      const carouselItems = [...recentlyUsed];
+      if (carouselItems.length === 0 && suggested.length > 0) {
+        /* show first few suggested items in carousel */
+      }
+      if (carouselItems.length > 0) {
+        carousel.innerHTML = carouselItems.map(item => `
+          <div class="bp-carousel-card" onclick="BannerPicker.quickSelect('${escHtml(item.media_type)}', '${escHtml(item.media_id)}', '${escHtml(item.title)}', '${escHtml(item.url)}')">
+            <img src="${escHtml(item.url)}" loading="lazy" alt="">
+            <div class="bp-carousel-label">${escHtml(item.title)}</div>
+          </div>
+        `).join('');
+      } else {
+        carousel.innerHTML = '';
+      }
     }
 
-    function markChanged() {
-        hasChanges = true;
-        updateApplyBtn();
-    }
-
-    function updateApplyBtn() {
-        const btn = getEl('bpApplyBtn');
-        if (btn) btn.disabled = !hasChanges;
-    }
-
-    // --- Recently Used ---
-    function addToRecentlyUsed(item) {
-        recentlyUsed = recentlyUsed.filter(r => r.url !== item.url);
-        recentlyUsed.unshift(item);
-        if (recentlyUsed.length > 5) recentlyUsed.pop();
-        localStorage.setItem('zo2y_recently_used_banners', JSON.stringify(recentlyUsed));
-    }
-
-    function renderRecentlyUsed() {
-        const grid = getEl('bpRecentlyUsedGrid');
-        const title = getEl('bpRecentlyUsedTitle');
-        if (!grid || !title) return;
-        if (recentlyUsed.length === 0) {
-            grid.style.display = 'none';
-            title.style.display = 'none';
-            return;
-        }
-        grid.style.display = 'grid';
-        title.style.display = 'block';
-        grid.innerHTML = recentlyUsed.map(item => `
-            <div class="bp-backdrop-card" onclick="BannerPicker.selectMedia('${item.media_type}', '${item.media_id}', '${escapeHtml(item.title)}'); setTimeout(()=>BannerPicker.selectBackdrop('${item.url}'), 500);">
-                <img src="${item.url}" loading="lazy">
-                <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.7);padding:6px;font-size:0.75rem;">${escapeHtml(item.title)}</div>
+    /* grid — popular movies fallback + suggested items */
+    try {
+      const res = await fetch('/api/tmdb/movie/popular?language=en-US&page=1');
+      const data = await res.json();
+      if (data && data.results && grid) {
+        const popular = data.results.slice(0, 18);
+        grid.innerHTML = popular.map(item => `
+          <div class="bp-poster-card" onclick="BannerPicker.selectMedia('movie', '${item.id}', '${escHtml(item.title || item.name)}', '${(item.release_date || '').split('-')[0]}')">
+            <div class="bp-poster-img-wrap">
+              ${item.poster_path ? `<img src="https://image.tmdb.org/t/p/w342${item.poster_path}" loading="lazy" alt="">` : '<div class="bp-poster-placeholder"><i class="fas fa-image"></i></div>'}
             </div>
+            <div class="bp-poster-title">${escHtml(item.title || item.name)}</div>
+            <div class="bp-poster-meta">MOVIE${item.release_date ? ' • ' + item.release_date.split('-')[0] : ''}</div>
+          </div>
         `).join('');
+      }
+    } catch (_e) {
+      if (grid) grid.innerHTML = '<p class="text-muted">Could not load suggestions.</p>';
     }
+  }
 
-    // --- Save Pipeline ---
-    async function applyBanner() {
-        if (!hasChanges) return;
-        
-        const finalItems = currentMode === 'static' ? (draftStaticItem ? [draftStaticItem] : []) : draftRotateQueue;
-        
-        // Update userProfile locally
-        if (!window.userProfile) window.userProfile = {};
-        window.userProfile.backdrop_mode = currentMode;
-        window.userProfile.banner_items = finalItems;
+  /* ── recently used ────────────────────────────────────── */
+  function addToRecentlyUsed(item) {
+    recentlyUsed = recentlyUsed.filter(r => r.url !== item.url);
+    recentlyUsed.unshift(item);
+    if (recentlyUsed.length > 8) recentlyUsed = recentlyUsed.slice(0, 8);
+    try { localStorage.setItem('zo2y_recently_used_banners', JSON.stringify(recentlyUsed)); } catch (_e) { /* ignore */ }
+  }
 
-        // Update Appearance Mini Preview
-        const miniBackdrop = getEl('appearanceMiniBackdrop');
-        if (miniBackdrop && finalItems.length > 0) {
-            miniBackdrop.style.backgroundImage = `url('${finalItems[0].url}')`;
-            miniBackdrop.style.backgroundPosition = `center ${finalItems[0].pos_y || 15}%`;
-        } else if (miniBackdrop) {
-            miniBackdrop.style.backgroundImage = 'none';
-        }
-
-        // Send to server
-        if (window.sb && window.ZO2Y_AUTH && window.ZO2Y_AUTH.session) {
-            const userId = window.ZO2Y_AUTH.session.user.id;
-            const updatePayload = {
-                backdrop_mode: currentMode,
-                banner_items: finalItems
-            };
-            if (currentMode === 'static' && finalItems.length > 0) {
-                updatePayload.banner_position_y = finalItems[0].pos_y || 15;
-            }
-            
-            // Try to use ProfileManager.saveProfileChanges if it exists, else direct
-            if (window.ProfileManager && typeof window.ProfileManager.saveProfileChanges === 'function') {
-                // Actually, saveProfileChanges uses form fields. Let's just do a direct upsert here.
-                const { error } = await window.sb.from('user_profiles').update(updatePayload).eq('id', userId);
-                if (error) console.error("Error saving banner:", error);
-            }
-        }
-
-        // Live update the actual profile UI
-        if (window.ProfileManager && window.ProfileManager.ProfileBackdropEngine && typeof window.ProfileManager.ProfileBackdropEngine.init === 'function') {
-            window.ProfileManager.ProfileBackdropEngine.stop();
-            window.ProfileManager.ProfileBackdropEngine.init(true);
-        }
-
-        closePicker();
+  function renderRecentlyUsed() {
+    const container = $('bpRecentlyUsedRow');
+    const label = $('bpRecentlyUsedLabel');
+    if (!container) return;
+    if (recentlyUsed.length === 0) {
+      container.style.display = 'none';
+      if (label) label.style.display = 'none';
+      return;
     }
+    container.style.display = '';
+    if (label) label.style.display = '';
+    container.innerHTML = recentlyUsed.map(item => `
+      <div class="bp-carousel-card" onclick="BannerPicker.quickSelect('${escHtml(item.media_type)}', '${escHtml(item.media_id)}', '${escHtml(item.title)}', '${escHtml(item.url)}')">
+        <img src="${escHtml(item.url)}" loading="lazy" alt="">
+        <div class="bp-carousel-label">${escHtml(item.title)}</div>
+      </div>
+    `).join('');
+  }
 
-    // Initialize on load
-    document.addEventListener('DOMContentLoaded', init);
-
-    return {
-        openPicker,
-        closePicker,
-        setMode,
-        onSearchInput,
-        onSearchFocus,
-        setSearch,
-        loadCategory,
-        selectMedia,
-        selectBackdrop,
-        removeFromQueue,
-        applyBanner,
-        init
+  /* quick-select (from carousel/recently used — already has a URL) */
+  function quickSelect(type, id, title, url) {
+    selectedMedia = { type, id, title, year: '' };
+    draftStaticItem = {
+      media_type: type,
+      media_id: id,
+      title: title,
+      url: url,
+      pos_y: 15
     };
+    updateLivePreview(url, 15);
+    markChanged();
+
+    /* If rotate mode, add to queue */
+    if (currentMode === 'rotate') {
+      if (!draftRotateQueue.find(q => String(q.media_id) === String(id) && q.media_type === type)) {
+        draftRotateQueue.push({ ...draftStaticItem });
+        renderQueue();
+      }
+    }
+  }
+
+  /* ── select media (show its backdrops) ────────────────── */
+  async function selectMedia(type, id, title, year) {
+    selectedMedia = { type, id, title, year };
+    showSection('backdrops');
+
+    const grid = $('bpBackdropGrid');
+    const breadcrumb = $('bpBreadcrumb');
+    const previewWrap = $('bpLivePreviewWrap');
+    if (previewWrap) previewWrap.style.display = '';
+
+    let icon = '🎬';
+    if (type === 'game') icon = '🎮';
+    if (type === 'tv' || type === 'anime') icon = '📺';
+    if (type === 'book') icon = '📚';
+    if (type === 'music') icon = '🎵';
+    if (type === 'brand') icon = '👕';
+    if (breadcrumb) breadcrumb.innerHTML = `${icon} <span>${escHtml(title)}</span> ${year ? '• ' + escHtml(year) : ''}`;
+
+    if (grid) grid.innerHTML = skeletons(8, 'backdrop');
+
+    /* If rotate mode, add to queue automatically (fetch url first) */
+    if (currentMode === 'rotate') {
+      const url = await fetchSingleBackdrop(type, id);
+      if (url && !draftRotateQueue.find(q => String(q.media_id) === String(id) && q.media_type === type)) {
+        draftRotateQueue.push({ media_type: type, media_id: id, title, url, pos_y: 15 });
+        markChanged();
+        renderQueue();
+      }
+    }
+
+    /* Fetch all available backdrops */
+    try {
+      let urls = [];
+      if (type === 'movie' || type === 'tv' || type === 'anime') {
+        const endpoint = type === 'movie' ? 'movie' : 'tv';
+        const res = await fetch(`/api/tmdb/${endpoint}/${id}/images`);
+        const data = await res.json();
+        if (data && data.backdrops && data.backdrops.length > 0) {
+          urls = data.backdrops.map(b => `https://image.tmdb.org/t/p/w1280${b.file_path}`);
+        }
+      } else if (type === 'game') {
+        const sb = getSupabase();
+        if (sb) {
+          const { data } = await sb.from('games').select('hero_url, background_url, screenshots').eq('id', id).maybeSingle();
+          if (data) {
+            if (data.hero_url) urls.push(data.hero_url);
+            if (data.background_url) urls.push(data.background_url);
+            if (Array.isArray(data.screenshots)) urls.push(...data.screenshots);
+          }
+        }
+      } else if (type === 'brand') {
+        try {
+          const coversRes = await fetch('/assets/data/brand_covers.json');
+          if (coversRes.ok) {
+            const covers = await coversRes.json();
+            if (covers[id]) urls = Array.isArray(covers[id]) ? covers[id] : [covers[id]];
+          }
+        } catch (_e) { /* ignore */ }
+      } else {
+        /* Books, Music — try to get a single image */
+        const url = await fetchSingleBackdrop(type, id);
+        if (url) urls = [url];
+      }
+
+      if (urls.length === 0) {
+        if (grid) grid.innerHTML = '<div class="bp-no-backdrops"><i class="fas fa-image"></i><p>No backdrops found for this title.</p></div>';
+        return;
+      }
+
+      if (grid) {
+        grid.innerHTML = urls.map(url => `
+          <div class="bp-backdrop-card ${draftStaticItem && draftStaticItem.url === url ? 'selected' : ''}" onclick="BannerPicker.selectBackdrop('${escHtml(url)}')">
+            <img src="${escHtml(url)}" loading="lazy" alt="">
+          </div>
+        `).join('');
+      }
+
+      /* Auto-select first if nothing is selected */
+      if (!draftStaticItem || !draftStaticItem.url) {
+        selectBackdrop(urls[0]);
+      }
+    } catch (_e) {
+      if (grid) grid.innerHTML = '<div class="bp-no-backdrops"><i class="fas fa-exclamation-triangle"></i><p>Failed to load backdrops.</p></div>';
+    }
+  }
+
+  /* ── fetch single backdrop URL (reuses ProfileBackdropEngine pattern) */
+  async function fetchSingleBackdrop(type, id) {
+    if (window.ProfileManager && window.ProfileManager.ProfileBackdropEngine && typeof window.ProfileManager.ProfileBackdropEngine.fetchBackdropUrl === 'function') {
+      return await window.ProfileManager.ProfileBackdropEngine.fetchBackdropUrl({ media_type: type, media_id: id });
+    }
+    /* Fallback: manual fetch */
+    try {
+      if (type === 'movie' || type === 'tv' || type === 'anime') {
+        const endpoint = type === 'movie' ? 'movie' : 'tv';
+        const res = await fetch(`/api/tmdb/${endpoint}/${id}?language=en`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.backdrop_path) return `https://image.tmdb.org/t/p/w1280${data.backdrop_path}`;
+        }
+      } else if (type === 'game') {
+        const sb = getSupabase();
+        if (sb) {
+          const { data } = await sb.from('games').select('hero_url, background_url').eq('id', id).maybeSingle();
+          if (data) return data.hero_url || data.background_url || null;
+        }
+      }
+    } catch (_e) { /* ignore */ }
+    return null;
+  }
+
+  /* ── select backdrop ──────────────────────────────────── */
+  function selectBackdrop(url) {
+    if (!selectedMedia) return;
+    draftStaticItem = {
+      media_type: selectedMedia.type,
+      media_id: selectedMedia.id,
+      title: selectedMedia.title,
+      url: url,
+      pos_y: 15
+    };
+
+    /* Update grid selection state */
+    const grid = $('bpBackdropGrid');
+    if (grid) {
+      grid.querySelectorAll('.bp-backdrop-card').forEach(c => c.classList.remove('selected'));
+      const cards = grid.querySelectorAll('.bp-backdrop-card');
+      cards.forEach(c => {
+        const img = c.querySelector('img');
+        if (img && img.src === url) c.classList.add('selected');
+      });
+    }
+
+    updateLivePreview(url, 15);
+    markChanged();
+    addToRecentlyUsed(draftStaticItem);
+  }
+
+  /* ── live preview ─────────────────────────────────────── */
+  function updateLivePreview(url, posY) {
+    const img = $('bpLiveImage');
+    if (!img) return;
+
+    if (url && url.includes('/original/')) {
+      url = url.replace('/original/', '/w1280/');
+    }
+
+    if (img.src !== url && url) {
+      img.classList.add('bp-fade-out');
+      setTimeout(() => {
+        img.src = url;
+        img.style.objectPosition = `center ${posY}%`;
+        img.onload = () => img.classList.remove('bp-fade-out');
+      }, 200);
+    } else if (url) {
+      img.style.objectPosition = `center ${posY}%`;
+    }
+
+    /* Update the drag hint visibility */
+    const hint = $('bpDragHint');
+    if (hint) hint.style.display = url ? '' : 'none';
+
+    /* Also update the appearance mini preview */
+    const mini = $('appearanceMiniBackdrop');
+    if (mini && url) {
+      mini.style.backgroundImage = `url('${url}')`;
+      mini.style.backgroundPosition = `center ${posY}%`;
+      mini.style.backgroundSize = 'cover';
+      const emptyEl = $('appearanceBannerEmpty');
+      if (emptyEl) emptyEl.style.display = 'none';
+    }
+  }
+
+  /* ── drag to crop ─────────────────────────────────────── */
+  function onDragStart(e) {
+    if (!isOpen || currentMode !== 'static' || !draftStaticItem) return;
+    isDragging = true;
+    dragStartY = e.touches ? e.touches[0].clientY : e.clientY;
+    initialPosY = draftStaticItem.pos_y || 15;
+    if (e.cancelable) e.preventDefault();
+  }
+
+  function onDragMove(e) {
+    if (!isDragging) return;
+    if (e.cancelable) e.preventDefault();
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const banner = $('bpLiveBanner');
+    if (!banner) return;
+    const deltaY = clientY - dragStartY;
+    const containerHeight = banner.offsetHeight;
+    const deltaPercent = (deltaY / containerHeight) * 100;
+    let newPosY = initialPosY - deltaPercent;
+    newPosY = Math.max(0, Math.min(100, newPosY));
+    draftStaticItem.pos_y = newPosY;
+    updateLivePreview(draftStaticItem.url, newPosY);
+    markChanged();
+  }
+
+  function onDragEnd() {
+    isDragging = false;
+  }
+
+  /* ── rotation queue ───────────────────────────────────── */
+  function renderQueue() {
+    const list = $('bpQueueList');
+    if (!list) return;
+    if (draftRotateQueue.length === 0) {
+      list.innerHTML = '<div class="bp-queue-empty"><i class="fas fa-sync"></i><p>Search for titles and select them to build your rotation.</p></div>';
+      return;
+    }
+    list.innerHTML = draftRotateQueue.map((item, idx) => `
+      <div class="bp-queue-item">
+        <i class="fas fa-grip-vertical bp-queue-handle"></i>
+        <div class="bp-queue-thumb">${item.url ? `<img src="${escHtml(item.url)}" alt="">` : ''}</div>
+        <div class="bp-queue-info">
+          <div class="bp-queue-title">${escHtml(item.title)}</div>
+          <div class="bp-queue-meta">${escHtml((item.media_type || '').toUpperCase())}</div>
+        </div>
+        <button class="bp-queue-remove" onclick="BannerPicker.removeFromQueue(${idx})" aria-label="Remove">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    `).join('');
+  }
+
+  function removeFromQueue(idx) {
+    draftRotateQueue.splice(idx, 1);
+    renderQueue();
+    markChanged();
+  }
+
+  /* ── state helpers ────────────────────────────────────── */
+  function markChanged() {
+    hasChanges = true;
+    updateApplyBtn();
+  }
+
+  function updateApplyBtn() {
+    const btn = $('bpApplyBtn');
+    if (btn) btn.disabled = !hasChanges;
+  }
+
+  /* ── back navigation (return to suggested from backdrops) */
+  function goBack() {
+    if ($('bpSection_backdrops') && $('bpSection_backdrops').style.display !== 'none') {
+      showSection('suggested');
+      selectedMedia = null;
+    } else {
+      closePicker();
+    }
+  }
+
+  /* ── save / apply ─────────────────────────────────────── */
+  async function applyBanner() {
+    if (!hasChanges) return;
+
+    const btn = $('bpApplyBtn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+
+    const finalItems = currentMode === 'static'
+      ? (draftStaticItem ? [draftStaticItem] : [])
+      : draftRotateQueue;
+
+    /* Update local profile object */
+    if (!window.userProfile) window.userProfile = {};
+    window.userProfile.backdrop_mode = currentMode;
+    window.userProfile.banner_items = finalItems;
+
+    const posY = finalItems.length > 0 ? (finalItems[0].pos_y || 15) : 15;
+    const posX = 50;
+    window.userProfile.banner_position_y = posY;
+    window.userProfile.banner_position_x = posX;
+
+    /* Update the Appearance mini-preview */
+    const mini = $('appearanceMiniBackdrop');
+    if (mini && finalItems.length > 0) {
+      mini.style.backgroundImage = `url('${finalItems[0].url}')`;
+      mini.style.backgroundPosition = `center ${posY}%`;
+      mini.style.backgroundSize = 'cover';
+      const emptyEl = $('appearanceBannerEmpty');
+      if (emptyEl) emptyEl.style.display = 'none';
+    }
+
+    /* --- Persist to database --- */
+    const sb = getSupabase();
+    const session = window.ZO2Y_AUTH?.session;
+    if (sb && session) {
+      const userId = session.user.id;
+
+      /* 1. Update user_profiles */
+      const profilePayload = {
+        banner_position_y: Math.round(posY),
+        banner_position_x: posX
+      };
+      try {
+        await sb.from('user_profiles').update(profilePayload).eq('id', userId);
+      } catch (e) {
+        console.warn('Banner: failed to update user_profiles', e);
+      }
+
+      /* 2. Upsert profile_showcase (banner config) */
+      const bannerConfig = {
+        items: finalItems,
+        mode: currentMode,
+        pos_y: Math.round(posY),
+        pos_x: posX
+      };
+      try {
+        await sb.from('profile_showcase').upsert({
+          user_id: userId,
+          media_type: 'banner',
+          list_id: JSON.stringify(bannerConfig),
+          display_order: 0,
+          is_hidden: false
+        }, { onConflict: 'user_id, media_type' });
+      } catch (e) {
+        console.warn('Banner: failed to upsert profile_showcase', e);
+      }
+    }
+
+    /* Live-update the profile banner */
+    if (window.ProfileManager && window.ProfileManager.ProfileBackdropEngine) {
+      window.ProfileManager.ProfileBackdropEngine.stop();
+      if (typeof window.ProfileManager.ProfileBackdropEngine.init === 'function') {
+        window.ProfileManager.ProfileBackdropEngine.init(finalItems, currentMode);
+      }
+    }
+
+    if (btn) { btn.textContent = 'Apply Banner'; }
+    closePicker();
+
+    /* Show success toast if available */
+    if (typeof window.showToast === 'function') {
+      window.showToast('Banner updated!', 'success');
+    }
+  }
+
+  /* ── DOM ready ────────────────────────────────────────── */
+  document.addEventListener('DOMContentLoaded', init);
+
+  /* ── public API ───────────────────────────────────────── */
+  return {
+    openPicker,
+    closePicker,
+    setMode,
+    onSearchInput,
+    onSearchFocus,
+    selectMedia,
+    selectBackdrop,
+    quickSelect,
+    removeFromQueue,
+    applyBanner,
+    goBack,
+    init,
+    // Expose onDragStart for the inline HTML event
+    onDragStart
+  };
 })();
-\n
