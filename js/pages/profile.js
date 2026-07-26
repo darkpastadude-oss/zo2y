@@ -1217,15 +1217,18 @@
 
                 const isUuid = (str) => typeof str === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 
-                // 1. Check profile_showcase
+                // 1. Check profile_showcase (latest row)
                 if (supabase && isUuid(userId)) {
                     try {
-                        const { data: bannerRow } = await supabase
+                        const { data: rows } = await supabase
                             .from('profile_showcase')
                             .select('*')
                             .eq('user_id', userId)
                             .eq('media_type', 'banner')
-                            .maybeSingle();
+                            .order('created_at', { ascending: false })
+                            .limit(1);
+
+                        const bannerRow = Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
 
                         if (bannerRow && bannerRow.list_id) {
                             showcaseData['banner'] = bannerRow;

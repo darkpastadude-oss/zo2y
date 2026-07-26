@@ -78,22 +78,28 @@ const ProfileShowcase = (function () {
             error = res2.error;
         }
 
-        // Strategy 3: Select -> Update or Insert (failsafe)
+        // Strategy 3: Select -> Update main row & prune extra duplicates
         if (error) {
             try {
-                const { data: existing } = await sb
+                const { data: existingRows } = await sb
                     .from('profile_showcase')
                     .select('id')
                     .eq('user_id', userId)
                     .eq('media_type', mediaType)
-                    .maybeSingle();
+                    .order('created_at', { ascending: false });
 
-                if (existing && existing.id) {
+                if (Array.isArray(existingRows) && existingRows.length > 0) {
+                    const mainId = existingRows[0].id;
                     const res3 = await sb
                         .from('profile_showcase')
                         .update({ list_id: listId, display_order: options.display_order ?? 0, is_hidden: options.is_hidden ?? false })
-                        .eq('id', existing.id);
+                        .eq('id', mainId);
                     error = res3.error;
+
+                    if (existingRows.length > 1) {
+                        const extraIds = existingRows.slice(1).map(r => r.id);
+                        await sb.from('profile_showcase').delete().in('id', extraIds);
+                    }
                 } else {
                     const res4 = await sb.from('profile_showcase').insert(row);
                     error = res4.error;
