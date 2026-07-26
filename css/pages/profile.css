@@ -9139,13 +9139,13 @@ body.in-collection-detail .mobile-section {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   color: var(--color-text-secondary, #8ca3c7);
   font-size: 0.9rem;
 }
 
 .appearance-banner-empty i {
-  font-size: 2.2rem;
+  font-size: 2rem;
   opacity: 0.4;
 }
 

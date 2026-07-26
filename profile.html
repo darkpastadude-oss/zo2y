@@ -118,6 +118,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="pv2-banner-overlay"></div>
                     <div class="pv2-banner-vignette"></div>
 
+                    <!-- Direct Change Banner Button -->
+                    <button type="button" class="pv2-banner-edit-btn" onclick="BannerPicker.openPicker()" title="Change Banner">
+                        <i class="fas fa-camera"></i> <span>Change Banner</span>
+                    </button>
                 </div>
 
                 <div class="pv2-hero-body">
@@ -159,8 +163,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                 <button class="pv2-gear-item" onclick="window.ProfileManager&&ProfileManager.showEditProfileModal('profile'); window.ProfileManager&&ProfileManager.closeGearMenu()">
                                     <i class="fas fa-user-edit"></i> Edit Profile
                                 </button>
-                                <button class="pv2-gear-item" onclick="window.ProfileManager&&ProfileManager.showEditProfileModal('appearance'); window.ProfileManager&&ProfileManager.closeGearMenu()">
-                                    <i class="fas fa-palette"></i> Appearance
+                                <button class="pv2-gear-item" onclick="BannerPicker.openPicker(); window.ProfileManager&&ProfileManager.closeGearMenu()">
+                                    <i class="fas fa-image"></i> Change Banner
                                 </button>
                                 <button class="pv2-gear-item" onclick="window.ProfileManager&&ProfileManager.showModal('accountSettingsModal'); window.ProfileManager&&ProfileManager.closeGearMenu()">
                                     <i class="fas fa-sliders-h"></i> Account Settings
@@ -1062,6 +1066,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <div class="mph2-banner-backdrops" id="mobileBannerBackdrops"></div>
                 <div class="mph2-banner-overlay"></div>
                 <div class="mph2-banner-vignette"></div>
+                <button type="button" class="mph2-banner-edit-btn" onclick="BannerPicker.openPicker()" title="Change Banner">
+                    <i class="fas fa-camera"></i> <span>Change Banner</span>
+                </button>
             </div>
 
             <!-- Topbar: Globe (Community) + Gear (Settings) -->
@@ -1078,8 +1085,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                             <button class="pv2-gear-item" onclick="window.ProfileManager&&ProfileManager.showEditProfileModal('profile'); window.ProfileManager&&ProfileManager.closeGearMenu()">
                                 <i class="fas fa-user-edit"></i> Edit Profile
                             </button>
-                            <button class="pv2-gear-item" onclick="window.ProfileManager&&ProfileManager.showEditProfileModal('appearance'); window.ProfileManager&&ProfileManager.closeGearMenu()">
-                                <i class="fas fa-palette"></i> Appearance
+                            <button class="pv2-gear-item" onclick="BannerPicker.openPicker(); window.ProfileManager&&ProfileManager.closeGearMenu()">
+                                <i class="fas fa-image"></i> Change Banner
                             </button>
                             <button class="pv2-gear-item" onclick="window.ProfileManager&&ProfileManager.showModal('accountSettingsModal'); window.ProfileManager&&ProfileManager.closeGearMenu()">
                                 <i class="fas fa-sliders-h"></i> Account Settings
@@ -1908,9 +1915,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                             <button type="button" class="edit-profile-tab active" data-tab="profile" onclick="ProfileManager.switchEditTab('profile')">
                                 <i class="fas fa-user"></i> Profile
                             </button>
-                            <button type="button" class="edit-profile-tab" data-tab="appearance" onclick="ProfileManager.switchEditTab('appearance')">
-                                <i class="fas fa-palette"></i> Appearance
-                            </button>
                             <button type="button" class="edit-profile-tab" data-tab="showcase" onclick="ProfileManager.switchEditTab('showcase')">
                                 <i class="fas fa-star"></i> Showcase
                             </button>
@@ -1941,24 +1945,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                     <input type="text" class="form-input" id="editCustomBadges" placeholder="Comma separated badges (e.g., Collector, Top Critic)">
                                     <small class="text-muted d-block mt-4">Automatic milestone badges are added based on activity.</small>
                                 </div>
-                            <!-- Tab 2: Appearance -->
-<div class="edit-tab-pane" id="editTabAppearance">
-  <div class="appearance-section">
-    <h3 class="appearance-section-heading">Profile Banner</h3>
-    <div class="appearance-banner-preview" id="appearanceBannerPreview">
-      <div id="appearanceMiniBackdrop" class="appearance-mini-backdrop">
-        <div class="appearance-banner-empty" id="appearanceBannerEmpty">
-          <i class="fas fa-image"></i>
-          <span>No banner selected</span>
-        </div>
-      </div>
-    </div>
-    <p class="appearance-banner-caption">This banner is displayed on your public profile.</p>
-    <button type="button" class="btn btn-primary appearance-choose-btn" onclick="BannerPicker.openPicker()">
-      <i class="fas fa-image"></i> Choose Banner
-    </button>
-  </div>
-</div>
+                            </div>
 
 <!-- Tab 3: Showcase -->
 <div class="edit-tab-pane" id="editTabShowcase">
