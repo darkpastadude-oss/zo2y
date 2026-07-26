@@ -4743,7 +4743,11 @@
                                 if (/^https?:\/\//i.test(rawLogoUrl) || rawLogoUrl.startsWith('/') || rawLogoUrl.startsWith('data:')) {
                                     localLogo = toHttpsUrl(rawLogoUrl);
                                 } else {
-                                    localLogo = `${SUPABASE_URL}/storage/v1/object/public/brand-logos/${rawLogoUrl}`;
+                                    const p = new URLSearchParams();
+                                    if (name) p.set('title', name);
+                                    if (domain) p.set('domain', domain);
+                                    p.set('mode', 'logo');
+                                    localLogo = `/api/logo?${p.toString()}`;
                                 }
                             }
                         const brand = {
@@ -7739,7 +7743,11 @@ const alreadyActive = isMobile
                                     if (/^https?:\/\//i.test(rawLogoUrl) || rawLogoUrl.startsWith('/') || rawLogoUrl.startsWith('data:')) {
                                         localLogo = toHttpsUrl(rawLogoUrl);
                                     } else {
-                                        localLogo = `${SUPABASE_URL}/storage/v1/object/public/brand-logos/${rawLogoUrl}`;
+                                        const p = new URLSearchParams();
+                                        if (name) p.set('title', name);
+                                        if (domain) p.set('domain', domain);
+                                        p.set('mode', 'logo');
+                                        localLogo = `/api/logo?${p.toString()}`;
                                     }
                                 }
                                 if (localLogo) {

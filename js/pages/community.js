@@ -2057,12 +2057,13 @@ window.CommunityManager = (function() {
                 rows.forEach(function(row) {
                     var url = row.logo_url || '';
                     if (url && !url.startsWith('http')) {
-                        if (url.indexOf('brand-logos') !== -1 || url.indexOf('food_brands/') !== -1 || url.indexOf('fashion_brands/') !== -1) {
-                            var domain = url.replace(/.*\//, '').replace(/\.[^.]+$/, '').replace(/-/g, '.');
-                            url = '/api/logo?domain=' + encodeURIComponent(domain) + '&mode=logo';
-                        } else {
-                            url = (getSupabaseConfig().url || '') + '/storage/v1/object/public/brand-logos/' + url;
-                        }
+                        var title = row.name || '';
+                        var domain = row.domain || '';
+                        var params = new URLSearchParams();
+                        if (title) params.set('title', title);
+                        if (domain) params.set('domain', domain);
+                        params.set('mode', 'logo');
+                        url = '/api/logo?' + params.toString();
                     }
                     map[String(row.id)] = url || '';
                 });
@@ -2070,12 +2071,13 @@ window.CommunityManager = (function() {
                 map = await individualFallback(table, 'id, logo_url', uniqueIds, false, function(d) {
                     var url = d.logo_url || '';
                     if (url && !url.startsWith('http')) {
-                        if (url.indexOf('brand-logos') !== -1 || url.indexOf('food_brands/') !== -1 || url.indexOf('fashion_brands/') !== -1) {
-                            var domain = url.replace(/.*\//, '').replace(/\.[^.]+$/, '').replace(/-/g, '.');
-                            url = '/api/logo?domain=' + encodeURIComponent(domain) + '&mode=logo';
-                        } else {
-                            url = (getSupabaseConfig().url || '') + '/storage/v1/object/public/brand-logos/' + url;
-                        }
+                        var title = d.name || '';
+                        var domain = d.domain || '';
+                        var params = new URLSearchParams();
+                        if (title) params.set('title', title);
+                        if (domain) params.set('domain', domain);
+                        params.set('mode', 'logo');
+                        url = '/api/logo?' + params.toString();
                     }
                     return url;
                 });
@@ -2855,13 +2857,10 @@ window.CommunityManager = (function() {
         if (!val) return '';
         if (val.includes('unavatar.io') || val.includes('google.com/s2/favicons') || val.includes('icon.horse') || val.endsWith('.ico')) return '';
         if (/^https?:\/\//i.test(val) || val.startsWith('/') || val.startsWith('data:')) return val;
-        if (val.indexOf('brand-logos') !== -1 || val.indexOf('food_brands/') !== -1 || val.indexOf('fashion_brands/') !== -1) {
-            var domain = val.replace(/.*\//, '').replace(/\.[^.]+$/, '').replace(/-/g, '.');
-            return '/api/logo?domain=' + encodeURIComponent(domain) + '&mode=logo';
-        }
-        var config = getSupabaseConfig();
-        var base = config.url || '';
-        return base + '/storage/v1/object/public/brand-logos/' + val;
+        var params = new URLSearchParams();
+        params.set('title', val);
+        params.set('mode', 'logo');
+        return '/api/logo?' + params.toString();
     }
 
     async function discLoadSports() {

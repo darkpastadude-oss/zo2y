@@ -1894,7 +1894,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         } else if (/^https?:\/\//i.test(logoValue) || logoValue.startsWith('/') || logoValue.startsWith('data:')) {
           return logoValue;
         } else {
-          return `${SUPABASE_URL}/storage/v1/object/public/brand-logos/${logoValue}`;
+          const title = String(row?.name || '').trim();
+          const dRaw = String(row?.domain || '').trim();
+          const params = new URLSearchParams();
+          if (title) params.set('title', title);
+          if (dRaw) params.set('domain', dRaw);
+          params.set('mode', 'logo');
+          return `/api/logo?${params.toString()}`;
         }
       }
       const typeKey = String(mediaType || '').toLowerCase();
