@@ -7319,8 +7319,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 /* === Topbar (menu + edit pill) === */
 .mph2-topbar {
   position: absolute;
-  top: 10px;
-  left: 14px;
+  top: 130px;
   right: 14px;
   z-index: 10;
   display: flex;
