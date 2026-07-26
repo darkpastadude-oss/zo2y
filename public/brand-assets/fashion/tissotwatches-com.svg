@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="172" height="22" viewBox="0 0 172 22" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}">
+	<style data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}">
+		.logo-invert{
+			fill: white;
+		}
+		.bl { fill: white; }
+		.gr { fill: #fff; }
+
+		.original_o {
+			animation: o-fade 12s cubic-bezier(0.55, 0, 0.1, 1) infinite;
+			transform-origin: 138.058px 11.209px;
+		}
+
+		.blade {
+			transform-box: view-box;
+			transform-origin: 138.058px 11.209px;
+			animation: shutter 12s cubic-bezier(0.55, 0, 0.1, 1) infinite;
+		}
+
+		@keyframes o-fade {
+			0% { opacity: 1;}
+			2% { opacity: 1; transform: scaleX(1);}
+			6% { opacity: 0; transform: scaleX(0.5); }
+			7% { opacity: 0; transform: scaleX(.9); }
+			18% { opacity: 1; transform: scaleX(1); }
+			100% { opacity: 1; }
+		}
+
+		@keyframes shutter {
+			0%, 2% { transform: rotate(calc(var(--i) * 60deg)) translateY(-11px); }
+			6%, 7% { transform: rotate(calc(var(--i) * 60deg)) translateY(-2px); }
+			18%, 100% { transform: rotate(calc(var(--i) * 60deg)) translateY(-16px); }
+		}
+	</style>
+
+	<path class="logo-invert letterT" d="M49.205 6.61h7.278v14.845h5.901V6.61h7.278V.998H49.205z" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}"/>
+	<path class="logo-invert letterI" d="M78.35.998h-5.9v20.42h5.9z" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}"/>
+	<path class="logo-invert letterS" d="M94.318 9.037 89.43 8.24c-.76-.109-1.556-.362-1.556-1.195 0-.977 1.122-1.52 2.751-1.52 1.847 0 3.44.687 3.983 2.063l5.938-1.991C99.134 2.049 94.753.709 90.987.709c-4.526 0-9.413 1.955-9.413 6.553 0 3.73 3.222 5.323 7.024 5.938l4.562.725c1.412.217 2.027.832 2.027 1.52 0 1.014-1.412 1.412-3.222 1.412-2.643 0-4.236-.941-5.033-2.788l-5.938 1.992c1.666 3.765 5.938 5.612 10.645 5.612s9.812-1.847 9.812-6.77c.072-3.006-1.919-5.034-7.133-5.866" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}"/>
+	<path class="logo-invert letterS" d="m116.875 9.037-4.888-.797c-.76-.109-1.557-.362-1.557-1.195 0-.977 1.122-1.52 2.752-1.52 1.846 0 3.439.687 3.983 2.063l5.938-1.991c-1.413-3.548-5.794-4.888-9.559-4.888-4.526 0-9.414 1.955-9.414 6.553 0 3.73 3.223 5.323 7.024 5.938l4.562.725c1.412.217 2.028.832 2.028 1.52 0 1.014-1.412 1.412-3.223 1.412-2.643 0-4.236-.941-5.032-2.788l-5.938 1.992c1.665 3.765 5.938 5.612 10.645 5.612s9.812-1.847 9.812-6.77c.036-3.006-1.955-5.034-7.133-5.866" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}"/>
+	<path class="logo-invert original_o" d="M138.058.709c-7.278 0-12.021 4.309-12.021 10.5s4.743 10.5 12.021 10.5c7.314 0 12.02-4.309 12.02-10.5s-4.706-10.5-12.02-10.5m0 15.822c-3.802 0-5.793-2.425-5.793-5.322s2.027-5.322 5.793-5.322c3.802 0 5.793 2.425 5.793 5.322 0 2.896-1.991 5.322-5.793 5.322" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}"/>
+	<path class="logo-invert letterT" d="M151.49.998V6.61h7.242v14.845h5.901V6.61h7.278V.998z" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}"/>
+
+	<!-- monogram -->
+	<path fill="black" d="M20.42.998H0v20.42h20.42z" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}"/>
+	<path fill="white" class="letterT" d="M17.632 3.785H2.787v4.092h5.286v10.79h4.273V7.876h5.286z" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}"/>
+	<path fill="#FF0000" d="M43.63.998H23.209v20.42h20.42z" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}"/>
+	<path fill="white" class="plus" d="M40.877 9.108h-5.322V3.785h-4.273v5.323h-5.286v4.272h5.286v5.286h4.273V13.38h5.322z" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}"/>
+
+	<defs data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}">
+		<clipPath id="title-mask" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}">
+			<circle cx="138.058" cy="11.209" r="10.5" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}"/>
+		</clipPath>
+		<clipPath id="b1-clip" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}">
+			<rect x="127.558" y="0.709" width="21" height="10.5" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}"/>
+		</clipPath>
+	</defs>
+
+	<!-- lens / shutter — 6 identical blades -->
+	<g clip-path="url(#title-mask)" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}">
+		<rect class="blade bl" style="--i: 0;" x="127.558" y="0.709" width="21" height="10.5" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}"/>
+		<rect class="blade gr" style="--i: 1;" x="127.558" y="0.709" width="21" height="10.5" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}"/>
+		<rect class="blade bl" style="--i: 2;" x="126.558" y="0.709" width="23" height="10.5" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}"/>
+		<rect class="blade gr" style="--i: 3;" x="127.558" y="0.709" width="21" height="10.5" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}"/>
+		<rect class="blade bl" style="--i: 4;" x="127.558" y="0.709" width="21" height="10.5" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}"/>
+		<rect class="blade gr" style="--i: 5;" x="127.558" y="0.709" width="21" height="10.5" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}"/>
+	</g>
+
+	<!-- blade loop: b1 on top of b6, b2-b5 cover b1 in their overlaps -->
+	<g clip-path="url(#title-mask)" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}">
+		<rect class="blade bl" style="--i: 0;" x="127.558" y="0.709" width="21" height="10.5" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}"/>
+		<g clip-path="url(#b1-clip)" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}">
+			<rect class="blade gr" style="--i: 1;" x="127.558" y="0.709" width="21" height="10.5" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}"/>
+			<rect class="blade bl" style="--i: 2;" x="126.558" y="0.709" width="23" height="10.5" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}"/>
+			<rect class="blade gr" style="--i: 3;" x="127.558" y="0.709" width="21" height="10.5" data-cbt="{&quot;event&quot;:&quot;homepageCTA&quot;,&quot;eventTypes&quot;:&quot;link, click&quot;,&quot;W-cat&quot;:&quot;Navigation&quot;,&quot;W-act&quot;:&quot;homepageCTA&quot;,&quot;W-lib&quot;:&quot;Tissot Startseite&quot;}"/>
+		</g>
+	</g>
+</svg>
