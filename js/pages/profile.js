@@ -10420,38 +10420,6 @@ const alreadyActive = isMobile
                         if (!isNaN(savedPos)) _setBannerPos(savedPos);
                         const savedPosX = userProfile.banner_position_x != null ? parseInt(userProfile.banner_position_x) : 50;
                         if (!isNaN(savedPosX)) _setBannerPosX(savedPosX);
-
-                        // Populate appearance banner preview
-                        const appearanceBannerImg = document.getElementById('appearanceBannerImg');
-                        const appearanceBannerEmpty = document.getElementById('appearanceBannerEmpty');
-                        const appearanceAvatarOverlay = document.getElementById('appearanceAvatarOverlay');
-                        const activeBackdrop = document.getElementById('backdropLayerA')?.classList.contains('active')
-                            ? document.getElementById('backdropLayerA')
-                            : document.getElementById('backdropLayerB');
-                        const currentBannerSrc = activeBackdrop?.src || '';
-                        if (appearanceBannerImg) {
-                            if (currentBannerSrc) {
-                                appearanceBannerImg.src = currentBannerSrc;
-                                appearanceBannerImg.style.display = '';
-                                if (appearanceBannerEmpty) appearanceBannerEmpty.style.display = 'none';
-                            } else {
-                                appearanceBannerImg.src = '';
-                                appearanceBannerImg.style.display = 'none';
-                                if (appearanceBannerEmpty) appearanceBannerEmpty.style.display = '';
-                            }
-                        }
-                        if (appearanceAvatarOverlay) {
-                            const avatarEl = document.getElementById('profileAvatar');
-                            if (avatarEl) {
-                                appearanceAvatarOverlay.textContent = userProfile?.avatar_icon || iconGlyphText('user');
-                                appearanceAvatarOverlay.style.fontSize = '1.6rem';
-                                appearanceAvatarOverlay.style.display = 'flex';
-                                appearanceAvatarOverlay.style.alignItems = 'center';
-                                appearanceAvatarOverlay.style.justifyContent = 'center';
-                                appearanceAvatarOverlay.style.color = 'var(--color-text-primary)';
-                                appearanceAvatarOverlay.style.background = 'var(--color-bg-secondary)';
-                            }
-                        }
                     }
 
                     if (modalId === 'accountSettingsModal' && currentUser) {

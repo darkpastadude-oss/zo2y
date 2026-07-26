@@ -8459,17 +8459,20 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 }
 
 /* ============================================================
-   APPEARANCE TAB — BANNER PREVIEW
+   APPEARANCE TAB
    ============================================================ */
 
-.appearance-banner-preview {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 21 / 9;
-  border-radius: 12px;
-  overflow: visible !important;
-  background: var(--color-bg-tertiary);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+.appearance-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 4px;
+  color: var(--color-text-primary);
+}
+
+.appearance-subtitle {
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+  margin: 0 0 20px;
 }
 
 .appearance-banner-preview img {
