@@ -1,8 +1,8 @@
 // Bump these versions any time you change precached asset URLs to ensure old cached
 // variants don't keep serving stale JS (especially the home heavy loaders).
-const APP_SHELL_CACHE = 'zo2y-app-shell-v312';
-const PAGE_CACHE = 'zo2y-pages-v246';
-const IMAGE_CACHE = 'zo2y-images-v72';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v313';
+const PAGE_CACHE = 'zo2y-pages-v247';
+const IMAGE_CACHE = 'zo2y-images-v73';
 const API_CACHE = 'zo2y-api-v51';
 const MOVIES_PAGE_VERSION = '20260418a';
 const MAX_IMAGE_CACHE_ENTRIES = 1000;
