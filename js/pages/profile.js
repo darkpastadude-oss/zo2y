@@ -11237,6 +11237,12 @@ const alreadyActive = isMobile
             });
 
             function showEditProfileModal(defaultTab = 'profile') {
+                if (defaultTab === 'appearance') {
+                    if (window.BannerPicker && typeof window.BannerPicker.openPicker === 'function') {
+                        window.BannerPicker.openPicker();
+                        return;
+                    }
+                }
                 showModal('editProfileModal');
                 switchEditTab(defaultTab);
             }

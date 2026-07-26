@@ -106,8 +106,8 @@ window.BannerPicker = (function () {
     /* show modal */
     const modal = $('bannerPickerModal');
     if (modal) {
-      modal.classList.add('show');
-      modal.style.display = '';
+      modal.classList.add('show', 'active');
+      modal.style.display = 'flex';
     }
     document.body.style.overflow = 'hidden';
 
@@ -126,7 +126,10 @@ window.BannerPicker = (function () {
   function closePicker() {
     isOpen = false;
     const modal = $('bannerPickerModal');
-    if (modal) modal.classList.remove('show');
+    if (modal) {
+      modal.classList.remove('show', 'active');
+      modal.style.display = 'none';
+    }
     document.body.style.overflow = '';
     abortSearch();
   }
