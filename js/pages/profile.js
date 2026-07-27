@@ -1217,7 +1217,7 @@
 
                 const isUuid = (str) => typeof str === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 
-                // 1. Check profile_showcase (latest row)
+                // 1. Check profile_showcase (latest row and prune duplicates)
                 if (supabase && isUuid(userId)) {
                     try {
                         const { data: rows } = await supabase
@@ -1225,14 +1225,18 @@
                             .select('*')
                             .eq('user_id', userId)
                             .eq('media_type', 'banner')
-                            .order('created_at', { ascending: false })
-                            .limit(1);
+                            .order('created_at', { ascending: false });
 
-                        const bannerRow = Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
-
-                        if (bannerRow && bannerRow.list_id) {
-                            showcaseData['banner'] = bannerRow;
-                            config = JSON.parse(bannerRow.list_id);
+                        if (Array.isArray(rows) && rows.length > 0) {
+                            const bannerRow = rows[0];
+                            if (rows.length > 1) {
+                                const extraIds = rows.slice(1).map(r => r.id);
+                                void supabase.from('profile_showcase').delete().in('id', extraIds);
+                            }
+                            if (bannerRow && bannerRow.list_id) {
+                                showcaseData['banner'] = bannerRow;
+                                config = JSON.parse(bannerRow.list_id);
+                            }
                         }
                     } catch (e) {
                         console.warn('Notice loading banner config from profile_showcase:', e);

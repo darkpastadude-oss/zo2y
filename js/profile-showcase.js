@@ -67,6 +67,15 @@ const ProfileShowcase = (function () {
             is_hidden: options.is_hidden ?? false
         };
 
+        // For banners: Delete any existing banner rows for this user first, then insert single newest row
+        if (mediaType === 'banner') {
+            try {
+                await sb.from('profile_showcase').delete().eq('user_id', userId).eq('media_type', 'banner');
+            } catch (_e) {}
+            const { error: bannerErr } = await sb.from('profile_showcase').insert(row);
+            if (!bannerErr) return true;
+        }
+
         // Strategy 1: Try onConflict user_id,media_type
         let { error } = await sb
             .from('profile_showcase')

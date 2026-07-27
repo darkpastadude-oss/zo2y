@@ -918,11 +918,14 @@ window.BannerPicker = (function () {
         console.warn('Banner: user_profiles update notice', e);
       }
 
-      /* 2. Upsert profile_showcase (banner config) */
+      /* 2. Update profile_showcase (banner config) */
       try {
         if (window.ProfileShowcase && typeof window.ProfileShowcase.setProfileShowcase === 'function') {
           await window.ProfileShowcase.setProfileShowcase(userId, 'banner', JSON.stringify(bannerConfig), { display_order: 0, is_hidden: false });
         } else {
+          try {
+            await sb.from('profile_showcase').delete().eq('user_id', userId).eq('media_type', 'banner');
+          } catch (_e) {}
           const bannerRow = {
             user_id: userId,
             media_type: 'banner',
@@ -930,13 +933,10 @@ window.BannerPicker = (function () {
             display_order: 0,
             is_hidden: false
           };
-          const { error: showcaseErr } = await sb.from('profile_showcase').upsert(bannerRow, { onConflict: 'user_id,media_type' });
-          if (showcaseErr) {
-            await sb.from('profile_showcase').upsert(bannerRow, { onConflict: 'user_id,media_type,list_id' });
-          }
+          await sb.from('profile_showcase').insert(bannerRow);
         }
       } catch (e) {
-        console.warn('Banner: profile_showcase upsert notice', e);
+        console.warn('Banner: profile_showcase notice', e);
       }
     }
 
