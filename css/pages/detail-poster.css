@@ -18,8 +18,8 @@
 
 @media (max-width: 900px) {
   .wrap > .poster {
-    width: min(66vw, 260px) !important;
-    max-width: 260px !important;
+    width: min(56vw, 220px) !important;
+    max-width: 220px !important;
     margin: 0 auto 8px !important;
   }
 }

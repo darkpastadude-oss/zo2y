@@ -1860,16 +1860,16 @@ body.zo2y-mobile-menu-open {
 @media (max-width: 768px) {
   .zo2y-mobile-topbar {
     width: calc(100% - 8px);
-    min-height: 48px;
+    min-height: 42px;
   }
 
   .zo2y-brand-outline {
-    font-size: 20px;
+    font-size: 18px;
   }
 
   .zo2y-mobile-wordmark img {
-    width: 36px;
-    height: 36px;
+    width: 30px;
+    height: 30px;
   }
 
   .zo2y-mobile-drawer {

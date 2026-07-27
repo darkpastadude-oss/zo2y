@@ -1320,13 +1320,13 @@ body.zo2y-trailer-open {
   .elevated-hero-foreground {
     grid-template-columns: 1fr;
     grid-template-rows: auto auto;
-    gap: 22px;
-    padding: 96px 0 36px;
+    gap: 18px;
+    padding: 76px 0 28px;
     min-height: auto;
   }
 
   .elevated-poster-frame {
-    max-width: 168px;
+    max-width: 142px;
     margin: 0 auto;
     box-shadow:
       0 1px 0 rgba(255, 255, 255, 0.06) inset,
@@ -1433,12 +1433,12 @@ body.zo2y-trailer-open {
 /* Small mobile */
 @media (max-width: 480px) {
   .elevated-hero-foreground {
-    padding: 84px 0 32px;
-    gap: 18px;
+    padding: 68px 0 24px;
+    gap: 15px;
   }
 
   .elevated-poster-frame {
-    max-width: 144px;
+    max-width: 122px;
   }
 
   .elevated-title {
