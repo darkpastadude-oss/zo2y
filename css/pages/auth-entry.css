@@ -78,9 +78,11 @@ body[data-auth-variant]::before {
 .auth-panel-topbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  position: relative;
   gap: 14px;
   margin-bottom: 28px;
+  width: 100%;
 }
 
 .auth-entry-home,
@@ -96,6 +98,16 @@ body[data-auth-variant]::before {
   transition: color 160ms ease, opacity 160ms ease, transform 160ms ease;
 }
 
+.auth-entry-home {
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  border: none;
+  backdrop-filter: none;
+  box-shadow: none;
+  margin: 0 auto;
+}
+
 .auth-entry-home:hover {
   transform: translateY(-1px);
 }
@@ -105,24 +117,20 @@ body[data-auth-variant]::before {
   width: 56px;
   height: 56px;
   object-fit: contain;
-  filter: drop-shadow(0 10px 18px rgba(255, 140, 66, 0.2));
+  filter: none;
 }
 
 .auth-topbar-link {
   color: var(--auth-accent);
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .auth-topbar-link:hover {
   color: #ffd089;
-  transform: translateY(-1px);
-}
-
-.auth-entry-home {
-  padding: 6px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(12px);
+  transform: translateY(calc(-50% - 1px));
 }
 
 .auth-panel-card {

@@ -617,18 +617,7 @@ body.zo2y-mobile-menu-open .zo2y-mobile-drawer {
 }
 
 .zo2y-mobile-drawer-close {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.04);
-  color: #8fa6cc;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 14px;
-  transition: color 0.15s, border-color 0.15s;
+  display: none !important;
 }
 
 .zo2y-mobile-drawer-close:hover {
@@ -805,13 +794,19 @@ body.zo2y-mobile-menu-open .zo2y-mobile-drawer {
   flex-direction: column;
   gap: 2px;
   padding: 0 0 8px;
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  max-height: none;
+  overflow: visible;
+}
+
+.zo2y-mobile-accordion:not(.open) .zo2y-mobile-accordion-panel {
+  max-height: 0 !important;
+  overflow: hidden !important;
+  padding: 0 !important;
 }
 
 .zo2y-mobile-accordion.open .zo2y-mobile-accordion-panel {
-  max-height: 600px;
+  max-height: none !important;
+  overflow: visible !important;
 }
 
 .zo2y-mobile-drawer-footer {
@@ -1111,8 +1106,7 @@ body.zo2y-mobile-menu-open {
 }
 
 .zo2y-nav-group:hover .zo2y-nav-menu,
-.zo2y-nav-group:focus-within .zo2y-nav-menu,
-.zo2y-nav-group.active .zo2y-nav-menu {
+.zo2y-nav-group:focus-within .zo2y-nav-menu {
   display: flex;
 }
 

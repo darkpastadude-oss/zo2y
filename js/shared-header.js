@@ -156,9 +156,6 @@ const HEADER_HTML = `
     <a class="zo2y-mobile-drawer-brand" href="index.html" aria-label="Home">
       ${LOGO_HTML}
     </a>
-    <button class="zo2y-mobile-drawer-close" id="zo2yMobileMenuCloseBtn" type="button" aria-label="Close navigation menu">
-      <i class="fa-solid fa-xmark"></i>
-    </button>
   </div>
 
   <div class="zo2y-mobile-drawer-auth">
@@ -182,8 +179,8 @@ const HEADER_HTML = `
 
   <nav class="zo2y-mobile-drawer-nav" aria-label="Mobile sections">
     <a class="zo2y-mobile-drawer-link" data-nav-page="index" href="index.html"><i class="fa-solid fa-house"></i><span>Home</span></a>
-    <div class="zo2y-mobile-accordion" data-accordion="media">
-      <button class="zo2y-mobile-accordion-toggle" type="button" aria-expanded="false">
+    <div class="zo2y-mobile-accordion open" data-accordion="media">
+      <button class="zo2y-mobile-accordion-toggle" type="button" aria-expanded="true">
         <span><i class="fa-solid fa-chevron-down zo2y-nav-chevron"></i> Media</span>
       </button>
       <div class="zo2y-mobile-accordion-panel">
@@ -195,8 +192,8 @@ const HEADER_HTML = `
         <a class="zo2y-mobile-drawer-link" data-nav-page="music" href="music.html"><i class="fa-solid fa-music"></i><span>Music</span></a>
       </div>
     </div>
-    <div class="zo2y-mobile-accordion" data-accordion="lifestyle">
-      <button class="zo2y-mobile-accordion-toggle" type="button" aria-expanded="false">
+    <div class="zo2y-mobile-accordion open" data-accordion="lifestyle">
+      <button class="zo2y-mobile-accordion-toggle" type="button" aria-expanded="true">
         <span><i class="fa-solid fa-chevron-down zo2y-nav-chevron"></i> Lifestyle</span>
       </button>
       <div class="zo2y-mobile-accordion-panel">
@@ -848,7 +845,7 @@ const HEADER_HTML = `
     const closeBtn = document.getElementById('zo2yMobileMenuCloseBtn');
     const drawer = document.getElementById('zo2yMobileDrawer');
     const backdrop = document.getElementById('zo2yMobileDrawerBackdrop');
-    if (!menuBtn || !closeBtn || !drawer || !backdrop) return;
+    if (!menuBtn || !drawer || !backdrop) return;
     if (menuBtn.dataset.wired === '1') return;
     menuBtn.dataset.wired = '1';
     let drawerTransitioning = false;
@@ -918,8 +915,14 @@ const HEADER_HTML = `
       setDrawerState(!open);
     });
 
-    closeBtn.addEventListener('click', closeDrawer);
+    if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
     backdrop.addEventListener('click', closeDrawer);
+
+    document.addEventListener('pointerdown', (e) => {
+      if (drawer.classList.contains('open') && !drawer.contains(e.target) && !menuBtn.contains(e.target)) {
+        closeDrawer();
+      }
+    });
 
     drawer.querySelectorAll('a[href]').forEach((link) => {
       link.addEventListener('click', closeDrawer);
@@ -950,22 +953,21 @@ const HEADER_HTML = `
   function restoreAccordionStates() {
     let states;
     try { states = JSON.parse(sessionStorage.getItem(getAccordionStorageKey())); } catch (_e) {}
-    if (!states || typeof states !== 'object') return;
     document.querySelectorAll('.zo2y-mobile-accordion').forEach((acc) => {
       const label = acc.querySelector('.zo2y-mobile-accordion-toggle')?.textContent?.trim() || '';
-      if (!label || !(label in states)) return;
-      const shouldOpen = !!states[label];
+      // Default to open (true) unless user explicitly saved a closed state (false)
+      const shouldOpen = (states && typeof states === 'object' && label in states) ? !!states[label] : true;
       const panel = acc.querySelector('.zo2y-mobile-accordion-panel');
       const toggle = acc.querySelector('.zo2y-mobile-accordion-toggle');
       acc.classList.toggle('open', shouldOpen);
       if (toggle) toggle.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
-      if (panel) panel.style.maxHeight = shouldOpen ? `${panel.scrollHeight}px` : '';
     });
   }
 
   function wireMobileAccordions() {
     const accordions = Array.from(document.querySelectorAll('.zo2y-mobile-accordion'));
     if (!accordions.length) return;
+    restoreAccordionStates();
     accordions.forEach((accordion) => {
       const toggle = accordion.querySelector('.zo2y-mobile-accordion-toggle');
       const panel = accordion.querySelector('.zo2y-mobile-accordion-panel');
@@ -975,7 +977,6 @@ const HEADER_HTML = `
       toggle.addEventListener('click', () => {
         const isOpen = accordion.classList.toggle('open');
         toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-        panel.style.maxHeight = isOpen ? `${panel.scrollHeight}px` : '';
         saveAccordionStates();
       });
     });
