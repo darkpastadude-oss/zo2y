@@ -526,14 +526,14 @@ const APP_RUNTIME_VERSION = '20260612c';
         closeAllPopupMenus();
         syncPopupState();
       }
-    }, true);
+    });
 
     document.addEventListener('keydown', (event) => {
       if (event.key !== 'Escape') return;
       closeAllPopupMenus();
       closeAllListModals();
       syncPopupState();
-    }, true);
+    });
 
     const flushMutationState = () => {
       mutationFlushScheduled = false;
@@ -642,10 +642,20 @@ const APP_RUNTIME_VERSION = '20260612c';
   window.addEventListener('orientationchange', schedulePopupStateSync, { passive: true });
   window.addEventListener('popstate', schedulePopupStateSync);
   window.addEventListener('scroll', schedulePopupStateSync, { passive: true });
-  document.addEventListener('click', schedulePopupStateSync, true);
-  document.addEventListener('touchstart', schedulePopupStateSync, { passive: true, capture: true });
-  document.addEventListener('touchend', schedulePopupStateSync, { passive: true, capture: true });
-  document.addEventListener('pointerup', schedulePopupStateSync, { passive: true, capture: true });
+  document.addEventListener('click', schedulePopupStateSync, { passive: true });
+
+  // Prevent focused inputs from dropping button taps on mobile devices
+  document.addEventListener('pointerdown', (e) => {
+    if (!e.target || typeof e.target.closest !== 'function') return;
+    const activeEl = document.activeElement;
+    if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
+      const interactiveBtn = e.target.closest('button, .btn, a, [role="button"], .zo2y-popup-close, .menu-modal-close, .bp-close-btn, .bp-back-btn');
+      if (interactiveBtn && interactiveBtn !== activeEl) {
+        e.preventDefault();
+      }
+    }
+  }, { passive: false });
+
   window.setInterval(() => {
     if (document.visibilityState !== 'visible') return;
     releaseStalePopupLock();

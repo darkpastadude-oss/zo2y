@@ -20,9 +20,11 @@
   margin: 0;
   align-items: center;
   justify-content: center;
+  pointer-events: none;
 }
 .menu-modal.active {
   display: flex;
+  pointer-events: auto;
 }
 
 .menu-modal-content {

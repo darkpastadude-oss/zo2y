@@ -902,25 +902,8 @@ const HEADER_HTML = `
     };
 
     const setDrawerState = (isOpen) => {
-      if (drawerTransitioning) {
-        pendingState = isOpen;
-        return;
-      }
-      drawerTransitioning = true;
       applyDrawerState(isOpen);
-
-      const onTransitionEnd = () => {
-        drawerTransitioning = false;
-        if (!isOpen) unlockBodyScrollForMenu();
-        if (pendingState !== null) {
-          const next = pendingState;
-          pendingState = null;
-          setDrawerState(next);
-        }
-      };
-
-      drawer.addEventListener('transitionend', onTransitionEnd, { once: true });
-      setTimeout(onTransitionEnd, 300);
+      if (!isOpen) unlockBodyScrollForMenu();
     };
 
     const closeDrawer = () => {

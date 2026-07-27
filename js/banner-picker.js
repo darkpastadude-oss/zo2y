@@ -125,12 +125,49 @@ window.BannerPicker = (function () {
     return h;
   }
 
-  /* ── init (attach global drag events) ─────────────────── */
+  /* ── init (wire UI controls & pointer drag) ──────────── */
   function init() {
-    window.addEventListener('mousemove', onDragMove);
-    window.addEventListener('touchmove', onDragMove, { passive: false });
-    window.addEventListener('mouseup', onDragEnd);
-    window.addEventListener('touchend', onDragEnd);
+    if (window.InteractionManager) {
+      window.InteractionManager.onPress('bpBackBtn', goBack);
+      window.InteractionManager.onPress('bpCloseBtn', closePicker);
+      window.InteractionManager.onPress('bpCancelBtn', closePicker);
+      window.InteractionManager.onPress('bpApplyBtn', applyBanner);
+      window.InteractionManager.onPress('bpModeStaticBtn', () => setMode('static'));
+      window.InteractionManager.onPress('bpModeRotateBtn', () => setMode('rotate'));
+
+      window.InteractionManager.onDrag('bpLiveBanner', {
+        onStart: (e) => {
+          if (!draftStaticItem || !draftStaticItem.url) return false;
+          isDragging = true;
+          dragStartY = e.clientY;
+          initialPosY = draftStaticItem.pos_y || 15;
+          const hint = $('bpDragHint');
+          if (hint) hint.style.display = 'block';
+        },
+        onMove: (e) => {
+          if (!isDragging || !draftStaticItem) return;
+          const dy = e.clientY - dragStartY;
+          const newPosY = Math.max(0, Math.min(100, initialPosY + Math.round(dy / 2)));
+          draftStaticItem.pos_y = newPosY;
+          markChanged();
+
+          const bannerImg = $('bpLiveImage');
+          if (bannerImg) bannerImg.style.objectPosition = `center ${newPosY}%`;
+        },
+        onEnd: () => {
+          isDragging = false;
+          const hint = $('bpDragHint');
+          if (hint) hint.style.display = 'none';
+        }
+      });
+    }
+
+    const searchInput = $('bpSearchInput');
+    if (searchInput && !searchInput.dataset.wired) {
+      searchInput.dataset.wired = '1';
+      searchInput.addEventListener('input', onSearchInput);
+      searchInput.addEventListener('focus', onSearchFocus);
+    }
   }
 
   /* ── open / close ─────────────────────────────────────── */

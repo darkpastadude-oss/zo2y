@@ -2576,24 +2576,36 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     <div class="bp-overlay" id="bannerPickerModal">
       <div class="bp-modal">
 
-        <!-- Top Header -->
+        <!-- Top Header: Back | Title | Close -->
         <div class="bp-header">
-          <div class="bp-header-left">
-            <button class="bp-back-btn" onclick="BannerPicker.goBack()" aria-label="Back">
-              <i class="fas fa-arrow-left"></i>
-            </button>
-            <h2 class="bp-title">Choose Banner</h2>
-          </div>
+          <button class="bp-icon-btn bp-back-btn" id="bpBackBtn" aria-label="Back">
+            <i class="fas fa-arrow-left"></i>
+          </button>
+          <h2 class="bp-title">Choose Banner</h2>
+          <button class="bp-icon-btn bp-close-btn" id="bpCloseBtn" aria-label="Close">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <!-- Search Bar Row -->
+        <div class="bp-search-row">
           <div class="bp-search-wrap">
             <i class="fas fa-search bp-search-icon"></i>
             <input type="text" class="bp-search-input" id="bpSearchInput"
-                   placeholder="Search movies, TV shows, anime..."
-                   oninput="BannerPicker.onSearchInput(event)"
-                   onfocus="BannerPicker.onSearchFocus()">
+                   placeholder="Search movies, TV shows, anime...">
           </div>
-          <button class="bp-close-btn" onclick="BannerPicker.closePicker()" aria-label="Close">
-            <i class="fas fa-times"></i>
-          </button>
+        </div>
+
+        <!-- Mode Toggle Row -->
+        <div class="bp-mode-row">
+          <div class="bp-mode-switch">
+            <button type="button" class="bp-mode-btn active" id="bpModeStaticBtn">
+              <i class="fas fa-image"></i> Static
+            </button>
+            <button type="button" class="bp-mode-btn" id="bpModeRotateBtn">
+              <i class="fas fa-sync-alt"></i> Rotate
+            </button>
+          </div>
         </div>
 
         <!-- Scrollable Modal Content Body -->
@@ -2601,16 +2613,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
           <!-- HERO LIVE PREVIEW AT TOP -->
           <div class="bp-hero-preview-section" id="bpLivePreviewWrap">
+            <h4 class="bp-section-label">Live Preview</h4>
             <div class="bp-hero-card">
-              <div class="bp-hero-banner" id="bpLiveBanner"
-                   onmousedown="BannerPicker.onDragStart(event)"
-                   ontouchstart="BannerPicker.onDragStart(event)">
+              <div class="bp-hero-banner" id="bpLiveBanner">
                 <img src="" id="bpLiveImage" class="bp-preview-img" alt="">
                 <div class="bp-preview-overlay"></div>
                 <div class="bp-preview-vignette"></div>
-                <div class="bp-drag-hint" id="bpDragHint" style="display:none">
-                  <i class="fas fa-arrows-alt-v"></i> Drag to reposition
-                </div>
               </div>
               <div class="bp-hero-identity">
                 <div class="bp-hero-avatar" id="bpLiveAvatar">@</div>
@@ -2621,23 +2629,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 </div>
               </div>
             </div>
+            <p class="bp-crop-caption"><i class="fas fa-arrows-alt-v"></i> Drag vertically to adjust crop</p>
 
             <!-- Rotation Queue (visible in rotate mode) -->
             <div id="bpQueueSection" style="display:none">
               <h4 class="bp-queue-heading">Rotation Queue</h4>
               <div class="bp-queue-list" id="bpQueueList"></div>
-            </div>
-          </div>
-
-          <!-- CONTROLS BAR: Mode Toggle -->
-          <div class="bp-controls-bar">
-            <div class="bp-mode-switch">
-              <button type="button" class="bp-mode-btn active" id="bpModeStaticBtn" onclick="BannerPicker.setMode('static')">
-                <i class="fas fa-image"></i> Static
-              </button>
-              <button type="button" class="bp-mode-btn" id="bpModeRotateBtn" onclick="BannerPicker.setMode('rotate')">
-                <i class="fas fa-sync-alt"></i> Rotate
-              </button>
             </div>
           </div>
 
@@ -2680,13 +2677,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
         <!-- Sticky Footer -->
         <div class="bp-footer">
-          <button class="btn btn-secondary bp-cancel-btn" onclick="BannerPicker.closePicker()">Cancel</button>
-          <button class="btn btn-primary bp-apply-btn" id="bpApplyBtn" onclick="BannerPicker.applyBanner()" disabled>Apply Banner</button>
+          <button class="btn btn-secondary bp-cancel-btn" id="bpCancelBtn">Cancel</button>
+          <button class="btn btn-primary bp-apply-btn" id="bpApplyBtn" disabled>Apply</button>
         </div>
 
       </div>
     </div>
 
+    <script src="js/interaction-manager.js"></script>
     <script src="js/banner-picker.js"></script>
 </body>
 </html>

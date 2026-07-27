@@ -173,9 +173,7 @@
         window.location.assign('index.html');
       };
 
-      link.addEventListener('pointerdown', forceHome, { capture: true });
-      link.addEventListener('touchstart', forceHome, { capture: true, passive: false });
-      link.addEventListener('click', forceHome, { capture: true });
+      link.addEventListener('click', forceHome);
     });
   }
 
@@ -188,15 +186,16 @@
 
   function restoreAccordionStates() {
     var states;
-    try { states = JSON.parse(sessionStorage.getItem('zo2y-mobile-accordion-open')); } catch (_e) {}
-    var hasPersisted = states && typeof states === 'object';
+    try { states = JSON.parse(sessionStorage.getItem(getAccordionStorageKey())); } catch (_) {}
+    if (!states || typeof states !== 'object') return;
     document.querySelectorAll('.zo2y-mobile-accordion').forEach(function (accordion) {
-      var panel = accordion.querySelector('.zo2y-mobile-accordion-panel');
       var toggle = accordion.querySelector('.zo2y-mobile-accordion-toggle');
-      var label = toggle && toggle.textContent ? toggle.textContent.trim() : '';
-      var shouldOpen;
-      if (hasPersisted && label && label in states) {
-        shouldOpen = !!states[label];
+      var panel = accordion.querySelector('.zo2y-mobile-accordion-panel');
+      var label = toggle ? toggle.textContent.trim() : '';
+      if (!label || !(label in states)) return;
+      var shouldOpen = !!states[label];
+      if (shouldOpen) {
+        accordion.classList.add('open');
       } else {
         shouldOpen = !!accordion.querySelector('[data-nav-page].active');
       }
@@ -245,7 +244,7 @@
 
     closeMobileDrawer();
     fadeOutAndNavigate(href);
-  }, { capture: true });
+  });
 
   window.addEventListener('popstate', function () {
     setActiveNav();
