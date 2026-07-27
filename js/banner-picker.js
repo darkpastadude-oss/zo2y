@@ -181,20 +181,36 @@ window.BannerPicker = (function () {
     draftRotateQueue = items.map(i => ({ ...i }));
     draftStaticItem = items.length > 0 ? { ...items[0] } : null;
 
-    /* populate preview */
-    const username = profile.username || 'user';
-    const name = profile.full_name || username;
-    const bio = profile.bio || '';
+    /* populate preview with exact profile header fields */
+    const username = profile.username || $('profileUsername')?.textContent?.replace(/^@/, '') || 'jnn';
+    const name = profile.full_name || $('profileName')?.textContent || username;
+    const bio = profile.bio || $('profileBio')?.textContent || 'No bio yet.';
+    const location = profile.location || $('profileLocation')?.textContent || 'Cairo';
+    const memberSince = $('memberSince')?.textContent || 'Member since 2025';
     const avatarEl = $('profileAvatar');
 
     const pName = $('bpLiveName');
     const pUser = $('bpLiveUsername');
     const pBio = $('bpLiveBio');
     const pAvatar = $('bpLiveAvatar');
+    const pLocation = $('bpLiveLocation');
+    const pMemberSince = $('bpLiveMemberSince');
+    const pSaved = $('bpLiveSavedCount');
+    const pLists = $('bpLiveListsCount');
+    const pReviews = $('bpLiveReviewsCount');
+    const pFollowers = $('bpLiveFollowersCount');
+
     if (pName) pName.textContent = name;
-    if (pUser) pUser.textContent = '@' + username;
-    if (pBio) pBio.textContent = bio || 'No bio yet.';
+    if (pUser) pUser.textContent = '@' + username.replace(/^@/, '');
+    if (pBio) pBio.textContent = bio;
+    if (pLocation) pLocation.textContent = location;
+    if (pMemberSince) pMemberSince.textContent = memberSince;
     if (pAvatar && avatarEl) pAvatar.innerHTML = avatarEl.innerHTML;
+
+    if (pSaved) pSaved.textContent = $('visitedCount')?.textContent || '225';
+    if (pLists) pLists.textContent = $('listsCount')?.textContent || '6';
+    if (pReviews) pReviews.textContent = $('reviewsCount')?.textContent || '10';
+    if (pFollowers) pFollowers.textContent = $('followersCount')?.textContent || '1';
 
     if (draftStaticItem && draftStaticItem.url) {
       updateLivePreview(draftStaticItem.url, draftStaticItem.pos_y || 15);
@@ -209,13 +225,14 @@ window.BannerPicker = (function () {
     if (modeRotate) modeRotate.checked = currentMode === 'rotate';
     updateModeUI();
 
-    /* show modal */
+    /* show modal & lock background scroll */
     const modal = $('bannerPickerModal');
     if (modal) {
       modal.classList.add('show', 'active');
       modal.style.display = 'flex';
     }
-    document.body.style.overflow = 'hidden';
+    document.documentElement.classList.add('bp-modal-open');
+    document.body.classList.add('bp-modal-open');
 
     /* clear search */
     const searchInput = $('bpSearchInput');
@@ -236,7 +253,8 @@ window.BannerPicker = (function () {
       modal.classList.remove('show', 'active');
       modal.style.display = 'none';
     }
-    document.body.style.overflow = '';
+    document.documentElement.classList.remove('bp-modal-open');
+    document.body.classList.remove('bp-modal-open');
     abortSearch();
   }
 
