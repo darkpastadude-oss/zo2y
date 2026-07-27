@@ -829,6 +829,7 @@
       games: [],
       allGames: [],
       offset: 0,
+      apiPage: 1,
       hasMore: true,
       loading: false,
 
@@ -1053,10 +1054,32 @@
     }
 
     async function loadGamesWithFallback(append) {
+      const query = String(state.search || '').trim();
+
       if (append) {
         if (state.loading || !state.hasMore) return { ok: false, aborted: false };
         state.loading = true;
         GAMES_PAGE_SIZE = computeGridPageSize();
+
+        if (!query && (state.offset + GAMES_PAGE_SIZE >= state.allGames.length)) {
+          try {
+            state.apiPage += 1;
+            const nextPageItems = await window.GameService.fetchTrending({
+              sort: state.sort,
+              page: state.apiPage
+            });
+            if (Array.isArray(nextPageItems) && nextPageItems.length > 0) {
+              const seen = new Set(state.allGames.map(g => g.id));
+              nextPageItems.forEach(item => {
+                if (item.id && !seen.has(item.id)) {
+                  seen.add(item.id);
+                  state.allGames.push(item);
+                }
+              });
+            }
+          } catch (_err) {}
+        }
+
         const nextBatch = state.allGames.slice(state.offset, state.offset + GAMES_PAGE_SIZE);
         if (nextBatch.length === 0) {
           state.hasMore = false;
@@ -1065,12 +1088,16 @@
         }
         state.games = state.games.concat(nextBatch);
         state.offset += nextBatch.length;
-        if (state.offset >= state.allGames.length) state.hasMore = false;
+
+        if (query) {
+          if (state.offset >= state.allGames.length) state.hasMore = false;
+        } else {
+          state.hasMore = true;
+        }
+
         state.loading = false;
         return { ok: true, aborted: false };
       }
-
-      const query = String(state.search || '').trim();
 
       if (searchAbort) searchAbort.abort();
       searchAbort = new AbortController();
@@ -1086,12 +1113,13 @@
           await window.GameService.init();
         }
 
+        state.apiPage = 1;
         let items = [];
         if (window.GameService) {
           if (query) {
             items = await window.GameService.search(query, searchSignal);
           } else {
-            items = await window.GameService.fetchTrending({ sort: state.sort, signal: searchSignal });
+            items = await window.GameService.fetchTrending({ sort: state.sort, page: 1, signal: searchSignal });
           }
         }
 
@@ -1099,10 +1127,14 @@
 
         state.allGames = items || [];
         state.offset = 0;
-        state.hasMore = true;
         state.games = state.allGames.slice(0, GAMES_PAGE_SIZE);
         state.offset = state.games.length;
-        if (state.offset >= state.allGames.length) state.hasMore = false;
+
+        if (query) {
+          state.hasMore = state.offset < state.allGames.length;
+        } else {
+          state.hasMore = true;
+        }
 
         return { ok: true, aborted: false };
       } catch (_err) {

@@ -171,6 +171,51 @@
     }
   };
 
+  const _searchCacheMap = new Map();
+
+  function escapeRegex(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  function filterStrictTitleMatch(items, query) {
+    const normalizedQuery = String(query || '').toLowerCase().trim();
+    if (!normalizedQuery) return [];
+    const tokens = normalizedQuery.split(/\s+/).filter(t => t.length > 0);
+
+    const filtered = items.filter(item => {
+      const title = String(item.name || item.title || '').toLowerCase();
+      if (!title) return false;
+      return tokens.every(token => {
+        if (token.length <= 4) {
+          const rx = new RegExp('\\b' + escapeRegex(token) + '\\b', 'i');
+          return rx.test(title);
+        }
+        return title.includes(token);
+      });
+    });
+
+    // If strict word-boundary match yielded 0 items, fallback to substring match across tokens
+    const finalItems = (filtered.length > 0) ? filtered : items.filter(item => {
+      const title = String(item.name || item.title || '').toLowerCase();
+      return tokens.every(token => title.includes(token));
+    });
+
+    return finalItems.sort((a, b) => {
+      const titleA = String(a.name || a.title || '').toLowerCase();
+      const titleB = String(b.name || b.title || '').toLowerCase();
+      
+      const exactA = titleA === normalizedQuery ? 0 : 1;
+      const exactB = titleB === normalizedQuery ? 0 : 1;
+      if (exactA !== exactB) return exactA - exactB;
+
+      const startsA = titleA.startsWith(normalizedQuery) ? 0 : 1;
+      const startsB = titleB.startsWith(normalizedQuery) ? 0 : 1;
+      if (startsA !== startsB) return startsA - startsB;
+
+      return titleA.length - titleB.length;
+    });
+  }
+
   const GameService = {
     _initialized: false,
     _initPromise: null,
@@ -315,6 +360,11 @@
       const trimmed = String(query || '').trim();
       if (!trimmed) return [];
 
+      const cacheKey = trimmed.toLowerCase();
+      if (_searchCacheMap.has(cacheKey)) {
+        return _searchCacheMap.get(cacheKey);
+      }
+
       // Query local DB and external providers in parallel
       const [localResults, rawgResults] = await Promise.all([
         SupabaseProvider.searchLocalGames(trimmed, 20),
@@ -331,34 +381,20 @@
         mergedRaw = [...wikiResults];
       }
 
+      const allCandidates = [...mergedRaw, ...localResults];
+      const strictFiltered = filterStrictTitleMatch(allCandidates, trimmed);
+
       const merged = [];
       const seen = new Set();
 
-      mergedRaw.map(g => this.normalize(g)).filter(Boolean).forEach(item => {
+      strictFiltered.map(g => this.normalize(g)).filter(Boolean).forEach(item => {
         if (item.id && !seen.has(item.id)) {
           seen.add(item.id);
           merged.push(item);
         }
       });
 
-      localResults.map(g => this.normalize(g)).filter(Boolean).forEach(item => {
-        if (item.id && !seen.has(item.id)) {
-          seen.add(item.id);
-          merged.push(item);
-        }
-      });
-
-      // Background persist search results
-      if (mergedRaw.length && window.__zo2yGamesShared?.ensureGameInSupabase) {
-        SupabaseProvider.getClient().then(client => {
-          if (client) {
-            mergedRaw.slice(0, 10).forEach(raw => {
-              window.__zo2yGamesShared.ensureGameInSupabase(client, raw).catch(() => {});
-            });
-          }
-        });
-      }
-
+      _searchCacheMap.set(cacheKey, merged);
       return merged;
     },
 
