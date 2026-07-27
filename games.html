@@ -772,7 +772,8 @@
 
 
   <script src="js/cover-cache.js?v=20260714d" defer></script>
-    <script src="js/pages/games-shared.js?v=20260722a" defer></script>
+  <script src="js/services/game-service.js?v=20260727a"></script>
+  <script src="js/pages/games-shared.js?v=20260722a"></script>
 
   <script>
 
@@ -1059,7 +1060,6 @@
     }
 
     async function loadGamesWithFallback(append) {
-
       if (append) {
         if (state.loading || !state.hasMore) return;
         state.loading = true;
@@ -1083,185 +1083,34 @@
       searchAbort = new AbortController();
       const searchSignal = searchAbort.signal;
 
-      let games = [];
-
       GAMES_PAGE_SIZE = computeGridPageSize();
 
       const grid = document.getElementById('gamesGrid');
       if (grid) grid.innerHTML = (typeof Skel !== 'undefined') ? Skel.grid(GAMES_PAGE_SIZE, 4) : '';
 
       try {
-        if (query) {
-          const variations = getQueryVariations(query);
-          let found = false;
-
-          for (const variation of variations) {
-            try {
-              const searchUrl = new URL('/api/igdb/games', window.location.origin);
-              searchUrl.searchParams.set('search', variation);
-              searchUrl.searchParams.set('page', '1');
-              searchUrl.searchParams.set('page_size', '40');
-              const res = await fetch(searchUrl.toString(), { headers: { accept: 'application/json' }, signal: searchSignal });
-              if (res.ok) {
-                const data = await res.json();
-                if (data && data.results && data.results.length > 0) {
-                  const qLower = variation.toLowerCase();
-                  games = data.results.filter(g => {
-                    const title = String(g.title || g.name || '').toLowerCase();
-                    return title.includes(qLower);
-                  });
-                  if (!games.length) games = data.results;
-                  found = true;
-                  break;
-                }
-              }
-            } catch (_) {}
-          }
-
-          if (!found) {
-            const wikiGames = await window.__zo2yGamesShared?.searchGamesFromWikipedia(query, searchSignal);
-            if (wikiGames && wikiGames.length) {
-              games = wikiGames;
-              found = true;
-            } else {
-              state.games = [];
-              state.allGames = [];
-              state.offset = 0;
-              state.hasMore = false;
-              return;
-            }
-          }
-        } else {
-          const cacheKey = `browse_rawg_v6_${state.sort}`;
-          let rawgGames = readIgdbBrowseCache(cacheKey);
-
-          if (!rawgGames) {
-            const currentYear = new Date().getFullYear();
-            let ordering = state.sort === 'name' ? 'name' : '-released';
-            let datesParam = '';
-            if (state.sort === 'popular') {
-              datesParam = `&dates=${currentYear-1}-01-01,${currentYear+1}-12-31`;
-            } else if (state.sort === 'released') {
-              datesParam = `&dates=${currentYear-2}-01-01,${currentYear+1}-12-31`;
-            }
-            
-            const requests = [
-              fetch(`/api/igdb/games?page=1&page_size=40&ordering=${encodeURIComponent(ordering)}${datesParam}`, { headers: { accept: 'application/json' }, signal: searchSignal }).then(r => r.ok ? r.json() : null),
-              fetch(`/api/igdb/games?page=2&page_size=40&ordering=${encodeURIComponent(ordering)}${datesParam}`, { headers: { accept: 'application/json' }, signal: searchSignal }).then(r => r.ok ? r.json() : null)
-            ];
-            const results = await Promise.allSettled(requests);
-            const merged = [];
-            const seen = new Set();
-            results.forEach(result => {
-              if (result.status !== 'fulfilled' || !result.value) return;
-              const rows = Array.isArray(result.value.results) ? result.value.results : [];
-              rows.forEach(row => {
-                const id = String(row?.id || '').trim();
-                const title = String(row?.title || row?.name || '').trim().toLowerCase();
-                const key = id || title;
-                if (!key || seen.has(key)) return;
-                seen.add(key);
-                merged.push(row);
-              });
-            });
-            rawgGames = merged;
-            writeIgdbBrowseCache(cacheKey, rawgGames);
-          }
-
-          games = rawgGames;
-
-          const client = await ensureSupabase();
-          if (client) {
-            try {
-              let dbQuery = client.from('games').select('*');
-              if (state.sort === 'released') {
-                dbQuery = dbQuery.order('release_date', { ascending: false, nullsFirst: false }).limit(200);
-              } else if (state.sort === 'name') {
-                dbQuery = dbQuery.order('title', { ascending: true, nullsFirst: false }).limit(200);
-              } else {
-                dbQuery = dbQuery.order('rating_count', { ascending: false, nullsFirst: false }).order('rating', { ascending: false, nullsFirst: false }).limit(200);
-              }
-              const { data: localData, error: localErr } = await dbQuery;
-              if (!localErr && Array.isArray(localData) && localData.length) {
-                const existingTitles = new Set(games.map(g => String(g.title || g.name || '').toLowerCase()));
-                localData.forEach(row => {
-                  const title = String(row.title || '').toLowerCase();
-                  if (!existingTitles.has(title)) {
-                    games.push(row);
-                    existingTitles.add(title);
-                  }
-                });
-              }
-            } catch (_) {}
+        let items = [];
+        if (window.GameService) {
+          if (query) {
+            items = await window.GameService.search(query, searchSignal);
+          } else {
+            items = await window.GameService.fetchTrending({ sort: state.sort, signal: searchSignal });
           }
         }
+
+        if (searchSignal.aborted) return;
+
+        state.allGames = items;
+        state.offset = 0;
+        state.hasMore = true;
+        state.games = state.allGames.slice(0, GAMES_PAGE_SIZE);
+        state.offset = state.games.length;
+        if (state.offset >= state.allGames.length) state.hasMore = false;
       } catch (_err) {
         if (_err?.name === 'AbortError') return;
         console.error('Failed to load games', _err);
       }
-
-      let mapped = games.map((game) => {
-        let heroBg = normalizeGameCoverUrl(game.hero_background || game.background_image || '');
-        let heroSec = normalizeGameCoverUrl(game.hero_background_secondary || game.background_image_additional || '');
-        const shared = window.__zo2yGamesShared;
-        if (shared?.chooseValidBackground) {
-          const validated = shared.chooseValidBackground({
-            backgroundImage: heroBg,
-            additionalBackground: heroSec,
-            screenshots: Array.isArray(game.screenshots) ? game.screenshots : [],
-            localBackdrop: game.hero_url || ''
-          });
-          if (validated) heroBg = validated;
-        }
-        const screenshots = Array.isArray(game.screenshots) ? game.screenshots.map(s => typeof s === 'string' ? normalizeGameCoverUrl(s) : normalizeGameCoverUrl(s?.image || '')).filter(Boolean).slice(0, 6) : [];
-        return {
-          id: String(game.id || ''),
-          name: game.title || game.name || humanizeGameSlug(game.slug) || 'Unknown Game',
-          summary: game.description || game.summary || '',
-          cover: resolveGameCover(game),
-          hero_url: heroBg || heroSec || game.hero_url || game.background_image || '',
-          hero_background: heroBg,
-          hero_background_secondary: heroSec,
-          screenshots: screenshots,
-          firstReleaseDate: game.release_date || game.releaseDate || game.firstReleaseDate || '',
-          rating: game.rating || 0,
-          genres: Array.isArray(game.extra?.genres) ? game.extra.genres : (Array.isArray(game.genres) ? game.genres : []),
-          source: game.source || 'supabase'
-        };
-      }).filter((g) => {
-        if (g.source === 'wikipedia' || g.source === 'igdb' || g.source === 'rawg') return g.id && g.name;
-        return g.id && isDateWithinAcceptableRange(g.firstReleaseDate);
-      });
-
-      const isLocalCover = (url) => /\/game-assets\/covers-official\//.test(String(url || ''));
-
-      if (!query) {
-        const withCover = mapped.filter((g) => g.cover && g.cover !== FALLBACK_IMAGE);
-        const trending = withCover.filter((g) => g.source === 'wikipedia' || g.source === 'igdb' || g.source === 'rawg');
-        const localCovers = withCover.filter((g) => isLocalCover(g.cover) && g.source !== 'wikipedia' && g.source !== 'igdb' && g.source !== 'rawg');
-        const otherCovers = withCover.filter((g) => !isLocalCover(g.cover) && g.source !== 'wikipedia' && g.source !== 'igdb' && g.source !== 'rawg');
-        const noCover = mapped.filter((g) => !g.cover || g.cover === FALLBACK_IMAGE);
-
-        if (state.sort === 'released') {
-          mapped = [...trending, ...localCovers, ...otherCovers, ...noCover];
-        } else if (state.sort === 'name') {
-          mapped = [...withCover.sort((a, b) => a.name.localeCompare(b.name)), ...noCover];
-        } else {
-          mapped = [
-            ...shuffleArray(trending),
-            ...shuffleArray(localCovers),
-            ...shuffleArray(otherCovers),
-            ...noCover
-          ];
-        }
-      }
-
-      state.allGames = mapped;
-      state.offset = 0;
-      state.hasMore = true;
-      state.games = state.allGames.slice(0, GAMES_PAGE_SIZE);
-      state.offset = state.games.length;
-      if (state.offset >= state.allGames.length) state.hasMore = false;
+    }
     }
 
 

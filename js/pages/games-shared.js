@@ -929,6 +929,7 @@
     isLandscapeScreenshot,
     generateGradientFallback,
     detectImageType,
-    stripResizeParams
+    stripResizeParams,
+    getService: () => window.GameService
   };
 })();
