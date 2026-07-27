@@ -9225,25 +9225,28 @@ body.bp-modal-open {
 }
 
 .bp-icon-btn {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 1rem;
-  width: 40px;
-  height: 40px;
+  background: none !important;
+  border: none !important;
+  color: var(--color-accent, #f59e0b) !important;
+  font-size: 1.35rem;
+  width: auto;
+  height: auto;
+  padding: 6px 10px;
   cursor: pointer;
-  border-radius: 50%;
+  border-radius: 0;
+  box-shadow: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
 .bp-icon-btn:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.25);
-  transform: scale(1.05);
+  color: #ffb84d !important;
+  background: none !important;
+  border: none !important;
+  transform: scale(1.12);
+  opacity: 0.9;
 }
 
 .bp-title {

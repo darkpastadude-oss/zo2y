@@ -440,38 +440,13 @@ window.BannerPicker = (function () {
       const el = $('bpSection_' + s);
       if (el) el.style.display = s === name ? '' : 'none';
     });
-
-    const previewWrap = $('bpLivePreviewWrap');
-    if (previewWrap) {
-      previewWrap.style.display = '';
-    }
   }
 
-  /* ── load suggested ───────────────────────────────────── */
+  /* ── load suggested (Popular items) ─────────────────── */
   async function loadSuggested() {
     showSection('suggested');
-    const carousel = $('bpSuggestedCarousel');
     const grid = $('bpSuggestedGrid');
-    if (carousel) carousel.innerHTML = skeletons(8, 'carousel');
     if (grid) grid.innerHTML = skeletons(12, 'poster');
-
-    /* Recently used */
-    renderRecentlyUsed();
-
-    /* Carousel — show recently used */
-    if (carousel) {
-      const carouselItems = [...recentlyUsed];
-      if (carouselItems.length > 0) {
-        carousel.innerHTML = carouselItems.map(item => `
-          <div class="bp-carousel-card" onclick="BannerPicker.quickSelect('${jsEsc(item.media_type)}', '${jsEsc(item.media_id)}', '${jsEsc(item.title)}', '${jsEsc(item.url)}')">
-            <img src="${jsEsc(item.url)}" loading="lazy" alt="">
-            <div class="bp-carousel-label">${escHtml(item.title)}</div>
-          </div>
-        `).join('');
-      } else {
-        carousel.innerHTML = '';
-      }
-    }
 
     /* Popular TMDB movies and TV shows */
     let items = [];
