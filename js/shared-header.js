@@ -114,39 +114,39 @@ const HEADER_HTML = `
     <span class="sidebar-brand-wordmark">zo2y</span>
   </a>
 
-  <button class="zo2y-desktop-rail-collapse" id="zo2yDesktopRailCollapseBtn" type="button" aria-label="Toggle menu">
-    <i class="fa-solid fa-bars"></i>
+  <button class="zo2y-desktop-rail-collapse" id="zo2yDesktopRailCollapseBtn" type="button" aria-label="Toggle menu" title="Toggle menu">
+    <i class="fa-solid fa-chevron-left"></i>
     <span>collapse menu</span>
   </button>
 
   <div class="zo2y-desktop-rail-search nav-search">
-    <input id="desktopRailSearch" class="nav-search-input" type="search" placeholder="Search all media..." aria-label="Search all media" />
-    <button id="desktopRailSearchBtn" class="nav-search-btn" type="button" aria-label="Search"><i class="fas fa-search"></i></button>
+    <input id="desktopRailSearch" class="nav-search-input" type="search" placeholder="Search all media..." aria-label="Search all media" title="Search all media" />
+    <button id="desktopRailSearchBtn" class="nav-search-btn" type="button" aria-label="Search" title="Search"><i class="fas fa-search"></i></button>
   </div>
 
-  <a class="zo2y-desktop-rail-profile" href="profile.html" id="desktopRailProfileBtn" style="display:none;">
+  <a class="zo2y-desktop-rail-profile" href="profile.html" id="desktopRailProfileBtn" style="display:none;" title="profile">
     <i class="fa-solid fa-user"></i><span>profile</span>
   </a>
-  <a class="zo2y-desktop-rail-link accent" data-nav-page="community" href="community.html" style="margin-top:4px;"><i class="fa-solid fa-earth-americas" style="color:#3b82f6;"></i><span>community</span></a>
+  <a class="zo2y-desktop-rail-link accent" data-nav-page="community" href="community.html" style="margin-top:4px;" title="community"><i class="fa-solid fa-earth-americas" style="color:#3b82f6;"></i><span>community</span></a>
 
   <nav class="zo2y-desktop-rail-nav" aria-label="Desktop sections">
-    <a class="zo2y-desktop-rail-link" data-nav-page="index" href="index.html"><i class="fa-solid fa-house"></i><span>home</span></a>
+    <a class="zo2y-desktop-rail-link" data-nav-page="index" href="index.html" title="home"><i class="fa-solid fa-house"></i><span>home</span></a>
     <div class="zo2y-rail-section">
       <div class="zo2y-rail-section-title">media</div>
-      <a class="zo2y-desktop-rail-link" data-nav-page="movies" href="${MOVIES_ROUTE}"><i class="fa-solid fa-film"></i><span>movies</span></a>
-      <a class="zo2y-desktop-rail-link" data-nav-page="tvshows" href="tvshows.html"><i class="fa-solid fa-tv"></i><span>tv shows</span></a>
-      <a class="zo2y-desktop-rail-link" data-nav-page="animes" href="animes.html"><i class="fa-solid fa-dragon"></i><span>anime</span></a>
-      <a class="zo2y-desktop-rail-link" data-nav-page="games" href="games.html"><i class="fa-solid fa-gamepad"></i><span>games</span></a>
-      <a class="zo2y-desktop-rail-link" data-nav-page="books" href="books.html"><i class="fa-solid fa-book"></i><span>books</span></a>
-      <a class="zo2y-desktop-rail-link" data-nav-page="music" href="music.html"><i class="fa-solid fa-music"></i><span>music</span></a>
+      <a class="zo2y-desktop-rail-link" data-nav-page="movies" href="${MOVIES_ROUTE}" title="movies"><i class="fa-solid fa-film"></i><span>movies</span></a>
+      <a class="zo2y-desktop-rail-link" data-nav-page="tvshows" href="tvshows.html" title="tv shows"><i class="fa-solid fa-tv"></i><span>tv shows</span></a>
+      <a class="zo2y-desktop-rail-link" data-nav-page="animes" href="animes.html" title="anime"><i class="fa-solid fa-dragon"></i><span>anime</span></a>
+      <a class="zo2y-desktop-rail-link" data-nav-page="games" href="games.html" title="games"><i class="fa-solid fa-gamepad"></i><span>games</span></a>
+      <a class="zo2y-desktop-rail-link" data-nav-page="books" href="books.html" title="books"><i class="fa-solid fa-book"></i><span>books</span></a>
+      <a class="zo2y-desktop-rail-link" data-nav-page="music" href="music.html" title="music"><i class="fa-solid fa-music"></i><span>music</span></a>
     </div>
     <div class="zo2y-rail-section">
       <div class="zo2y-rail-section-title">lifestyle</div>
-      <a class="zo2y-desktop-rail-link" data-nav-page="travel" href="travel.html"><i class="fa-solid fa-earth-americas"></i><span>travel</span></a>
-      <a class="zo2y-desktop-rail-link" data-nav-page="sports" href="sports.html"><i class="fa-solid fa-futbol"></i><span>sports</span></a>
-      <a class="zo2y-desktop-rail-link" data-nav-page="fashion" href="fashion.html"><i class="fa-solid fa-shirt"></i><span>fashion</span></a>
-      <a class="zo2y-desktop-rail-link" data-nav-page="food" href="food.html"><i class="fa-solid fa-burger"></i><span>food</span></a>
-      <a class="zo2y-desktop-rail-link" data-nav-page="cars" href="cars.html"><i class="fa-solid fa-car"></i><span>cars</span></a>
+      <a class="zo2y-desktop-rail-link" data-nav-page="travel" href="travel.html" title="travel"><i class="fa-solid fa-earth-americas"></i><span>travel</span></a>
+      <a class="zo2y-desktop-rail-link" data-nav-page="sports" href="sports.html" title="sports"><i class="fa-solid fa-futbol"></i><span>sports</span></a>
+      <a class="zo2y-desktop-rail-link" data-nav-page="fashion" href="fashion.html" title="fashion"><i class="fa-solid fa-shirt"></i><span>fashion</span></a>
+      <a class="zo2y-desktop-rail-link" data-nav-page="food" href="food.html" title="food"><i class="fa-solid fa-burger"></i><span>food</span></a>
+      <a class="zo2y-desktop-rail-link" data-nav-page="cars" href="cars.html" title="cars"><i class="fa-solid fa-car"></i><span>cars</span></a>
     </div>
   </nav>
 </aside>
@@ -568,6 +568,10 @@ const HEADER_HTML = `
       const label = button.querySelector('span');
       if (label) {
         label.textContent = expanded ? 'collapse menu' : 'expand menu';
+      }
+      const icon = button.querySelector('i');
+      if (icon) {
+        icon.className = expanded ? 'fa-solid fa-chevron-left' : 'fa-solid fa-chevron-right';
       }
     });
   }
