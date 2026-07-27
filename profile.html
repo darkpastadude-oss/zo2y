@@ -2572,20 +2572,22 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   })();
   </script>
 
-    <!-- ===== BANNER PICKER V3 MODAL ===== -->
+    <!-- ===== BANNER PICKER OVERLAY ===== -->
     <div class="bp-overlay" id="bannerPickerModal">
       <div class="bp-modal">
 
-        <!-- Header -->
+        <!-- Top Header -->
         <div class="bp-header">
-          <button class="bp-back-btn" onclick="BannerPicker.goBack()" aria-label="Back">
-            <i class="fas fa-arrow-left"></i>
-          </button>
-          <h2 class="bp-title">Choose Profile Banner</h2>
+          <div class="bp-header-left">
+            <button class="bp-back-btn" onclick="BannerPicker.goBack()" aria-label="Back">
+              <i class="fas fa-arrow-left"></i>
+            </button>
+            <h2 class="bp-title">Choose Banner</h2>
+          </div>
           <div class="bp-search-wrap">
             <i class="fas fa-search bp-search-icon"></i>
             <input type="text" class="bp-search-input" id="bpSearchInput"
-                   placeholder="Search movies, shows, games, books..."
+                   placeholder="Search movies, shows, games, books, brands, food, cars..."
                    oninput="BannerPicker.onSearchInput(event)"
                    onfocus="BannerPicker.onSearchFocus()">
           </div>
@@ -2594,37 +2596,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
           </button>
         </div>
 
-        <!-- Mode & Domain Toggle -->
-        <div class="bp-mode-bar">
-          <div class="bp-mode-group">
-            <label class="bp-mode-pill">
-              <input type="radio" name="bpMode" value="static" id="bpModeStatic" onchange="BannerPicker.setMode('static')" checked>
-              <span><i class="fas fa-image"></i> Static</span>
-            </label>
-            <label class="bp-mode-pill">
-              <input type="radio" name="bpMode" value="rotate" id="bpModeRotate" onchange="BannerPicker.setMode('rotate')">
-              <span><i class="fas fa-sync-alt"></i> Rotate</span>
-            </label>
-          </div>
-
-          <!-- Media / Lifestyle Tab Switch (just like profile.html) -->
-          <div class="bp-domain-switch">
-            <button type="button" class="bp-domain-btn active" id="bpDomainMedia" onclick="BannerPicker.setDomain('media')">
-              <i class="fas fa-play"></i> <span>Media</span>
-            </button>
-            <button type="button" class="bp-domain-btn" id="bpDomainLifestyle" onclick="BannerPicker.setDomain('lifestyle')">
-              <i class="fas fa-compass"></i> <span>Lifestyle</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Body: Two-Column on Desktop -->
+        <!-- Scrollable Modal Content Body -->
         <div class="bp-body">
 
-          <!-- LEFT: Live Preview Panel -->
-          <div class="bp-preview-panel" id="bpLivePreviewWrap">
-            <div class="bp-preview-card">
-              <div class="bp-preview-banner" id="bpLiveBanner"
+          <!-- HERO LIVE PREVIEW AT TOP -->
+          <div class="bp-hero-preview-section" id="bpLivePreviewWrap">
+            <div class="bp-hero-card">
+              <div class="bp-hero-banner" id="bpLiveBanner"
                    onmousedown="BannerPicker.onDragStart(event)"
                    ontouchstart="BannerPicker.onDragStart(event)">
                 <img src="" id="bpLiveImage" class="bp-preview-img" alt="">
@@ -2634,12 +2612,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                   <i class="fas fa-arrows-alt-v"></i> Drag to reposition
                 </div>
               </div>
-              <div class="bp-preview-identity">
-                <div class="bp-preview-avatar" id="bpLiveAvatar">@</div>
-                <div class="bp-preview-info">
-                  <div class="bp-preview-name" id="bpLiveName">User</div>
-                  <div class="bp-preview-username" id="bpLiveUsername">@user</div>
-                  <div class="bp-preview-bio" id="bpLiveBio">No bio yet.</div>
+              <div class="bp-hero-identity">
+                <div class="bp-hero-avatar" id="bpLiveAvatar">@</div>
+                <div class="bp-hero-info">
+                  <div class="bp-hero-name" id="bpLiveName">User</div>
+                  <div class="bp-hero-username" id="bpLiveUsername">@user</div>
+                  <div class="bp-hero-bio" id="bpLiveBio">No bio yet.</div>
                 </div>
               </div>
             </div>
@@ -2651,27 +2629,41 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             </div>
           </div>
 
-          <!-- RIGHT: Browse Panel -->
-          <div class="bp-browse-panel">
-
-            <!-- Category Filter Bar -->
-            <div class="bp-category-filter-bar" id="bpCategoryFilterBar">
-              <button type="button" class="bp-cat-pill active" data-cat="all" onclick="BannerPicker.setCategoryFilter('all')">All</button>
-              <button type="button" class="bp-cat-pill" data-cat="movie" onclick="BannerPicker.setCategoryFilter('movie')"><i class="fas fa-film"></i> Movies</button>
-              <button type="button" class="bp-cat-pill" data-cat="tv" onclick="BannerPicker.setCategoryFilter('tv')"><i class="fas fa-tv"></i> TV Shows</button>
-              <button type="button" class="bp-cat-pill" data-cat="anime" onclick="BannerPicker.setCategoryFilter('anime')"><i class="fas fa-dragon"></i> Anime</button>
-              <button type="button" class="bp-cat-pill" data-cat="game" onclick="BannerPicker.setCategoryFilter('game')"><i class="fas fa-gamepad"></i> Games</button>
-              <button type="button" class="bp-cat-pill" data-cat="book" onclick="BannerPicker.setCategoryFilter('book')"><i class="fas fa-book"></i> Books</button>
-              <button type="button" class="bp-cat-pill" data-cat="music" onclick="BannerPicker.setCategoryFilter('music')"><i class="fas fa-music"></i> Music</button>
-              <button type="button" class="bp-cat-pill" data-cat="brand" onclick="BannerPicker.setCategoryFilter('brand')"><i class="fas fa-tag"></i> Brands</button>
+          <!-- CONTROLS BAR: Mode Toggle & Domain Switch -->
+          <div class="bp-controls-bar">
+            <div class="bp-mode-switch">
+              <button type="button" class="bp-mode-btn active" id="bpModeStaticBtn" onclick="BannerPicker.setMode('static')">
+                <i class="fas fa-image"></i> Static
+              </button>
+              <button type="button" class="bp-mode-btn" id="bpModeRotateBtn" onclick="BannerPicker.setMode('rotate')">
+                <i class="fas fa-sync-alt"></i> Rotate
+              </button>
             </div>
 
-            <!-- Breadcrumb -->
+            <div class="bp-domain-switch">
+              <button type="button" class="bp-domain-btn active" id="bpDomainMedia" onclick="BannerPicker.setDomain('media')">
+                <i class="fas fa-play"></i> Media
+              </button>
+              <button type="button" class="bp-domain-btn" id="bpDomainLifestyle" onclick="BannerPicker.setDomain('lifestyle')">
+                <i class="fas fa-compass"></i> Lifestyle
+              </button>
+            </div>
+          </div>
+
+          <!-- CATEGORY FILTER PILLS -->
+          <div class="bp-category-filter-bar" id="bpCategoryFilterBar">
+            <!-- Dynamically populated with native profile.html tab pills -->
+          </div>
+
+          <!-- BROWSE & RESULTS AREA -->
+          <div class="bp-content-area">
+
+            <!-- Breadcrumb / Selected Media Header -->
             <div class="bp-breadcrumb-bar" id="bpBreadcrumbBar" style="display:none">
               <div class="bp-breadcrumb" id="bpBreadcrumb"></div>
             </div>
 
-            <!-- Section: Suggested -->
+            <!-- Section: Suggested / Popular -->
             <div id="bpSection_suggested">
               <h4 class="bp-section-label" id="bpRecentlyUsedLabel" style="display:none">Recently Used</h4>
               <div class="bp-carousel-row" id="bpRecentlyUsedRow" style="display:none"></div>
@@ -2700,7 +2692,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
           </div>
         </div>
 
-        <!-- Footer -->
+        <!-- Sticky Footer -->
         <div class="bp-footer">
           <button class="btn btn-secondary bp-cancel-btn" onclick="BannerPicker.closePicker()">Cancel</button>
           <button class="btn btn-primary bp-apply-btn" id="bpApplyBtn" onclick="BannerPicker.applyBanner()" disabled>Apply Banner</button>

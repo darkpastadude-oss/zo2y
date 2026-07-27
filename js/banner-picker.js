@@ -215,6 +215,11 @@ window.BannerPicker = (function () {
   }
 
   function updateModeUI() {
+    const btnStatic = $('bpModeStaticBtn');
+    const btnRotate = $('bpModeRotateBtn');
+    if (btnStatic) btnStatic.classList.toggle('active', currentMode === 'static');
+    if (btnRotate) btnRotate.classList.toggle('active', currentMode === 'rotate');
+
     const queueSection = $('bpQueueSection');
     if (queueSection) {
       queueSection.style.display = currentMode === 'rotate' ? 'block' : 'none';
@@ -553,10 +558,9 @@ window.BannerPicker = (function () {
       if (el) el.style.display = s === name ? '' : 'none';
     });
 
-    /* show/hide preview when backdrops are visible */
     const previewWrap = $('bpLivePreviewWrap');
     if (previewWrap) {
-      previewWrap.style.display = name === 'backdrops' || draftStaticItem ? '' : 'none';
+      previewWrap.style.display = '';
     }
   }
 
