@@ -2130,82 +2130,53 @@
 
 
 
-    document.addEventListener('DOMContentLoaded', () => {
-
+    const bootGamesPage = () => {
       if (window.initUniversalSearch) {
-
         const initSearch = () => window.initUniversalSearch({
-
           input: '#globalSearch',
-
           fallbackRoute: 'games.html'
-
         });
-
         if (typeof window.requestIdleCallback === 'function') {
-
           window.requestIdleCallback(initSearch, { timeout: 1500 });
-
         } else {
-
           window.setTimeout(initSearch, 0);
-
         }
-
       }
 
       if (window.initIndexStyleListMenu) {
-
         window.initIndexStyleListMenu({
-
           mediaType: 'game',
-
           itemIdAttr: 'data-id',
-
           getVisibleItemIds: () =>
-
             Array.from(document.querySelectorAll('.card[data-id]'))
-
               .map((card) => card.getAttribute('data-id'))
-
               .filter(Boolean),
-
           getQuickStatusForItem: (itemId) => {
-
             const key = String(itemId || '').trim();
-
             const status = state.listStatusMap.get(key);
-
             return status ? { ...status } : null;
-
           },
-
           ensureClient: async () => {
-
             if (supabaseClient) return supabaseClient;
-
             await ensureSupabase();
-
             return supabaseClient;
-
           },
-
           getCurrentUser: () => currentUser,
-
           notify: (message, isError) => showToast(message, !!isError),
-
           toggleDefaultList: async ({ itemId, listType, card, nextSaved }) =>
-
             toggleDefaultList(itemId, listType, card, nextSaved)
-
         });
-
       }
 
       initGameFilters().catch(function() {});
       loadPage().then(() => setupInfiniteScroll());
+    };
 
-    });
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bootGamesPage, { once: true });
+    } else {
+      bootGamesPage();
+    }
 
   </script>
 <link rel="stylesheet" href="css/pages/legal.css?v=20260708a">

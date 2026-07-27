@@ -62,7 +62,7 @@ const HEADER_HTML = `
     <a class="zo2y-mobile-wordmark" href="index.html" aria-label="Home">
       ${LOGO_HTML}
     </a>
-    <span class="zo2y-mobile-topbar-spacer" aria-hidden="true"></span>
+    <div class="zo2y-mobile-topbar-spacer" aria-hidden="true"></div>
   </div>
   <div class="zo2y-shared-header-inner">
     <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
@@ -159,10 +159,10 @@ const HEADER_HTML = `
   </div>
 
   <div class="zo2y-mobile-drawer-auth">
-    <a class="zo2y-mobile-auth-btn zo2y-mobile-auth-profile" href="profile.html" id="mobileProfileBtn" style="display:none;">
-      <i class="fa-solid fa-user"></i><span>Profile</span>
+    <a class="zo2y-mobile-clean-link" href="profile.html" id="mobileProfileBtn" style="display:none;">
+      <i class="fa-solid fa-user" style="color:#f59e0b;"></i><span>profile</span>
     </a>
-    <a class="zo2y-mobile-auth-btn accent" href="community.html" style="margin-top:4px;"><i class="fa-solid fa-earth-americas" style="color:#3b82f6;"></i><span>Community</span></a>
+    <a class="zo2y-mobile-clean-link" href="community.html"><i class="fa-solid fa-earth-americas" style="color:#3b82f6;"></i><span>community</span></a>
     <a class="zo2y-mobile-auth-btn" href="login.html" id="mobileLoginBtn">Login</a>
     <a class="zo2y-mobile-auth-btn zo2y-mobile-auth-btn-primary" href="sign-up.html" id="mobileSignupBtn">Sign Up</a>
   </div>

@@ -1494,7 +1494,7 @@
       await loadPage();
     });
 
-    document.addEventListener('DOMContentLoaded', () => {
+    const bootAnimesPage = () => {
       if (window.initUniversalSearch) {
         const initSearch = () => window.initUniversalSearch({
           input: '#globalSearch',
@@ -1534,7 +1534,13 @@
         await loadPage();
         setupInfiniteScroll();
       });
-    });
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bootAnimesPage, { once: true });
+    } else {
+      bootAnimesPage();
+    }
 
     window.debugAnimesPage = function() {
       console.log(`=== Anime Pool (offset: ${state.offset}, hasMore: ${state.hasMore}) ===`);

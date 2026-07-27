@@ -1336,7 +1336,7 @@
       await loadPage();
     });
 
-    document.addEventListener('DOMContentLoaded', () => {
+    const bootTvShowsPage = () => {
       if (window.initUniversalSearch) {
         const initSearch = () => window.initUniversalSearch({
           input: '#globalSearch',
@@ -1373,7 +1373,13 @@
         });
       }
       initFilters().then(() => loadPage()).then(() => setupInfiniteScroll());
-    });
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bootTvShowsPage, { once: true });
+    } else {
+      bootTvShowsPage();
+    }
 
     window.debugTvShowsPage = function() {
       console.log(`=== TV Pool (offset: ${state.offset}, hasMore: ${state.hasMore}) ===`);

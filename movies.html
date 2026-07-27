@@ -873,7 +873,7 @@
       await loadPage();
     });
 
-    document.addEventListener('DOMContentLoaded', () => {
+    const bootMoviesPage = () => {
       if (window.initUniversalSearch) {
         const initSearch = () => window.initUniversalSearch({
           input: '#globalSearch',
@@ -910,7 +910,13 @@
         });
       }
       initFilters().then(() => loadPage()).then(() => setupInfiniteScroll());
-    });
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bootMoviesPage, { once: true });
+    } else {
+      bootMoviesPage();
+    }
 
     window.debugMoviesPage = function() {
       console.log(`=== Movies: ${state.movies.length} rendered / ${state.totalItems} total, offset=${state.offset}, hasMore=${state.hasMore} ===`);

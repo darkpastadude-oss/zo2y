@@ -11,12 +11,22 @@
   box-sizing: border-box;
 }
 
+html {
+  background-color: #0b1633 !important;
+  color-scheme: dark !important;
+  min-height: 100%;
+  min-height: 100dvh;
+}
+
 body {
   margin: 0;
-  background: var(--team-bg);
+  background-color: #0b1633 !important;
+  color-scheme: dark !important;
   color: #fff;
   font-family: 'Inter', system-ui, sans-serif;
   min-height: 100vh;
+  min-height: 100dvh;
+  padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
 }
 
 main.container {

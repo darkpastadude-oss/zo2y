@@ -1,3 +1,4 @@
+
 /* ============================================================
    ZO2Y COMMUNITY - STYLES (REVIEWS, MEMBER SEARCH & FOLLOWS)
    ============================================================ */
@@ -17,41 +18,25 @@
     --shadow-card-hover: var(--shadow-lg);
 }
 
-img.fade-in {
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-img.fade-in.loaded {
-    opacity: 1;
-}
-
-* {
-    box-sizing: border-box;
+html {
+    background-color: #0b1633 !important;
+    color-scheme: dark !important;
+    min-height: 100%;
+    min-height: 100dvh;
 }
 
 body {
     margin: 0;
     padding: 0;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background: #0b1633 !important;
+    background-color: #0b1633 !important;
+    color-scheme: dark !important;
     color: var(--white);
     min-height: 100vh;
+    min-height: 100dvh;
     position: relative;
     overflow-x: hidden;
-}
-
-body::before {
-    content: '';
-    position: fixed;
-    inset: -20% 0 0 0;
-    background: var(--radial-glow);
-    pointer-events: none;
-    z-index: -2;
-}
-
-body::after {
-    display: none !important;
+    padding-bottom: max(32px, calc(18px + env(safe-area-inset-bottom, 0px)));
 }
 
 .container {
@@ -60,7 +45,6 @@ body::after {
     padding: 0 20px;
 }
 
-/* === NAVIGATION TABS === */
 .community-nav-bar {
     position: sticky;
     top: 0;

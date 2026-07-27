@@ -21,18 +21,25 @@
 
 html,
 body {
+  background-color: #0b1633 !important;
+  color-scheme: dark !important;
   min-height: 100%;
+  min-height: 100dvh;
 }
 
 body[data-auth-variant] {
   margin: 0;
   min-height: 100vh;
+  min-height: 100dvh;
   font-family: "Inter", "Manrope", system-ui, sans-serif;
   color: var(--auth-text);
-  background:
+  background-color: #0b1633 !important;
+  background-image:
     radial-gradient(circle at top left, rgba(255, 178, 63, 0.14), transparent 24rem),
     radial-gradient(circle at top right, rgba(67, 111, 255, 0.16), transparent 26rem),
     linear-gradient(180deg, var(--auth-bg) 0%, var(--auth-bg-alt) 100%);
+  background-repeat: no-repeat;
+  padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
 }
 
 body[data-auth-variant]::before {
@@ -51,6 +58,7 @@ body[data-auth-variant]::before {
   position: relative;
   z-index: 1;
   min-height: 100vh;
+  min-height: 100dvh;
   padding: 28px 18px;
   display: flex;
   align-items: center;
