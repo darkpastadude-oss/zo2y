@@ -617,158 +617,64 @@ window.BannerPicker = (function () {
       }
     }
 
-    /* grid — popular items filtered by activeCategoryFilter */
+    /* grid — items based on currentDomain (Media vs Lifestyle) */
     let items = [];
     try {
-      if (activeCategoryFilter === 'tv') {
-        const res = await fetch('/api/tmdb/tv/popular?language=en-US&page=1');
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.results) {
-            items = data.results.slice(0, 18).map(r => ({
-              type: 'tv',
-              id: String(r.id),
-              title: r.name || r.title,
-              year: (r.first_air_date || '').split('-')[0],
-              poster: r.poster_path ? `https://image.tmdb.org/t/p/w342${r.poster_path}` : '',
-              label: 'TV'
-            }));
-          }
-        }
-      } else if (activeCategoryFilter === 'anime') {
-        const res = await fetch('/api/tmdb/discover/tv?with_genres=16&with_original_language=ja&sort_by=popularity.desc&page=1');
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.results) {
-            items = data.results.slice(0, 18).map(r => ({
-              type: 'anime',
-              id: String(r.id),
-              title: r.name || r.title,
-              year: (r.first_air_date || '').split('-')[0],
-              poster: r.poster_path ? `https://image.tmdb.org/t/p/w342${r.poster_path}` : '',
-              label: 'ANIME'
-            }));
-          }
-        }
-      } else if (activeCategoryFilter === 'game') {
+      if (currentDomain === 'lifestyle') {
+        /* Lifestyle Domain Items */
+        items = [
+          ...LIFESTYLE_CAR_ITEMS.slice(0, 6).map(c => ({ type: 'car', id: c.id, title: c.title, poster: c.poster, label: 'CAR' })),
+          ...LIFESTYLE_TRAVEL_ITEMS.slice(0, 6).map(t => ({ type: 'travel', id: t.id, title: t.title, poster: t.poster, label: 'TRAVEL' }))
+        ];
+
         const sb = getSupabase();
         if (sb) {
-          const { data } = await sb.from('games').select('id, name, cover_url, hero_url').limit(18);
-          if (data && data.length > 0) {
-            items = data.map(g => ({
-              type: 'game',
-              id: String(g.id),
-              title: g.name,
-              year: '',
-              poster: g.cover_url || g.hero_url || '',
-              label: 'GAME'
-            }));
-          }
+          try {
+            const { data: fBrands } = await sb.from('fashion_brands').select('id, name, logo_url').limit(4);
+            if (fBrands) {
+              fBrands.forEach(b => items.push({ type: 'brand', id: String(b.id), title: b.name, poster: b.logo_url || '', label: 'BRAND' }));
+            }
+            const { data: foodBrands } = await sb.from('food_brands').select('id, name, logo_url').limit(4);
+            if (foodBrands) {
+              foodBrands.forEach(b => items.push({ type: 'food', id: String(b.id), title: b.name, poster: b.logo_url || '', label: 'FOOD' }));
+            }
+          } catch (_e) {}
         }
-      } else if (activeCategoryFilter === 'book') {
-        const res = await fetch('/api/books/search?q=fiction&limit=18');
+      } else {
+        /* Media Domain Items (Movies, TV, Anime, Games, Books, Music) */
+        const res = await fetch('/api/tmdb/movie/popular?language=en-US&page=1');
         if (res.ok) {
           const data = await res.json();
-          const books = data.books || data.items || [];
-          if (books.length > 0) {
-            items = books.slice(0, 18).map(b => {
-              const vol = b.volumeInfo || b;
-              return {
-                type: 'book',
-                id: String(b.id || b.book_id || ''),
-                title: vol.title || b.title || 'Book',
-                year: (vol.publishedDate || '').split('-')[0],
-                poster: vol.imageLinks?.thumbnail || b.cover_url || b.image || '',
-                label: 'BOOK'
-              };
+          if (data && data.results) {
+            data.results.slice(0, 10).forEach(r => {
+              items.push({
+                type: 'movie',
+                id: String(r.id),
+                title: r.title || r.name,
+                year: (r.release_date || '').split('-')[0],
+                poster: r.poster_path ? `https://image.tmdb.org/t/p/w342${r.poster_path}` : '',
+                label: 'MOVIE'
+              });
             });
           }
         }
-      } else if (activeCategoryFilter === 'music') {
-        const res = await fetch('/api/music/search?q=pop&limit=18');
-        if (res.ok) {
-          const data = await res.json();
-          const music = data.results || data.items || [];
-          if (music.length > 0) {
-            items = music.slice(0, 18).map(m => ({
-              type: 'music',
-              id: String(m.id || ''),
-              title: m.title || m.name || 'Album',
-              year: (m.release_date || m.year || '').toString().split('-')[0],
-              poster: m.cover_medium || m.album?.cover_medium || m.image || '',
-              label: 'MUSIC'
-            }));
+
+        const tvRes = await fetch('/api/tmdb/tv/popular?language=en-US&page=1');
+        if (tvRes.ok) {
+          const data = await tvRes.json();
+          if (data && data.results) {
+            data.results.slice(0, 8).forEach(r => {
+              items.push({
+                type: 'tv',
+                id: String(r.id),
+                title: r.name || r.title,
+                year: (r.first_air_date || '').split('-')[0],
+                poster: r.poster_path ? `https://image.tmdb.org/t/p/w342${r.poster_path}` : '',
+                label: 'TV'
+              });
+            });
           }
         }
-      } else if (activeCategoryFilter === 'sports') {
-        try {
-          const res = await fetch('/assets/data/sports_covers.json');
-          if (res.ok) {
-            const covers = await res.json();
-            const keys = Object.keys(covers).slice(0, 18);
-            items = keys.map(k => ({
-              type: 'sports',
-              id: k,
-              title: k,
-              year: '',
-              poster: covers[k],
-              label: 'SPORTS',
-              backdropUrl: covers[k]
-            }));
-          }
-        } catch (_e) { /* ignore */ }
-      } else if (activeCategoryFilter === 'brand') {
-        const sb = getSupabase();
-        if (sb) {
-          const { data } = await sb.from('fashion_brands').select('id, name, logo_url').limit(18);
-          if (data && data.length > 0) {
-            items = data.map(b => ({
-              type: 'brand',
-              id: String(b.id),
-              title: b.name,
-              year: '',
-              poster: b.logo_url || '',
-              label: 'BRAND'
-            }));
-          }
-        }
-      } else if (activeCategoryFilter === 'food') {
-        const sb = getSupabase();
-        if (sb) {
-          const { data } = await sb.from('food_brands').select('id, name, logo_url').limit(18);
-          if (data && data.length > 0) {
-            items = data.map(b => ({
-              type: 'food',
-              id: String(b.id),
-              title: b.name,
-              year: '',
-              poster: b.logo_url || '',
-              label: 'FOOD'
-            }));
-          }
-        }
-      } else if (activeCategoryFilter === 'travel') {
-        items = [
-          { type: 'travel', id: 'tokyo', title: 'Tokyo, Japan', poster: 'https://images.pexels.com/photos/2506923/pexels-photo-2506923.jpeg?auto=compress&cs=tinysrgb&w=800', label: 'TRAVEL' },
-          { type: 'travel', id: 'paris', title: 'Paris, France', poster: 'https://images.pexels.com/photos/699466/pexels-photo-699466.jpeg?auto=compress&cs=tinysrgb&w=800', label: 'TRAVEL' },
-          { type: 'travel', id: 'amalfi', title: 'Amalfi Coast, Italy', poster: 'https://images.pexels.com/photos/532826/pexels-photo-532826.jpeg?auto=compress&cs=tinysrgb&w=800', label: 'TRAVEL' },
-          { type: 'travel', id: 'swiss', title: 'Swiss Alps, Switzerland', poster: 'https://images.pexels.com/photos/417074/pexels-photo-417074.jpeg?auto=compress&cs=tinysrgb&w=800', label: 'TRAVEL' },
-          { type: 'travel', id: 'maldives', title: 'Maldives Islands', poster: 'https://images.pexels.com/photos/1483053/pexels-photo-1483053.jpeg?auto=compress&cs=tinysrgb&w=800', label: 'TRAVEL' },
-          { type: 'travel', id: 'reykjavik', title: 'Reykjavik, Iceland', poster: 'https://images.pexels.com/photos/1009136/pexels-photo-1009136.jpeg?auto=compress&cs=tinysrgb&w=800', label: 'TRAVEL' },
-          { type: 'travel', id: 'santorini', title: 'Santorini, Greece', poster: 'https://images.pexels.com/photos/1010657/pexels-photo-1010657.jpeg?auto=compress&cs=tinysrgb&w=800', label: 'TRAVEL' },
-          { type: 'travel', id: 'nyc', title: 'New York City, USA', poster: 'https://images.pexels.com/photos/290386/pexels-photo-290386.jpeg?auto=compress&cs=tinysrgb&w=800', label: 'TRAVEL' }
-        ];
-      } else if (activeCategoryFilter === 'car') {
-        items = [
-          { type: 'car', id: 'porsche-911', title: 'Porsche 911 GT3 RS', poster: 'https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg?auto=compress&cs=tinysrgb&w=800', label: 'CAR' },
-          { type: 'car', id: 'ferrari-laferrari', title: 'Ferrari LaFerrari', poster: 'https://images.pexels.com/photos/337909/pexels-photo-337909.jpeg?auto=compress&cs=tinysrgb&w=800', label: 'CAR' },
-          { type: 'car', id: 'lambo-aventador', title: 'Lamborghini Aventador', poster: 'https://images.pexels.com/photos/3972755/pexels-photo-3972755.jpeg?auto=compress&cs=tinysrgb&w=800', label: 'CAR' },
-          { type: 'car', id: 'bmw-m4', title: 'BMW M4 Competition', poster: 'https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=800', label: 'CAR' },
-          { type: 'car', id: 'mercedes-amg', title: 'Mercedes-AMG GT', poster: 'https://images.pexels.com/photos/112460/pexels-photo-112460.jpeg?auto=compress&cs=tinysrgb&w=800', label: 'CAR' },
-          { type: 'car', id: 'aston-martin', title: 'Aston Martin DBS', poster: 'https://images.pexels.com/photos/210019/pexels-photo-210019.jpeg?auto=compress&cs=tinysrgb&w=800', label: 'CAR' },
-          { type: 'car', id: 'audi-r8', title: 'Audi R8 V10', poster: 'https://images.pexels.com/photos/1149831/pexels-photo-1149831.jpeg?auto=compress&cs=tinysrgb&w=800', label: 'CAR' },
-          { type: 'car', id: 'bugatti-chiron', title: 'Bugatti Chiron', poster: 'https://images.pexels.com/photos/909907/pexels-photo-909907.jpeg?auto=compress&cs=tinysrgb&w=800', label: 'CAR' }
-        ];
       }
     } catch (_e) { /* ignore */ }
 
