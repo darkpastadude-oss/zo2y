@@ -329,200 +329,28 @@ window.BannerPicker = (function () {
 
     try {
       let results = [];
-      const qLower = query.toLowerCase();
 
-      /* 1. TMDB: Movies, TV, Anime */
-      if (activeCategoryFilter === 'all' || activeCategoryFilter === 'movie' || activeCategoryFilter === 'tv' || activeCategoryFilter === 'anime') {
-        try {
-          const res = await fetch(`/api/tmdb/search/multi?query=${encodeURIComponent(query)}&language=en`, { signal });
-          if (res.ok) {
-            const data = await res.json();
-            if (data.results) {
-              data.results.filter(r => r.media_type === 'movie' || r.media_type === 'tv').slice(0, 12).forEach(r => {
-                const isAnime = r.original_language === 'ja' || (r.genre_ids && r.genre_ids.includes(16));
-                const itemType = isAnime && r.media_type === 'tv' ? 'anime' : r.media_type;
-                results.push({
-                  type: itemType,
-                  id: String(r.id),
-                  title: r.title || r.name || 'Untitled',
-                  year: (r.release_date || r.first_air_date || '').split('-')[0],
-                  poster: r.poster_path ? `https://image.tmdb.org/t/p/w342${r.poster_path}` : '',
-                  label: itemType === 'anime' ? 'ANIME' : (itemType === 'movie' ? 'MOVIE' : 'TV')
-                });
-              });
-            }
-          }
-        } catch (_e) { /* ignore */ }
-      }
-
-      /* 2. Games (IGDB + Supabase) */
-      if (activeCategoryFilter === 'all' || activeCategoryFilter === 'game') {
-        try {
-          const gRes = await fetch(`/api/igdb/games?search=${encodeURIComponent(query)}&page=1&page_size=8`, { signal });
-          if (gRes.ok) {
-            const gData = await gRes.json();
-            const items = gData.results || (Array.isArray(gData) ? gData : []);
-            items.slice(0, 8).forEach(g => {
-              if (g.name) {
-                results.push({
-                  type: 'game',
-                  id: String(g.id || g.slug || ''),
-                  title: g.name,
-                  year: '',
-                  poster: g.cover || g.image || '',
-                  label: 'GAME'
-                });
-              }
+      /* TMDB Search: Movies, TV Shows, Anime */
+      const res = await fetch(`/api/tmdb/search/multi?query=${encodeURIComponent(query)}&language=en`, { signal });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.results) {
+          data.results.filter(r => r.media_type === 'movie' || r.media_type === 'tv').slice(0, 18).forEach(r => {
+            const isAnime = r.original_language === 'ja' || (r.genre_ids && r.genre_ids.includes(16));
+            const itemType = isAnime && r.media_type === 'tv' ? 'anime' : r.media_type;
+            results.push({
+              type: itemType,
+              id: String(r.id),
+              title: r.title || r.name || 'Untitled',
+              year: (r.release_date || r.first_air_date || '').split('-')[0],
+              poster: r.poster_path ? `https://image.tmdb.org/t/p/w342${r.poster_path}` : '',
+              label: itemType === 'anime' ? 'ANIME' : (itemType === 'movie' ? 'MOVIE' : 'TV SHOW')
             });
-          }
-        } catch (_e) { /* ignore */ }
-
-        const sb = getSupabase();
-        if (sb) {
-          try {
-            const { data: games } = await sb.from('games').select('id, name, cover_url, hero_url, background_url').ilike('name', `%${query}%`).limit(6);
-            if (games) {
-              games.forEach(g => {
-                if (g.name && !results.some(r => r.type === 'game' && String(r.id) === String(g.id))) {
-                  results.push({
-                    type: 'game',
-                    id: String(g.id),
-                    title: g.name,
-                    year: '',
-                    poster: g.cover_url || g.hero_url || '',
-                    label: 'GAME'
-                  });
-                }
-              });
-            }
-          } catch (_e) { /* ignore */ }
-        }
-      }
-
-      /* 3. Books */
-      if (activeCategoryFilter === 'all' || activeCategoryFilter === 'book') {
-        try {
-          const bRes = await fetch(`/api/books/search?q=${encodeURIComponent(query)}&limit=8`, { signal });
-          if (bRes.ok) {
-            const bData = await bRes.json();
-            const bookItems = bData.books || bData.items || bData.results || (Array.isArray(bData) ? bData : []);
-            bookItems.slice(0, 8).forEach(b => {
-              const vol = b.volumeInfo || b;
-              results.push({
-                type: 'book',
-                id: String(b.id || b.book_id || ''),
-                title: vol.title || b.title || 'Untitled Book',
-                year: (vol.publishedDate || '').split('-')[0],
-                poster: vol.imageLinks?.thumbnail || b.cover_url || b.image || b.cover || '',
-                label: 'BOOK'
-              });
-            });
-          }
-        } catch (_e) { /* ignore */ }
-      }
-
-      /* 4. Music */
-      if (activeCategoryFilter === 'all' || activeCategoryFilter === 'music') {
-        try {
-          const mRes = await fetch(`/api/music/search?q=${encodeURIComponent(query)}&limit=8`, { signal });
-          if (mRes.ok) {
-            const mData = await mRes.json();
-            const musicItems = mData.results || mData.items || (Array.isArray(mData) ? mData : []);
-            musicItems.slice(0, 8).forEach(m => {
-              results.push({
-                type: 'music',
-                id: String(m.id || ''),
-                title: m.title || m.name || 'Untitled Album',
-                year: (m.release_date || m.year || '').toString().split('-')[0],
-                poster: m.cover_medium || m.album?.cover_medium || m.image || '',
-                label: 'MUSIC'
-              });
-            });
-          }
-        } catch (_e) { /* ignore */ }
-      }
-
-      /* 5. Lifestyle: Brands, Food, Cars, Travel, Sports */
-      if (activeCategoryFilter === 'all' || activeCategoryFilter === 'brand' || activeCategoryFilter === 'food' || activeCategoryFilter === 'car' || activeCategoryFilter === 'sports' || activeCategoryFilter === 'travel') {
-        const sb = getSupabase();
-        if (sb) {
-          const brandTables = [
-            { table: 'fashion_brands', label: 'BRAND', type: 'brand' },
-            { table: 'food_brands', label: 'FOOD', type: 'food' },
-            { table: 'car_brands', label: 'CAR', type: 'car' }
-          ];
-          for (const bt of brandTables) {
-            if (activeCategoryFilter !== 'all' && activeCategoryFilter !== bt.type) continue;
-            try {
-              const { data: rows } = await sb.from(bt.table).select('id, name, logo_url').ilike('name', `%${query}%`).limit(6);
-              if (rows) {
-                rows.forEach(r => {
-                  results.push({
-                    type: bt.type,
-                    id: String(r.id),
-                    title: r.name,
-                    year: '',
-                    poster: r.logo_url || '',
-                    label: bt.label
-                  });
-                });
-              }
-            } catch (_e) { /* ignore */ }
-          }
-        }
-
-        /* Local Car Dataset */
-        if (activeCategoryFilter === 'all' || activeCategoryFilter === 'car') {
-          LIFESTYLE_CAR_ITEMS.filter(c => c.title.toLowerCase().includes(qLower)).forEach(c => {
-            if (!results.some(r => r.id === c.id)) {
-              results.push({
-                type: 'car',
-                id: c.id,
-                title: c.title,
-                year: '',
-                poster: c.poster,
-                label: 'CAR'
-              });
-            }
-          });
-        }
-
-        /* Local Travel Dataset & RestCountries API */
-        if (activeCategoryFilter === 'all' || activeCategoryFilter === 'travel') {
-          LIFESTYLE_TRAVEL_ITEMS.filter(t => t.title.toLowerCase().includes(qLower)).forEach(t => {
-            if (!results.some(r => r.id === t.id)) {
-              results.push({
-                type: 'travel',
-                id: t.id,
-                title: t.title,
-                year: '',
-                poster: t.poster,
-                label: 'TRAVEL'
-              });
-            }
           });
         }
       }
 
       if (signal.aborted) return;
-
-      /* Apply strict category filter if specific pill selected */
-      if (activeCategoryFilter !== 'all') {
-        results = results.filter(r => {
-          if (activeCategoryFilter === 'movie') return r.type === 'movie';
-          if (activeCategoryFilter === 'tv') return r.type === 'tv';
-          if (activeCategoryFilter === 'anime') return r.type === 'anime' || (r.type === 'tv' && (r.title.toLowerCase().includes('anime') || r.label === 'ANIME'));
-          if (activeCategoryFilter === 'game') return r.type === 'game';
-          if (activeCategoryFilter === 'book') return r.type === 'book';
-          if (activeCategoryFilter === 'music') return r.type === 'music';
-          if (activeCategoryFilter === 'brand') return r.type === 'brand';
-          if (activeCategoryFilter === 'food') return r.type === 'food';
-          if (activeCategoryFilter === 'car') return r.type === 'car';
-          if (activeCategoryFilter === 'travel') return r.type === 'travel';
-          if (activeCategoryFilter === 'sports') return r.type === 'sports';
-          return true;
-        });
-      }
 
       if (results.length === 0) {
         if (grid) grid.innerHTML = '';
@@ -536,7 +364,7 @@ window.BannerPicker = (function () {
         grid.innerHTML = results.map(item => `
           <div class="bp-poster-card" onclick="BannerPicker.selectMedia('${jsEsc(item.type)}', '${jsEsc(item.id)}', '${jsEsc(item.title)}', '${jsEsc(item.year)}')">
             <div class="bp-poster-img-wrap">
-              ${item.poster ? `<img src="${jsEsc(item.poster)}" loading="lazy" alt="">` : '<div class="bp-poster-placeholder"><i class="fas fa-image"></i></div>'}
+              ${item.poster ? `<img src="${jsEsc(item.poster)}" loading="lazy" alt="">` : '<div class="bp-poster-placeholder"><i class="fas fa-film"></i></div>'}
             </div>
             <div class="bp-poster-title">${escHtml(item.title)}</div>
             <div class="bp-poster-meta">${escHtml(item.label)} ${item.year ? '• ' + escHtml(item.year) : ''}</div>
@@ -575,34 +403,7 @@ window.BannerPicker = (function () {
     /* Recently used */
     renderRecentlyUsed();
 
-    /* Populate suggested from user's lists/showcase */
-    const suggested = [];
-    const sb = getSupabase();
-    const userId = window.ZO2Y_AUTH?.session?.user?.id;
-
-    if (sb && userId) {
-      try {
-        const { data: favItems } = await sb
-          .from('list_items')
-          .select('item_id, media_type, title')
-          .eq('user_id', userId)
-          .eq('list_type', 'favorites')
-          .in('media_type', ['movie', 'tv', 'anime', 'game'])
-          .order('created_at', { ascending: false })
-          .limit(30);
-        if (favItems) {
-          favItems.forEach(r => {
-            suggested.push({
-              type: r.media_type,
-              id: String(r.item_id),
-              title: r.title || `${r.media_type} #${r.item_id}`
-            });
-          });
-        }
-      } catch (_e) { /* ignore */ }
-    }
-
-    /* carousel — show recently used + favourites as backdrop cards */
+    /* Carousel — show recently used */
     if (carousel) {
       const carouselItems = [...recentlyUsed];
       if (carouselItems.length > 0) {
@@ -617,93 +418,50 @@ window.BannerPicker = (function () {
       }
     }
 
-    /* grid — items based on currentDomain (Media vs Lifestyle) */
+    /* Popular TMDB movies and TV shows */
     let items = [];
     try {
-      if (currentDomain === 'lifestyle') {
-        /* Lifestyle Domain Items */
-        items = [
-          ...LIFESTYLE_CAR_ITEMS.slice(0, 6).map(c => ({ type: 'car', id: c.id, title: c.title, poster: c.poster, label: 'CAR' })),
-          ...LIFESTYLE_TRAVEL_ITEMS.slice(0, 6).map(t => ({ type: 'travel', id: t.id, title: t.title, poster: t.poster, label: 'TRAVEL' }))
-        ];
-
-        const sb = getSupabase();
-        if (sb) {
-          try {
-            const { data: fBrands } = await sb.from('fashion_brands').select('id, name, logo_url').limit(4);
-            if (fBrands) {
-              fBrands.forEach(b => items.push({ type: 'brand', id: String(b.id), title: b.name, poster: b.logo_url || '', label: 'BRAND' }));
-            }
-            const { data: foodBrands } = await sb.from('food_brands').select('id, name, logo_url').limit(4);
-            if (foodBrands) {
-              foodBrands.forEach(b => items.push({ type: 'food', id: String(b.id), title: b.name, poster: b.logo_url || '', label: 'FOOD' }));
-            }
-          } catch (_e) {}
-        }
-      } else {
-        /* Media Domain Items (Movies, TV, Anime, Games, Books, Music) */
-        const res = await fetch('/api/tmdb/movie/popular?language=en-US&page=1');
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.results) {
-            data.results.slice(0, 10).forEach(r => {
-              items.push({
-                type: 'movie',
-                id: String(r.id),
-                title: r.title || r.name,
-                year: (r.release_date || '').split('-')[0],
-                poster: r.poster_path ? `https://image.tmdb.org/t/p/w342${r.poster_path}` : '',
-                label: 'MOVIE'
-              });
-            });
-          }
-        }
-
-        const tvRes = await fetch('/api/tmdb/tv/popular?language=en-US&page=1');
-        if (tvRes.ok) {
-          const data = await tvRes.json();
-          if (data && data.results) {
-            data.results.slice(0, 8).forEach(r => {
-              items.push({
-                type: 'tv',
-                id: String(r.id),
-                title: r.name || r.title,
-                year: (r.first_air_date || '').split('-')[0],
-                poster: r.poster_path ? `https://image.tmdb.org/t/p/w342${r.poster_path}` : '',
-                label: 'TV'
-              });
-            });
-          }
-        }
-      }
-    } catch (_e) { /* ignore */ }
-
-    /* Default fallback for 'all' or 'movie' or if category endpoint returned empty */
-    if (items.length === 0) {
-      try {
-        const res = await fetch('/api/tmdb/movie/popular?language=en-US&page=1');
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.results) {
-            items = data.results.slice(0, 18).map(r => ({
+      const res = await fetch('/api/tmdb/movie/popular?language=en-US&page=1');
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.results) {
+          data.results.slice(0, 10).forEach(r => {
+            items.push({
               type: 'movie',
               id: String(r.id),
               title: r.title || r.name,
               year: (r.release_date || '').split('-')[0],
               poster: r.poster_path ? `https://image.tmdb.org/t/p/w342${r.poster_path}` : '',
               label: 'MOVIE'
-            }));
-          }
+            });
+          });
         }
-      } catch (_e) { /* ignore */ }
-    }
+      }
+
+      const tvRes = await fetch('/api/tmdb/tv/popular?language=en-US&page=1');
+      if (tvRes.ok) {
+        const data = await tvRes.json();
+        if (data && data.results) {
+          data.results.slice(0, 8).forEach(r => {
+            items.push({
+              type: 'tv',
+              id: String(r.id),
+              title: r.name || r.title,
+              year: (r.first_air_date || '').split('-')[0],
+              poster: r.poster_path ? `https://image.tmdb.org/t/p/w342${r.poster_path}` : '',
+              label: 'TV SHOW'
+            });
+          });
+        }
+      }
+    } catch (_e) { /* ignore */ }
 
     if (grid) {
       if (items.length > 0) {
         grid.innerHTML = items.map(item => `
           <div class="bp-poster-card" onclick="BannerPicker.selectMedia('${jsEsc(item.type)}', '${jsEsc(item.id)}', '${jsEsc(item.title)}', '${jsEsc(item.year)}')">
             <div class="bp-poster-img-wrap">
-              ${item.poster ? `<img src="${jsEsc(item.poster)}" loading="lazy" alt="">` : '<div class="bp-poster-placeholder"><i class="fas fa-image"></i></div>'}
+              ${item.poster ? `<img src="${jsEsc(item.poster)}" loading="lazy" alt="">` : '<div class="bp-poster-placeholder"><i class="fas fa-film"></i></div>'}
             </div>
             <div class="bp-poster-title">${escHtml(item.title)}</div>
             <div class="bp-poster-meta">${escHtml(item.label)} ${item.year ? '• ' + escHtml(item.year) : ''}</div>

@@ -2587,7 +2587,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
           <div class="bp-search-wrap">
             <i class="fas fa-search bp-search-icon"></i>
             <input type="text" class="bp-search-input" id="bpSearchInput"
-                   placeholder="Search movies, shows, games, books, brands, food, cars..."
+                   placeholder="Search movies, TV shows, anime..."
                    oninput="BannerPicker.onSearchInput(event)"
                    onfocus="BannerPicker.onSearchFocus()">
           </div>
@@ -2629,7 +2629,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             </div>
           </div>
 
-          <!-- CONTROLS BAR: Mode Toggle & Domain Switch -->
+          <!-- CONTROLS BAR: Mode Toggle -->
           <div class="bp-controls-bar">
             <div class="bp-mode-switch">
               <button type="button" class="bp-mode-btn active" id="bpModeStaticBtn" onclick="BannerPicker.setMode('static')">
@@ -2637,15 +2637,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
               </button>
               <button type="button" class="bp-mode-btn" id="bpModeRotateBtn" onclick="BannerPicker.setMode('rotate')">
                 <i class="fas fa-sync-alt"></i> Rotate
-              </button>
-            </div>
-
-            <div class="bp-domain-switch">
-              <button type="button" class="bp-domain-btn active" id="bpDomainMedia" onclick="BannerPicker.setDomain('media')">
-                <i class="fas fa-play"></i> Media
-              </button>
-              <button type="button" class="bp-domain-btn" id="bpDomainLifestyle" onclick="BannerPicker.setDomain('lifestyle')">
-                <i class="fas fa-compass"></i> Lifestyle
               </button>
             </div>
           </div>
