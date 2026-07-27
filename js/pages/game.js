@@ -269,12 +269,18 @@
 
     let game = null;
 
-    try {
-      const res = await fetch(`/api/igdb/games/${encodeURIComponent(gameId)}?cb=${Date.now()}`);
-      if (res.ok) {
-        game = await res.json();
-      }
-    } catch (_err) {}
+    if (window.GameService) {
+      game = await window.GameService.getById(gameId);
+    }
+
+    if (!game) {
+      try {
+        const res = await fetch(`/api/igdb/games/${encodeURIComponent(gameId)}?cb=${Date.now()}`);
+        if (res.ok) {
+          game = await res.json();
+        }
+      } catch (_err) {}
+    }
 
     if (!game && supabaseClient) {
       try {

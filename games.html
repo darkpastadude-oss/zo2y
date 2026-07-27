@@ -1032,49 +1032,42 @@
       }
       
       const platformSelect = document.getElementById('platform');
-      if (platformSelect) {
-        try {
-          const client = await ensureSupabase();
-          if (client) {
-            const { data } = await client.from('games').select('extra').limit(500);
-            const seen = new Map();
-            (data || []).forEach(row => {
-              const platforms = row.extra?.platforms || [];
-              (Array.isArray(platforms) ? platforms : []).forEach(p => {
-                if (p.slug && p.name && !seen.has(p.slug)) {
-                  seen.set(p.slug, p.name);
-                }
-              });
-            });
-            [...seen.entries()].sort((a, b) => a[1].localeCompare(b[1])).forEach(([slug, name]) => {
-              const opt = document.createElement('option');
-              opt.value = slug;
-              opt.textContent = name;
-              platformSelect.appendChild(opt);
-            });
-          }
-        } catch (e) {
-          console.error('Failed to load game platforms', e);
-        }
+      if (platformSelect && platformSelect.options.length <= 1) {
+        const defaultPlatforms = [
+          { slug: 'pc', name: 'PC' },
+          { slug: 'playstation5', name: 'PlayStation 5' },
+          { slug: 'playstation4', name: 'PlayStation 4' },
+          { slug: 'xbox-series-x', name: 'Xbox Series X/S' },
+          { slug: 'xbox-one', name: 'Xbox One' },
+          { slug: 'nintendo-switch', name: 'Nintendo Switch' },
+          { slug: 'ios', name: 'iOS' },
+          { slug: 'android', name: 'Android' }
+        ];
+        defaultPlatforms.forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p.slug;
+          opt.textContent = p.name;
+          platformSelect.appendChild(opt);
+        });
       }
     }
 
     async function loadGamesWithFallback(append) {
       if (append) {
-        if (state.loading || !state.hasMore) return;
+        if (state.loading || !state.hasMore) return { ok: false, aborted: false };
         state.loading = true;
         GAMES_PAGE_SIZE = computeGridPageSize();
         const nextBatch = state.allGames.slice(state.offset, state.offset + GAMES_PAGE_SIZE);
         if (nextBatch.length === 0) {
           state.hasMore = false;
           state.loading = false;
-          return;
+          return { ok: true, aborted: false };
         }
         state.games = state.games.concat(nextBatch);
         state.offset += nextBatch.length;
         if (state.offset >= state.allGames.length) state.hasMore = false;
         state.loading = false;
-        return;
+        return { ok: true, aborted: false };
       }
 
       const query = String(state.search || '').trim();
@@ -1089,6 +1082,10 @@
       if (grid) grid.innerHTML = (typeof Skel !== 'undefined') ? Skel.grid(GAMES_PAGE_SIZE, 4) : '';
 
       try {
+        if (window.GameService && window.GameService.init) {
+          await window.GameService.init();
+        }
+
         let items = [];
         if (window.GameService) {
           if (query) {
@@ -1098,40 +1095,37 @@
           }
         }
 
-        if (searchSignal.aborted) return;
+        if (searchSignal.aborted) return { ok: false, aborted: true };
 
-        state.allGames = items;
+        state.allGames = items || [];
         state.offset = 0;
         state.hasMore = true;
         state.games = state.allGames.slice(0, GAMES_PAGE_SIZE);
         state.offset = state.games.length;
         if (state.offset >= state.allGames.length) state.hasMore = false;
+
+        return { ok: true, aborted: false };
       } catch (_err) {
-        if (_err?.name === 'AbortError') return;
+        if (_err?.name === 'AbortError' || searchSignal.aborted) {
+          return { ok: false, aborted: true };
+        }
         console.error('Failed to load games', _err);
+        return { ok: false, aborted: false };
       }
     }
 
-
-
     function debounceSearch(query) {
-
       if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
 
       searchDebounceTimer = setTimeout(async () => {
-
         state.search = query;
-
         state.popularRotationKey = '';
         state.popularRotation = null;
-        await loadGamesWithFallback();
-
-        
-
-        renderGrid();
-
-      }, 400);
-
+        const res = await loadGamesWithFallback();
+        if (res && !res.aborted) {
+          renderGrid();
+        }
+      }, 350);
     }
 
 
@@ -1905,37 +1899,30 @@
     // Refresh Picks removed.
 
     document.getElementById('gamesSearchBtn')?.addEventListener('click', async () => {
-
       const query = String(document.getElementById('q')?.value || '').trim();
-
       if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
       state.search = query;
-      await loadGamesWithFallback();
-      renderGrid();
-
+      const res = await loadGamesWithFallback();
+      if (res && !res.aborted) {
+        renderGrid();
+      }
     });
 
     document.getElementById('q')?.addEventListener('input', async (e) => {
-
       const query = String(e.target.value || '').trim();
-
       debounceSearch(query);
-
     });
 
     document.getElementById('q')?.addEventListener('keydown', async (e) => {
-
       if (e.key !== 'Enter') return;
-
       e.preventDefault();
-
       const query = String(e.target.value || '').trim();
-
       if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
       state.search = query;
-      await loadGamesWithFallback();
-      renderGrid();
-
+      const res = await loadGamesWithFallback();
+      if (res && !res.aborted) {
+        renderGrid();
+      }
     });
 
     document.getElementById('gamesFilterBtn')?.addEventListener('click', () => {
@@ -1978,7 +1965,13 @@
 
 
 
-    const bootGamesPage = () => {
+    const bootGamesPage = async () => {
+      if (window.GameService && window.GameService.init) {
+        try {
+          await window.GameService.init();
+        } catch (_e) {}
+      }
+
       if (window.initUniversalSearch) {
         const initSearch = () => window.initUniversalSearch({
           input: '#globalSearch',
