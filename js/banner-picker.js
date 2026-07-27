@@ -324,6 +324,7 @@ window.BannerPicker = (function () {
 
     try {
       let results = [];
+      const qLower = query.toLowerCase();
 
       /* 1. TMDB: Movies, TV, Anime */
       if (activeCategoryFilter === 'all' || activeCategoryFilter === 'movie' || activeCategoryFilter === 'tv' || activeCategoryFilter === 'anime') {
@@ -333,13 +334,15 @@ window.BannerPicker = (function () {
             const data = await res.json();
             if (data.results) {
               data.results.filter(r => r.media_type === 'movie' || r.media_type === 'tv').slice(0, 12).forEach(r => {
+                const isAnime = r.original_language === 'ja' || (r.genre_ids && r.genre_ids.includes(16));
+                const itemType = isAnime && r.media_type === 'tv' ? 'anime' : r.media_type;
                 results.push({
-                  type: r.media_type,
+                  type: itemType,
                   id: String(r.id),
                   title: r.title || r.name || 'Untitled',
                   year: (r.release_date || r.first_air_date || '').split('-')[0],
                   poster: r.poster_path ? `https://image.tmdb.org/t/p/w342${r.poster_path}` : '',
-                  label: r.media_type === 'movie' ? 'MOVIE' : 'TV'
+                  label: itemType === 'anime' ? 'ANIME' : (itemType === 'movie' ? 'MOVIE' : 'TV')
                 });
               });
             }
@@ -434,17 +437,19 @@ window.BannerPicker = (function () {
         } catch (_e) { /* ignore */ }
       }
 
-      /* 5. Brands */
-      if (activeCategoryFilter === 'all' || activeCategoryFilter === 'brand') {
+      /* 5. Lifestyle: Brands, Food, Cars, Travel, Sports */
+      if (activeCategoryFilter === 'all' || activeCategoryFilter === 'brand' || activeCategoryFilter === 'food' || activeCategoryFilter === 'car' || activeCategoryFilter === 'sports' || activeCategoryFilter === 'travel') {
         const sb = getSupabase();
         if (sb) {
           const brandTables = [
-            { table: 'fashion_brands', label: 'FASHION', type: 'brand' },
-            { table: 'food_brands', label: 'FOOD', type: 'brand' }
+            { table: 'fashion_brands', label: 'BRAND', type: 'brand' },
+            { table: 'food_brands', label: 'FOOD', type: 'food' },
+            { table: 'car_brands', label: 'CAR', type: 'car' }
           ];
           for (const bt of brandTables) {
+            if (activeCategoryFilter !== 'all' && activeCategoryFilter !== bt.type) continue;
             try {
-              const { data: rows } = await sb.from(bt.table).select('id, name, logo_url').ilike('name', `%${query}%`).limit(4);
+              const { data: rows } = await sb.from(bt.table).select('id, name, logo_url').ilike('name', `%${query}%`).limit(6);
               if (rows) {
                 rows.forEach(r => {
                   results.push({
@@ -460,6 +465,38 @@ window.BannerPicker = (function () {
             } catch (_e) { /* ignore */ }
           }
         }
+
+        /* Local Car Dataset */
+        if (activeCategoryFilter === 'all' || activeCategoryFilter === 'car') {
+          LIFESTYLE_CAR_ITEMS.filter(c => c.title.toLowerCase().includes(qLower)).forEach(c => {
+            if (!results.some(r => r.id === c.id)) {
+              results.push({
+                type: 'car',
+                id: c.id,
+                title: c.title,
+                year: '',
+                poster: c.poster,
+                label: 'CAR'
+              });
+            }
+          });
+        }
+
+        /* Local Travel Dataset & RestCountries API */
+        if (activeCategoryFilter === 'all' || activeCategoryFilter === 'travel') {
+          LIFESTYLE_TRAVEL_ITEMS.filter(t => t.title.toLowerCase().includes(qLower)).forEach(t => {
+            if (!results.some(r => r.id === t.id)) {
+              results.push({
+                type: 'travel',
+                id: t.id,
+                title: t.title,
+                year: '',
+                poster: t.poster,
+                label: 'TRAVEL'
+              });
+            }
+          });
+        }
       }
 
       if (signal.aborted) return;
@@ -474,6 +511,10 @@ window.BannerPicker = (function () {
           if (activeCategoryFilter === 'book') return r.type === 'book';
           if (activeCategoryFilter === 'music') return r.type === 'music';
           if (activeCategoryFilter === 'brand') return r.type === 'brand';
+          if (activeCategoryFilter === 'food') return r.type === 'food';
+          if (activeCategoryFilter === 'car') return r.type === 'car';
+          if (activeCategoryFilter === 'travel') return r.type === 'travel';
+          if (activeCategoryFilter === 'sports') return r.type === 'sports';
           return true;
         });
       }
