@@ -222,17 +222,31 @@
 
     async init() {
       if (this._initialized) return true;
-      if (this._initPromise) return this._initPromise;
+      this._initialized = true;
+      return true;
+    },
 
-      this._initPromise = (async () => {
-        try {
-          await SupabaseProvider.getClient();
-        } catch (_e) {}
-        this._initialized = true;
-        return true;
-      })();
+    getCachedTrending() {
+      try {
+        const raw = localStorage.getItem('__ZO2Y_GAMES_TRENDING_PAGE1_V2');
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (Date.now() - (parsed.timestamp || 0) < 86400000) {
+          return parsed.data || null;
+        }
+      } catch (_e) {}
+      return null;
+    },
 
-      return this._initPromise;
+    setCachedTrending(data) {
+      try {
+        if (Array.isArray(data) && data.length > 0) {
+          localStorage.setItem('__ZO2Y_GAMES_TRENDING_PAGE1_V2', JSON.stringify({
+            timestamp: Date.now(),
+            data: data.slice(0, 40)
+          }));
+        }
+      } catch (_e) {}
     },
 
     resolveCover(row) {
@@ -313,46 +327,26 @@
     },
 
     async fetchTrending({ sort = 'popular', page = 1, pageSize = 40, signal } = {}) {
-      await this.init();
+      if (page === 1 && sort === 'popular') {
+        const cached = this.getCachedTrending();
+        if (cached && cached.length) {
+          // Revalidate in background
+          RAWGProvider.fetchTrending({ sort, page, pageSize }).then(raw => {
+            const normalized = raw.map(g => this.normalize(g)).filter(Boolean);
+            if (normalized.length) this.setCachedTrending(normalized);
+          }).catch(() => {});
+          return cached;
+        }
+      }
 
-      // Load local Supabase games first for fast render
-      const localGames = await SupabaseProvider.fetchLocalGames({ sort, limit: pageSize * 2 });
-      const localNormalized = localGames.map(g => this.normalize(g)).filter(Boolean);
-
-      // Query external RAWG Provider
       const rawgGames = await RAWGProvider.fetchTrending({ sort, page, pageSize, signal });
       const rawgNormalized = rawgGames.map(g => this.normalize(g)).filter(Boolean);
 
-      // Merge results avoiding duplicate IDs (local cached curated games first)
-      const merged = [];
-      const seen = new Set();
-
-      localNormalized.forEach((item) => {
-        if (item.id && !seen.has(item.id)) {
-          seen.add(item.id);
-          merged.push(item);
-        }
-      });
-
-      rawgNormalized.forEach((item) => {
-        if (item.id && !seen.has(item.id)) {
-          seen.add(item.id);
-          merged.push(item);
-        }
-      });
-
-      // Background persist new RAWG games to Supabase
-      if (rawgGames.length && window.__zo2yGamesShared?.ensureGameInSupabase) {
-        SupabaseProvider.getClient().then(client => {
-          if (client) {
-            rawgGames.slice(0, 15).forEach(raw => {
-              window.__zo2yGamesShared.ensureGameInSupabase(client, raw).catch(() => {});
-            });
-          }
-        });
+      if (page === 1 && sort === 'popular' && rawgNormalized.length) {
+        this.setCachedTrending(rawgNormalized);
       }
 
-      return merged;
+      return rawgNormalized;
     },
 
     async search(query, signal) {

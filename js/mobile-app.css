@@ -1,4 +1,4 @@
-﻿/* Zo2y mobile web app layer */
+/* Zo2y mobile web app layer */
 :root {
   --app-safe-top: env(safe-area-inset-top, 0px);
   --app-safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -470,5 +470,126 @@ body.zo2y-popup-open {
   #actionsModal .actions-content {
     width: min(760px, 88vw) !important;
     max-height: calc(100vh - 36px) !important;
+  }
+}
+
+/* ============================================================
+   MOBILE HERO & BANNER SCALING OVERRIDES (DRAMATICALLY SMALLER)
+   ============================================================ */
+@media (max-width: 900px) {
+  /* Hero Backdrop Height */
+  .umh-backdrop-wrap,
+  .elevated-hero-backdrop,
+  .elevated-hero {
+    height: 160px !important;
+    min-height: 160px !important;
+    max-height: 180px !important;
+  }
+
+  .elevated-hero-foreground {
+    padding: 32px 0 16px !important;
+    gap: 12px !important;
+    min-height: auto !important;
+  }
+
+  /* Content Wrapper Shift */
+  .umh-content-wrapper {
+    grid-template-columns: 80px minmax(0, 1fr) !important;
+    gap: 12px !important;
+    margin-top: -55px !important;
+  }
+
+  /* Mobile Poster Frame & Images */
+  .umh-poster-frame,
+  .elevated-poster-frame,
+  .wrap > .poster {
+    width: 80px !important;
+    max-width: 80px !important;
+    border-radius: 8px !important;
+  }
+
+  /* Category Spotlight Banners */
+  .media-spotlight-shell,
+  .hero {
+    min-height: 180px !important;
+    max-height: 220px !important;
+    border-radius: 16px !important;
+  }
+
+  .media-spotlight-copy {
+    padding: 12px 14px !important;
+    gap: 4px !important;
+  }
+
+  .media-spotlight-copy h2 {
+    font-size: 1.15rem !important;
+  }
+
+  .media-spotlight-summary {
+    font-size: 0.82rem !important;
+    -webkit-line-clamp: 2 !important;
+  }
+
+  .media-spotlight-poster {
+    max-width: 90px !important;
+    padding: 8px !important;
+  }
+}
+
+/* ============================================================
+   PREMIUM MOBILE HEADER STABILITY ENGINE (GPU HARDWARE LAYERED)
+   ============================================================ */
+html,
+body,
+body.mobile-webapp {
+  overflow-x: clip !important; /* Preserves native window scroll container in iOS Safari */
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 1024px) {
+  header,
+  .shared-header,
+  .mobile-header,
+  .zo2y-shared-header,
+  nav.shared-header {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    z-index: 18000 !important;
+    margin: 0 !important;
+
+    /* Exclusive Hardware GPU Compositing Promotion */
+    transform: translate3d(0, 0, 0) !important;
+    -webkit-transform: translate3d(0, 0, 0) !important;
+    will-change: transform !important;
+    backface-visibility: hidden !important;
+    -webkit-backface-visibility: hidden !important;
+    isolation: isolate !important;
+    contain: layout paint style !important;
+
+    /* Opaque Fallback Layer under blur */
+    background-color: #0b1633 !important;
+    background-image: linear-gradient(180deg, #0b1633 0%, rgba(11, 22, 51, 0.98) 100%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+    backdrop-filter: blur(16px) saturate(180%) !important;
+  }
+
+  /* Top Notch & Overscroll Extension Shield */
+  header::before,
+  .shared-header::before,
+  .mobile-header::before,
+  .zo2y-shared-header::before {
+    content: '' !important;
+    position: absolute !important;
+    top: -200px !important;
+    left: -20px !important;
+    right: -20px !important;
+    height: 200px !important;
+    background-color: #0b1633 !important;
+    pointer-events: none !important;
+    z-index: -1 !important;
+    display: block !important;
   }
 }

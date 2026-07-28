@@ -1164,7 +1164,7 @@
         if (res && !res.aborted) {
           renderGrid();
         }
-      }, 350);
+      }, 180);
     }
 
 
@@ -1899,36 +1899,22 @@
 
 
     async function loadPage(retries) {
-
       retries = retries || 0;
+      initAuthUi().catch(() => {});
 
       try {
-
-        await initAuthUi();
-
         await loadGames();
-        
-
         renderGrid();
-
       } catch (_err) {
-
         console.error('loadPage error:', _err);
-
         if (retries < 2) {
-
-          await new Promise(function(r) { setTimeout(r, 500); });
-
+          await new Promise(function(r) { setTimeout(r, 200); });
           return loadPage(retries + 1);
-
         }
 
         const grid = document.getElementById('gamesGrid');
-
         if (grid) grid.innerHTML = '<div class="empty">Games feed unavailable right now.</div>';
-
       }
-
     }
 
 
