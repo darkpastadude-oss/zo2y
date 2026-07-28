@@ -231,7 +231,7 @@
         const raw = localStorage.getItem('__ZO2Y_GAMES_TRENDING_PAGE1_V2');
         if (!raw) return null;
         const parsed = JSON.parse(raw);
-        if (Date.now() - (parsed.timestamp || 0) < 86400000) {
+        if (Date.now() - (parsed.timestamp || 0) < 21600000) {
           return parsed.data || null;
         }
       } catch (_e) {}

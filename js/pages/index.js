@@ -413,10 +413,10 @@
     const HOME_BOOKS_FETCH_TIMEOUT_MS = 2200;
     const HOME_LOCAL_FALLBACK_IMAGE = '/newlogo.webp';
     const HOME_GAMES_FALLBACK_ITEMS = [
-      { id: '12766', title: 'Elden Ring: Shadow of the Erdtree', release: '2026-06-21', cover: SUPABASE_URL + '/storage/v1/object/public/game-assets/covers-official/the-witcher-3-wild-hunt.jpg' },
-      { id: '26192', title: 'Hollow Knight: Silksong', release: '2026-02-14', cover: SUPABASE_URL + '/storage/v1/object/public/game-assets/covers-official/red-dead-redemption-2.jpg' },
-      { id: '1877', title: 'Grand Theft Auto VI', release: '2026-11-09', cover: SUPABASE_URL + '/storage/v1/object/public/game-assets/covers-official/skyrim.jpg' },
-      { id: '7346', title: 'Monster Hunter Wilds', release: '2026-03-15', cover: SUPABASE_URL + '/storage/v1/object/public/game-assets/covers-official/portal-2.jpg' }
+      { id: '12766', title: 'Elden Ring: Shadow of the Erdtree', release: '2026-06-21', cover: '/newlogo.webp' },
+      { id: '26192', title: 'Hollow Knight: Silksong', release: '2026-02-14', cover: '/newlogo.webp' },
+      { id: '1877', title: 'Grand Theft Auto VI', release: '2026-11-09', cover: '/newlogo.webp' },
+      { id: '7346', title: 'Monster Hunter Wilds', release: '2026-03-15', cover: '/newlogo.webp' }
     ];
     const SPOTLIGHT_ROTATE_MS = 5000;
     const HOME_CHANNEL_TARGET_ITEMS = 10;
@@ -9343,27 +9343,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       };
 
       try {
-        const localRowsPromise = (async () => {
-          try {
-            const client = await ensureHomeSupabase();
-            if (!client) return [];
-            const { data } = await client
-              .from('games')
-              .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra')
-              .order('release_date', { ascending: false, nullsFirst: false })
-              .order('rating_count', { ascending: false, nullsFirst: false })
-              .limit(Math.min(Math.max(targetCount * 4, 80), 160));
-            return Array.isArray(data) ? data : [];
-          } catch (_err) {
-            return [];
-          }
-        })();
-        const localRows = await localRowsPromise;
-        const localItems = dedupeHomeGameRows(Array.isArray(localRows) ? localRows : [], Math.max(targetCount * 2, 40))
-          .map((row) => mapToItem(row))
-          .filter((item) => item && String(item.itemId || '').trim())
-          .sort((a, b) => Number(b?.popularity || 0) - Number(a?.popularity || 0))
-          .slice(0, Math.max(targetCount * 2, 24));
         const providerList = ['igdb'];
         for (const provider of providerList) {
           const baseParams = {
@@ -9395,17 +9374,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
               merged.push(row);
             });
           });
-          const combinedRows = merged.concat(Array.isArray(localRows) ? localRows : []);
-          if (!combinedRows.length || signal?.aborted) continue;
-          const combinedSeen = new Set();
-          const uniqueCombinedRows = [];
-          combinedRows.forEach((row) => {
-            const title = normalizeHomeGameTitleKey(row?.title || row?.name || '');
-            if (!title || combinedSeen.has(title)) return;
-            combinedSeen.add(title);
-            uniqueCombinedRows.push(row);
-          });
-          const items = uniqueCombinedRows
+          if (!merged.length || signal?.aborted) continue;
+          const items = merged
             .map((row) => mapToItem(row))
             .filter((item) => item && String(item.itemId || '').trim() && String(item.image || '').trim())
             .sort((a, b) => Number(b?.popularity || 0) - Number(a?.popularity || 0))

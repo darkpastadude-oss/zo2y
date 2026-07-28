@@ -802,7 +802,7 @@
 
     // Cache for IGDB browse results to avoid repeated API calls
     const IGDB_BROWSE_CACHE_PREFIX = 'zo2y_igdb_browse_v2:';
-    const IGDB_BROWSE_CACHE_TTL = 1000 * 60 * 60 * 24; // 24 hours
+    const IGDB_BROWSE_CACHE_TTL = 1000 * 60 * 60 * 6; // 6 hours
 
     function readIgdbBrowseCache(query) {
       try {
@@ -1606,34 +1606,17 @@
 
             const searchTitle = String(g.name || humanizeGameSlug(g.id)).trim();
 
-            if ((!g.name || g.name === 'Unknown Game') && api.searchGamesFromWikipedia && searchTitle) {
-
-              try {
-
-                const wikiGames = await api.searchGamesFromWikipedia(searchTitle, signal, 1);
-
-                const wikiGame = Array.isArray(wikiGames) ? wikiGames[0] : null;
-
-                if (wikiGame) {
-
-                  const wikiTitle = String(wikiGame.title || wikiGame.name || '').trim();
-
-                  const wikiCover = resolveGameCover(wikiGame);
-
-                  if (wikiTitle) g.name = wikiTitle;
-
-                  if (wikiCover && (!g.cover || g.cover === FALLBACK_IMAGE)) g.cover = wikiCover;
-
-                }
-
-              } catch (_err) {}
-
-            }
-
             if ((!g.cover || g.cover === FALLBACK_IMAGE) && api.fetchCoverForTitle && searchTitle) {
 
-              const cover = await api.fetchCoverForTitle(String(g.name || searchTitle).trim(), signal);
-
+              const timeoutCtrl = new AbortController();
+              const timeoutId = setTimeout(() => timeoutCtrl.abort(), 3000);
+              const combinedSignal = signal ? timeoutCtrl.signal : timeoutCtrl.signal;
+              let cover;
+              try {
+                cover = await api.fetchCoverForTitle(String(g.name || searchTitle).trim(), combinedSignal);
+              } finally {
+                clearTimeout(timeoutId);
+              }
               if (cover) g.cover = cover;
 
             }
@@ -1673,7 +1656,7 @@
 
       };
 
-      for (let i = 0; i < 8; i += 1) {
+      for (let i = 0; i < 2; i += 1) {
 
         const did = await runBatch();
 
