@@ -1,3 +1,41 @@
+:root {
+    --safe-top: max(0px, env(safe-area-inset-top));
+    --safe-bottom: max(0px, env(safe-area-inset-bottom));
+
+    --z-content: 1;
+    --z-header: 100;
+    --z-dropdown: 200;
+    --z-drawer-panel: 500;
+    --z-modal: 1000;
+    --z-toast: 2000;
+    --z-max: 9999;
+}
+
+@media (pointer: coarse), (max-width: 768px) {
+    input[type="text"],
+    input[type="search"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="url"],
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+
+    button,
+    .btn,
+    .icon-btn,
+    .mini-btn,
+    .card-menu-btn,
+    .control-modal-close,
+    .modal-close,
+    .zo2y-overlay-close {
+        min-width: 44px;
+        min-height: 44px;
+    }
+}
+
 /* === BUTTONS === */
         .btn {
             padding: 10px 20px;

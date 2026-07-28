@@ -453,6 +453,8 @@
     ensureStyles();
     const input = typeof options?.input === 'string' ? document.querySelector(options.input) : options?.input;
     if (!input) return;
+    if (input.dataset.universalSearchWired === '1') return;
+    input.dataset.universalSearchWired = '1';
     const fallbackRoute = String(options?.fallbackRoute || '').trim();
 
     const dropdownId = 'universalSearchDropdown';

@@ -239,10 +239,10 @@
       return;
     }
 
+    closeMobileDrawer();
     var currentPage = getCurrentPageName();
     if (navPageName === currentPage) return;
 
-    closeMobileDrawer();
     fadeOutAndNavigate(href);
   });
 

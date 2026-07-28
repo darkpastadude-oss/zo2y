@@ -603,16 +603,11 @@ const APP_RUNTIME_VERSION = '20260612c';
   window.addEventListener('DOMContentLoaded', () => {
     document.body.classList.remove('app-booting');
     document.body.classList.add('app-ready');
+    document.body.classList.remove('app-loading');
     initListPopupShell();
     releaseStalePopupLock();
-    window.setTimeout(() => document.body.classList.remove('app-loading'), 180);
     ensureHeaderInstallButton();
   });
-
-  window.setTimeout(() => {
-    document.body?.classList.remove('app-booting');
-    document.body?.classList.add('app-ready');
-  }, 5000);
 
   window.addEventListener('beforeinstallprompt', (event) => {
     deferredInstallPrompt = event;
@@ -641,7 +636,16 @@ const APP_RUNTIME_VERSION = '20260612c';
   window.addEventListener('resize', schedulePopupStateSync, { passive: true });
   window.addEventListener('orientationchange', schedulePopupStateSync, { passive: true });
   window.addEventListener('popstate', schedulePopupStateSync);
-  window.addEventListener('scroll', schedulePopupStateSync, { passive: true });
+  let isScrollSyncScheduled = false;
+  window.addEventListener('scroll', () => {
+    if (!document.querySelector('.list-menu.open, .rail-menu.open, .modal.active, .zo2y-popup-backdrop.active')) return;
+    if (isScrollSyncScheduled) return;
+    isScrollSyncScheduled = true;
+    requestAnimationFrame(() => {
+      isScrollSyncScheduled = false;
+      schedulePopupStateSync();
+    });
+  }, { passive: true });
   document.addEventListener('click', schedulePopupStateSync, { passive: true });
 
   // Prevent focused inputs from dropping button taps on mobile devices
