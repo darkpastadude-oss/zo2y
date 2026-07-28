@@ -463,13 +463,10 @@
 
     try {
       if (isAdding) {
-        var insertResult = await client.from('list_items').insert(payload);
+        var insertResult = await client.from('list_items').upsert(payload,
+          { onConflict: 'user_id,item_id,media_type,list_type', ignoreDuplicates: true });
         if (insertResult && insertResult.error) {
-          if (String(insertResult.error.code || '') === '23505') {
-            // Already in list — treat as success
-          } else {
-            throw insertResult.error;
-          }
+          throw insertResult.error;
         }
         if (window.ListUtils && typeof window.ListUtils.ensureBookRecord === 'function' && mediaType === 'book') {
           await window.ListUtils.ensureBookRecord(client, { id: String(itemId), title: payload.title, image: rawImage, authors: payload.subtitle || _config.subtitle || '' });

@@ -1390,14 +1390,8 @@
       return row;
     });
     if (inserts.length && !missingItemTables.has(cfg.itemsTable)) {
-      const { error: insertError } = await client.from(cfg.itemsTable).insert(inserts);
+      const { error: insertError } = await client.from(cfg.itemsTable).upsert(inserts, { onConflict: 'list_id,media_type,item_id', ignoreDuplicates: true });
       if (insertError) {
-        if (String(insertError.code || '') === '23505') {
-          if (itemPayload) {
-            cacheSavedItemMetadata(type, entityId, itemPayload);
-          }
-          return;
-        }
         throw insertError;
       }
       if (itemPayload) {
@@ -1467,14 +1461,9 @@
       }
       row.image_url = img;
     }
-    const { error } = await client.from(cfg.itemsTable).insert(row);
+    const onConflict = isDefault ? 'user_id,media_type,item_id,list_type' : 'list_id,media_type,item_id';
+    const { error } = await client.from(cfg.itemsTable).upsert(row, { onConflict, ignoreDuplicates: true });
     if (error) {
-      if (String(error.code || '') === '23505') {
-        if (itemPayload) {
-          cacheSavedItemMetadata(type, entityId, itemPayload);
-        }
-        return true;
-      }
       console.error('Error inserting item:', error);
       throw error;
     }

@@ -533,11 +533,28 @@
       if (nextSaved) {
         const { error } = await supabaseClient
           .from('list_items')
-          .insert({ user_id: currentUser.id, item_id: gameId, list_type: listType, media_type: 'game' });
-        if (error) {
-          if (String(error.code || '') === '23505') return;
-          throw error;
-        }
+          .upsert({ user_id: currentUser.id, item_id: gameId, list_type: listType, media_type: 'game' },
+            { onConflict: 'user_id,item_id,media_type,list_type', ignoreDuplicates: true });
+        if (error) throw error;
+
+        try {
+          const _shared = window.__zo2yGamesShared || null;
+          if (_shared && _shared.ensureGameInSupabase) {
+            await _shared.ensureGameInSupabase(supabaseClient, {
+              id: gameId,
+              name: game?.name || game?.title || '',
+              title: game?.name || game?.title || '',
+              slug: game?.slug || '',
+              source: 'igdb',
+              cover: game?.cover || '',
+              cover_url: game?.cover || '',
+              released: game?.released || '',
+              rating: game?.rating || 0,
+              description: game?.description || ''
+            });
+          }
+        } catch (_ensErr) {}
+
         showNotification('Saved to list', 'success');
       } else {
         const { error } = await supabaseClient

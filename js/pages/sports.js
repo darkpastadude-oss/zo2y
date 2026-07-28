@@ -496,10 +496,11 @@
           league: team.league || null, logo_url: getBadge(team),
           stadium: team.stadium || null
         }, { onConflict: 'id' });
-        const { error: insertErr } = await client.from('list_items').insert(
-          { user_id: currentUser.id, media_type: 'sports', item_id: team.id, list_type: 'favorites' }
+        const { error: insertErr } = await client.from('list_items').upsert(
+          { user_id: currentUser.id, media_type: 'sports', item_id: team.id, list_type: 'favorites' },
+          { onConflict: 'user_id,item_id,media_type,list_type', ignoreDuplicates: true }
         );
-        if (insertErr && String(insertErr.code || '') !== '23505') throw insertErr;
+        if (insertErr) throw insertErr;
         favorites.add(team.id);
         showToast('Team saved to your profile.');
       }
