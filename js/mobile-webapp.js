@@ -653,9 +653,9 @@ const APP_RUNTIME_VERSION = '20260612c';
     if (!e.target || typeof e.target.closest !== 'function') return;
     const activeEl = document.activeElement;
     if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
-      const interactiveBtn = e.target.closest('button, .btn, a, [role="button"], .zo2y-popup-close, .menu-modal-close, .bp-close-btn, .bp-back-btn');
+      const interactiveBtn = e.target.closest('button, .btn, a, [role="button"], .zo2y-popup-close, .menu-modal-close, .bp-close-btn, .bp-back-btn, .mph2-toggle-opt');
       if (interactiveBtn && interactiveBtn !== activeEl) {
-        e.preventDefault();
+        activeEl.blur();
       }
     }
   }, { passive: false });

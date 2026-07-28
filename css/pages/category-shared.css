@@ -391,11 +391,11 @@ body.authenticated .authenticated-only { display: block; }
 .card-extra.placeholder { visibility: hidden; }
 
 .card-actions { position: absolute; top: 9px; right: 9px; z-index: 2; display: flex; gap: 0; margin-top: 0; }
-.icon-btn { height: 32px; width: 32px; border-radius: 9px; border: 1px solid var(--border); background: rgba(15,39,72,0.9); color: #d7e8ff; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.icon-btn { height: 34px; width: 34px; border-radius: 9px; border: 1px solid var(--border); background: rgba(15,39,72,0.9); color: #d7e8ff; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; position: relative; flex-shrink: 0; }
 .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
-.card-actions .menu-btn { width: 30px; height: 30px; border-radius: 8px; padding: 0; font-size: inherit; font-weight: inherit; flex-shrink: 0; background: rgba(19, 35, 71, 0.92); color: var(--white); border: 1px solid var(--border); }
-.card-menu-wrap { position: relative; flex-shrink: 0; display: inline-flex; align-items: flex-start; gap: 0; }
-.card-menu-btn { width: 28px; height: 28px; border-radius: 7px; border: 1px solid var(--border); background: rgba(19, 35, 71, 0.92); color: var(--white); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.card-actions .menu-btn { width: 34px; height: 34px; border-radius: 8px; padding: 0; font-size: inherit; font-weight: inherit; flex-shrink: 0; background: rgba(19, 35, 71, 0.92); color: var(--white); border: 1px solid var(--border); position: relative; }
+.card-menu-wrap { position: relative; flex-shrink: 0; display: inline-flex; align-items: flex-start; gap: 0; margin-left: auto; }
+.card-menu-btn { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border); background: rgba(19, 35, 71, 0.92); color: var(--white); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; position: relative; flex-shrink: 0; }
 .card-menu-btn:hover { border-color: var(--accent); color: var(--accent); }
 
 .card-media.brand-cover {

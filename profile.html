@@ -2374,16 +2374,22 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
     // === Mobile V2 Switch ===
     var ProfileV2Mobile = {
+      currentMode: 'media',
       setMode: function(mode) {
+        if (this.currentMode === mode && document.getElementById('mph2Toggle')?.classList.contains('is-initialized')) return;
+        this.currentMode = mode;
         var mediaPanel = document.getElementById('mph2MobileMediaPanel');
         var lifestylePanel = document.getElementById('mph2MobileLifestylePanel');
         var mediaBtn = document.getElementById('mph2ToggleMedia');
         var lifestyleBtn = document.getElementById('mph2ToggleLifestyle');
         var thumb = document.getElementById('mph2ToggleThumb');
+        var toggle = document.getElementById('mph2Toggle');
 
         if (!mediaPanel || !lifestylePanel) return;
+        if (toggle) toggle.classList.add('is-initialized');
 
         if (mode === 'media') {
+          if (toggle) toggle.classList.remove('lifestyle');
           mediaPanel.style.display = '';
           lifestylePanel.style.display = 'none';
           if (mediaBtn) {
@@ -2398,6 +2404,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             thumb.style.transform = 'translateX(0)';
           }
         } else {
+          if (toggle) toggle.classList.add('lifestyle');
           mediaPanel.style.display = 'none';
           lifestylePanel.style.display = '';
           if (lifestyleBtn) {
@@ -2408,11 +2415,37 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             mediaBtn.classList.remove('active');
             mediaBtn.setAttribute('aria-selected', 'false');
           }
-          if (thumb && lifestyleBtn && mediaBtn) {
-            var offset = lifestyleBtn.offsetLeft - mediaBtn.offsetLeft;
+          if (thumb) {
+            var offset = (lifestyleBtn && mediaBtn && lifestyleBtn.offsetLeft > 0)
+              ? (lifestyleBtn.offsetLeft - mediaBtn.offsetLeft)
+              : 106;
             thumb.style.transform = 'translateX(' + offset + 'px)';
           }
         }
+      },
+      init: function() {
+        var mediaBtn = document.getElementById('mph2ToggleMedia');
+        var lifestyleBtn = document.getElementById('mph2ToggleLifestyle');
+        if (!mediaBtn || !lifestyleBtn) return;
+
+        var bindInstantTap = function(btn, mode) {
+          if (btn.dataset.wiredV2 === '1') return;
+          btn.dataset.wiredV2 = '1';
+          var trigger = function(e) {
+            if (e && e.type === 'pointerdown' && e.pointerType === 'mouse' && e.button !== 0) return;
+            if (e && e.cancelable) e.preventDefault();
+            ProfileV2Mobile.setMode(mode);
+          };
+          btn.addEventListener('pointerdown', trigger, { passive: false });
+          btn.addEventListener('touchstart', trigger, { passive: false });
+          btn.addEventListener('click', function(e) {
+            if (e && e.cancelable) e.preventDefault();
+            ProfileV2Mobile.setMode(mode);
+          }, { passive: false });
+        };
+
+        bindInstantTap(mediaBtn, 'media');
+        bindInstantTap(lifestyleBtn, 'lifestyle');
       },
       backToOverview: function() {
         if (window.ProfileManager && window.ProfileManager.backToProfile) {
@@ -2421,6 +2454,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
       }
     };
     window.ProfileV2Mobile = ProfileV2Mobile;
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() { ProfileV2Mobile.init(); });
+    } else {
+      ProfileV2Mobile.init();
+    }
 
     // === Cinematic backdrop banner ===
     function buildBanner(backdropUrls) {

@@ -23,17 +23,72 @@
         font-size: 16px !important;
     }
 
-    button,
     .btn,
-    .icon-btn,
-    .mini-btn,
-    .card-menu-btn,
-    .control-modal-close,
-    .modal-close,
-    .zo2y-overlay-close {
-        min-width: 44px;
+    .zo2y-shared-btn {
         min-height: 44px;
     }
+}
+
+/* === UNIFIED KEBAB & COMPACT ACTION BUTTON UX CONTRACT === */
+.card-menu-btn,
+.travel-card-menu-btn,
+.icon-btn,
+.mini-btn,
+.card-actions .menu-btn,
+.control-modal-close {
+    position: relative;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Expanded invisible hit area (44x44px) without inflating visual size */
+.card-menu-btn::before,
+.travel-card-menu-btn::before,
+.icon-btn::before,
+.mini-btn::before,
+.card-actions .menu-btn::before,
+.control-modal-close::before,
+.spotlight-dot::before,
+.hero-dot::before,
+.carousel-dot::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 44px;
+    min-height: 44px;
+    width: 100%;
+    height: 100%;
+    pointer-events: auto;
+    z-index: 1;
+}
+
+/* === SPOTLIGHT / HERO CAROUSEL DOT INDICATORS === */
+.spotlight-dot,
+.hero-dot,
+.carousel-dot {
+    position: relative;
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    border: 0;
+    background: rgba(255, 255, 255, 0.36);
+    cursor: pointer;
+    transition: transform 0.22s ease, background 0.22s ease, width 0.22s ease;
+    flex-shrink: 0;
+}
+
+.spotlight-dot.active,
+.hero-dot.active,
+.carousel-dot.active {
+    background: var(--accent, #f59e0b);
+    width: 14px;
+    transform: scale(1.1);
 }
 
 /* === BUTTONS === */
