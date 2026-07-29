@@ -126,24 +126,28 @@ export default async function handler(req, res) {
         const uncompress = (url) => String(url).replace(/\/resize\/\d+\/-\//, '/').replace(/\/crop\/\d+\/\d+\//, '/');
 
         const mappedResults = (data.results || []).map(g => {
-          let coverImg = (g.short_screenshots && g.short_screenshots.length > 1) ? g.short_screenshots[1].image : (g.background_image || "");
           const bgRaw = uncompress(g.background_image || "");
           const bgAdditional = uncompress(g.background_image_additional || "");
           const screenshots = (g.short_screenshots || [])
             .filter(s => s && s.image && !s.hidden)
             .map(s => ({ id: s.id, image: uncompress(s.image) }));
+          const bestBg = bgRaw || bgAdditional || "";
+          const fallbackScreenshot = (screenshots.length > 0 ? screenshots[0].image : "");
 
           return {
             id: `rawg_${g.id}`,
             title: g.name,
             slug: g.slug,
             description: "",
-            cover: uncompress(coverImg),
-            hero_url: bgRaw || bgAdditional || uncompress(coverImg),
+            cover: bestBg,
+            cover_url: bestBg,
+            hero_url: bestBg || fallbackScreenshot,
+            hero_background: bestBg,
             background_image: bgRaw,
             background_image_additional: bgAdditional,
             screenshots: screenshots.slice(0, 6),
             firstReleaseDate: g.released,
+            released: g.released,
             rating: g.rating,
             rating_count: g.ratings_count,
             genres: g.genres?.map(gn => ({ id: gn.id, name: gn.name, slug: gn.slug })) || [],
@@ -273,7 +277,7 @@ export default async function handler(req, res) {
         res.setHeader("Cache-Control", "public, max-age=86400, s-maxage=259200");
         return res.json(formatRawgGameResponse(game, `rawg_${game.id}`));
       } catch (e) {
-        return res.status(404).json({ message: "Game not found in RAWG." });
+        // RAWG failed — fall through to Wikipedia/Supabase lookup
       }
     }
 

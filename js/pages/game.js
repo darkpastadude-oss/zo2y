@@ -141,7 +141,7 @@
       : [];
 
     return {
-      poster: normalizeUrl(row?.cover_url || row?.cover || row?.image || '') || steamAppId ? `https://steamcdn-a.akamaihd.net/steam/apps/${String(steamAppId || '').replace(/\D/g, '')}/library_600x900.jpg` : '',
+      poster: normalizeUrl(row?.cover_url || row?.cover || row?.image || '') || (steamAppId ? `https://steamcdn-a.akamaihd.net/steam/apps/${String(steamAppId || '').replace(/\D/g, '')}/library_600x900.jpg` : ''),
       heroBackground: normalizeUrl(stripResizeParams(row?.hero_background || row?.background_image || row?.hero_url || row?.hero || row?.background || '')) || steamHero,
       heroBackgroundSecondary: normalizeUrl(stripResizeParams(row?.hero_background_secondary || row?.background_image_additional || '')),
       screenshots: screenshots.slice(0, 12)
@@ -149,6 +149,7 @@
   }
 
   function resolvePoster(game) {
+    if (game.cover_url && typeof game.cover_url === 'string') return normalizeUrl(game.cover_url);
     if (game.cover && typeof game.cover === 'string') return normalizeUrl(game.cover);
     if (game.cover?.url) return normalizeUrl(game.cover.url);
     if (game.poster) return normalizeUrl(game.poster);

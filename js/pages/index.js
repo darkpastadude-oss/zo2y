@@ -915,8 +915,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     function shouldHomeRetryChannel(key, attempt) {
       const k = String(key || '').trim();
       if (!k) return false;
-      // Focus retries on the rails that historically “lock” after refresh.
-      if (!['travel', 'sports', 'car'].includes(k)) return false;
+      if (!['travel', 'sports', 'car', 'book', 'music', 'fashion', 'food'].includes(k)) return false;
       return Number(attempt || 0) < 4;
     }
 
@@ -9230,7 +9229,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (!Array.isArray(items) || !items.length) return items;
       const broken = items.filter((it) => {
         const img = String(it?.image || '').trim();
-        return !img || img === HOME_GAME_COVER_BROKEN;
+        if (!img || img === HOME_GAME_COVER_BROKEN) return true;
+        const bg = String(it?.backgroundImage || it?.heroBackground || '').trim();
+        if (bg && img === bg) return true;
+        return false;
       });
       if (!broken.length) return items;
       const fixed = new Map();
@@ -9898,10 +9900,16 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
     async function loadBooks(signal) {
       const targetCount = Math.max(4, Math.min(16, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS)));
+      const cached = readHomeItemsCache(HOME_BOOKS_ITEMS_CACHE_KEY, HOME_BOOKS_ITEMS_CACHE_MAX_AGE_MS,
+        (item) => (item && item.title && item.image) ? item : null
+      );
       try {
         const url = '/api/books/popular?limit=' + (targetCount * 5);
         const res = await fetch(url, { signal });
-        if (!res.ok) return [];
+        if (!res.ok) {
+          if (cached.length) return shuffleArray(cached).slice(0, targetCount);
+          return [];
+        }
         const data = await res.json();
         const books = Array.isArray(data.books) ? data.books : [];
         const normalized = books.map(b => (window.normalizeBook ? window.normalizeBook(b) : b)).filter(Boolean);
@@ -9910,8 +9918,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           const rawCover = String(item?.rawCover || '').trim();
           const proxyCover = String(item?.image || item?.cover || '').trim();
           const image = rawCover || proxyCover;
-          const fallbackChain = [];
-          if (proxyCover && proxyCover !== rawCover) fallbackChain.push(proxyCover);
           return {
             mediaType: 'book',
             itemId: item.id || item.providerId || '',
@@ -9919,31 +9925,36 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             subtitle: String(item?.subtitle || item?.author || '').trim() || 'Book',
             image,
             fallbackImage: proxyCover || '',
-            fallbackChain,
             href: 'book.html?id=' + encodeURIComponent(item.id || item.providerId || '')
           };
         });
         const broken = items.filter((it) => !isImageUrlReachable(it.image));
         if (broken.length) {
-          await Promise.allSettled(broken.map(async (it) => {
+          const queries = broken.map((it) => it.title).filter(Boolean).slice(0, 8);
+          if (queries.length) {
             try {
-              const q = encodeURIComponent(it.title);
-              const res2 = await fetch('/api/books/search?limit=1&q=' + q, { signal });
-              if (!res2.ok) return;
-              const d2 = await res2.json();
-              const b2 = Array.isArray(d2.books) ? d2.books[0] : null;
-              if (!b2) return;
-              const n2 = window.normalizeBook ? window.normalizeBook(b2) : b2;
-              const newImg = String(n2?.image || '').trim();
-              if (isImageUrlReachable(newImg)) {
-                it.image = newImg;
-                it.fallbackImage = it.fallbackImage || newImg;
+              const batchRes = await fetch('/api/books/search?limit=' + queries.length + '&q=' + encodeURIComponent(queries.join(' ')), { signal });
+              if (batchRes.ok) {
+                const batchData = await batchRes.json();
+                const batchBooks = Array.isArray(batchData.books) ? batchData.books : [];
+                for (let i = 0; i < broken.length && i < batchBooks.length; i++) {
+                  const nb = window.normalizeBook ? window.normalizeBook(batchBooks[i]) : batchBooks[i];
+                  const newImg = String(nb?.image || '').trim();
+                  if (isImageUrlReachable(newImg)) {
+                    broken[i].image = newImg;
+                    broken[i].fallbackImage = broken[i].fallbackImage || newImg;
+                  }
+                }
               }
             } catch (_e) {}
-          }));
+          }
         }
+        if (items.length) writeHomeItemsCache(HOME_BOOKS_ITEMS_CACHE_KEY, items);
         return items;
-      } catch (_) { return []; }
+      } catch (_) {
+        if (cached.length) return shuffleArray(cached).slice(0, targetCount);
+        return [];
+      }
     }
 
     function hasExistingRealItemsInFeed() {

@@ -1580,7 +1580,13 @@
 
         const candidates = state.games
 
-          .filter((g) => !g.cover || g.cover === FALLBACK_IMAGE)
+          .filter((g) => {
+            if (!g.cover || g.cover === FALLBACK_IMAGE) return true;
+            const cover = String(g.cover || '');
+            const bg = String(g.background_image || g.hero_url || '');
+            if (bg && cover === bg) return true;
+            return false;
+          })
 
           .filter((g) => {
 

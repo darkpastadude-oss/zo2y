@@ -241,18 +241,10 @@ async function loadBooks(append) {
             }
           }
         } else {
-          const [r1, r2] = await Promise.all([
-            fetchPage(0, 100),
-            fetchPage(100, 100)
-          ]);
-          if (abort.signal.aborted) return;
-          if (r1 && r1.items && r1.items.length) {
+          const r1 = await fetchPage(0, 200);
+          if (!abort.signal.aborted && r1 && r1.items && r1.items.length) {
             poolBooks = poolBooks.concat(r1.items);
             total = r1.total || poolBooks.length;
-          }
-          if (r2 && r2.items && r2.items.length) {
-            poolBooks = poolBooks.concat(r2.items);
-            if (r2.total > total) total = r2.total;
           }
         }
 
@@ -489,15 +481,15 @@ function wireEvents() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const genreSelect = document.getElementById("genre");
   if (genreSelect) {
     const genres = ["", "fiction", "fantasy", "romance", "thriller", "mystery", "science fiction", "young adult", "horror", "contemporary", "memoir", "biography", "poetry", "adventure", "dystopia"];
     genreSelect.innerHTML = genres.map(g => `<option value="${g}">${g ? g.charAt(0).toUpperCase() + g.slice(1) : "All Genres"}</option>`).join("");
   }
   wireEvents();
-  initAuthUi().then(async () => {
-    await loadBooks(false);
-    setupInfiniteScroll();
-  });
+  const authPromise = initAuthUi();
+  await loadBooks(false);
+  await authPromise;
+  setupInfiniteScroll();
 });
