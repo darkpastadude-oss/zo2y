@@ -413,10 +413,22 @@
     const HOME_BOOKS_FETCH_TIMEOUT_MS = 2200;
     const HOME_LOCAL_FALLBACK_IMAGE = '/newlogo.webp';
     const HOME_GAMES_FALLBACK_ITEMS = [
-      { id: '12766', title: 'Elden Ring: Shadow of the Erdtree', release: '2026-06-21', cover: '/newlogo.webp' },
-      { id: '26192', title: 'Hollow Knight: Silksong', release: '2026-02-14', cover: '/newlogo.webp' },
-      { id: '1877', title: 'Grand Theft Auto VI', release: '2026-11-09', cover: '/newlogo.webp' },
-      { id: '7346', title: 'Monster Hunter Wilds', release: '2026-03-15', cover: '/newlogo.webp' }
+      { id: 'rawg_3498', title: 'Grand Theft Auto V', release: '2013-09-17', cover: 'https://steamcdn-a.akamaihd.net/steam/apps/271590/library_600x900.jpg', steam_appid: '271590' },
+      { id: 'rawg_3328', title: 'The Witcher 3: Wild Hunt', release: '2015-05-18', cover: 'https://steamcdn-a.akamaihd.net/steam/apps/292030/library_600x900.jpg', steam_appid: '292030' },
+      { id: 'rawg_326243', title: 'Elden Ring', release: '2022-02-25', cover: 'https://steamcdn-a.akamaihd.net/steam/apps/1245620/library_600x900.jpg', steam_appid: '1245620' },
+      { id: 'rawg_324997', title: 'Baldur\'s Gate 3', release: '2023-08-03', cover: 'https://steamcdn-a.akamaihd.net/steam/apps/1086940/library_600x900.jpg', steam_appid: '1086940' },
+      { id: 'rawg_41494', title: 'Cyberpunk 2077', release: '2020-12-10', cover: 'https://steamcdn-a.akamaihd.net/steam/apps/1091500/library_600x900.jpg', steam_appid: '1091500' },
+      { id: 'rawg_28', title: 'Red Dead Redemption 2', release: '2018-10-26', cover: 'https://steamcdn-a.akamaihd.net/steam/apps/1174180/library_600x900.jpg', steam_appid: '1174180' },
+      { id: 'rawg_58175', title: 'God of War', release: '2018-04-20', cover: 'https://steamcdn-a.akamaihd.net/steam/apps/1593500/library_600x900.jpg', steam_appid: '1593500' },
+      { id: 'rawg_4200', title: 'Portal 2', release: '2011-04-18', cover: 'https://steamcdn-a.akamaihd.net/steam/apps/620/library_600x900.jpg', steam_appid: '620' },
+      { id: 'rawg_5679', title: 'The Elder Scrolls V: Skyrim', release: '2011-11-11', cover: 'https://steamcdn-a.akamaihd.net/steam/apps/489830/library_600x900.jpg', steam_appid: '489830' },
+      { id: 'rawg_4286', title: 'BioShock Infinite', release: '2013-03-25', cover: 'https://steamcdn-a.akamaihd.net/steam/apps/8870/library_600x900.jpg', steam_appid: '8870' },
+      { id: 'rawg_685577', title: 'Vampire Survivors', release: '2022-10-20', cover: 'https://steamcdn-a.akamaihd.net/steam/apps/1794680/library_600x900.jpg', steam_appid: '1794680' },
+      { id: 'rawg_452638', title: 'Stray', release: '2022-07-19', cover: 'https://steamcdn-a.akamaihd.net/steam/apps/1332010/library_600x900.jpg', steam_appid: '1332010' },
+      { id: 'rawg_12766', title: 'Elden Ring: Shadow of the Erdtree', release: '2024-06-21', cover: 'https://steamcdn-a.akamaihd.net/steam/apps/2778580/library_600x900.jpg', steam_appid: '2778580' },
+      { id: 'rawg_26192', title: 'Hollow Knight: Silksong', release: '2025-02-14', cover: 'https://steamcdn-a.akamaihd.net/steam/apps/1030300/library_600x900.jpg', steam_appid: '1030300' },
+      { id: 'rawg_1877', title: 'Grand Theft Auto VI', release: '2025-11-09', cover: 'https://steamcdn-a.akamaihd.net/steam/apps/271590/library_600x900.jpg', steam_appid: '271590' },
+      { id: 'rawg_7346', title: 'Monster Hunter Wilds', release: '2025-02-28', cover: 'https://steamcdn-a.akamaihd.net/steam/apps/2246340/library_600x900.jpg', steam_appid: '2246340' }
     ];
     const SPOTLIGHT_ROTATE_MS = 5000;
     const HOME_CHANNEL_TARGET_ITEMS = 10;
@@ -9354,8 +9366,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           };
           const currentYear = new Date().getFullYear();
           const requests = [
-            { ...baseParams, page: 1, min_rating_count: 50, dates: `${currentYear-1}-01-01,${currentYear+1}-12-31` },
-            { ...baseParams, page: 2, min_rating_count: 50, dates: `${currentYear-1}-01-01,${currentYear+1}-12-31` }
+            { ...baseParams, page: 1, dates: `${currentYear-1}-01-01,${currentYear}-12-31`, ordering: '-added' },
+            { ...baseParams, page: 2, dates: `${currentYear-1}-01-01,${currentYear}-12-31`, ordering: '-added' }
           ];
           const merged = [];
           const seen = new Set();

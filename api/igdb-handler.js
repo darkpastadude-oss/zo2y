@@ -70,8 +70,8 @@ export default async function handler(req, res) {
   const pathParts = readPathParts(query);
   const section = String(pathParts[0] || "").trim().toLowerCase();
   
-  // Grab the RAWG key from env
-  const RAWG_API_KEY = req.env?.RAWG_API_KEY || globalThis.process?.env?.RAWG_API_KEY || "";
+  // Grab the RAWG key from env or fallback
+  const RAWG_API_KEY = req.env?.RAWG_API_KEY || globalThis.process?.env?.RAWG_API_KEY || "83b2a55ac54c4c1db7099212e740f680";
 
   if (!section) {
     return res.json({

@@ -28,19 +28,19 @@
 
   const RAWGProvider = {
     async fetchTrending({ sort = 'popular', page = 1, pageSize = 40, signal }) {
-      const todayStr = new Date().toISOString().split('T')[0];
+      const currentYear = new Date().getFullYear();
       let ordering = '-added';
-      let datesParam = `&dates=2022-01-01,${todayStr}`;
+      let datesParam = `&dates=${currentYear-1}-01-01,${currentYear}-12-31`;
       
       if (sort === 'released') {
         ordering = '-released';
-        datesParam = `&dates=2023-01-01,${todayStr}`;
+        datesParam = `&dates=${currentYear-1}-01-01,${currentYear}-12-31`;
       } else if (sort === 'rating') {
         ordering = '-rating';
-        datesParam = `&dates=2020-01-01,${todayStr}`;
+        datesParam = `&dates=${currentYear-1}-01-01,${currentYear}-12-31`;
       } else if (sort === 'name') {
         ordering = 'name';
-        datesParam = '';
+        datesParam = `&dates=${currentYear-1}-01-01,${currentYear}-12-31`;
       }
 
       const url = `/api/igdb/games?page=${page}&page_size=${pageSize}&ordering=${encodeURIComponent(ordering)}${datesParam}`;
@@ -83,7 +83,7 @@
     }
   };
 
-  const ENABLE_SUPABASE_GAMES_TABLE = false;
+  const ENABLE_SUPABASE_GAMES_TABLE = true;
 
   const SupabaseProvider = {
     async getClient() {
@@ -231,16 +231,19 @@
         const raw = localStorage.getItem('__ZO2Y_GAMES_TRENDING_PAGE1_V2');
         if (!raw) return null;
         const parsed = JSON.parse(raw);
-        if (Date.now() - (parsed.timestamp || 0) < 21600000) {
-          return parsed.data || null;
+        // Only accept cache if it has at least 8 items and is less than 1 hour old
+        if (Array.isArray(parsed?.data) && parsed.data.length >= 8 && (Date.now() - (parsed.timestamp || 0) < 3600000)) {
+          return parsed.data;
         }
+        // Bust stale/sparse cache
+        localStorage.removeItem('__ZO2Y_GAMES_TRENDING_PAGE1_V2');
       } catch (_e) {}
       return null;
     },
 
     setCachedTrending(data) {
       try {
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data) && data.length >= 8) {
           localStorage.setItem('__ZO2Y_GAMES_TRENDING_PAGE1_V2', JSON.stringify({
             timestamp: Date.now(),
             data: data.slice(0, 40)
@@ -327,26 +330,53 @@
     },
 
     async fetchTrending({ sort = 'popular', page = 1, pageSize = 40, signal } = {}) {
+      function shuffleArray(list) {
+        const arr = (list || []).slice();
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+      }
+
       if (page === 1 && sort === 'popular') {
         const cached = this.getCachedTrending();
-        if (cached && cached.length) {
+        if (cached && cached.length >= 8) {
           // Revalidate in background
           RAWGProvider.fetchTrending({ sort, page, pageSize }).then(raw => {
             const normalized = raw.map(g => this.normalize(g)).filter(Boolean);
-            if (normalized.length) this.setCachedTrending(normalized);
+            if (normalized.length >= 8) this.setCachedTrending(normalized);
           }).catch(() => {});
-          return cached;
+          return shuffleArray(cached);
         }
       }
 
-      const rawgGames = await RAWGProvider.fetchTrending({ sort, page, pageSize, signal });
-      const rawgNormalized = rawgGames.map(g => this.normalize(g)).filter(Boolean);
+      let rawgGames = await RAWGProvider.fetchTrending({ sort, page, pageSize, signal });
+      let rawgNormalized = (rawgGames || []).map(g => this.normalize(g)).filter(Boolean);
 
-      if (page === 1 && sort === 'popular' && rawgNormalized.length) {
+      // Fallback to local Supabase database if RAWG returns fewer than 8 items
+      if (rawgNormalized.length < 8) {
+        try {
+          const localRows = await SupabaseProvider.fetchLocalGames({ sort, limit: pageSize });
+          const localNormalized = (localRows || []).map(g => this.normalize(g)).filter(Boolean);
+          if (localNormalized.length) {
+            const seen = new Set(rawgNormalized.map(g => String(g.id || g.title).toLowerCase()));
+            localNormalized.forEach(g => {
+              const key = String(g.id || g.title).toLowerCase();
+              if (key && !seen.has(key)) {
+                seen.add(key);
+                rawgNormalized.push(g);
+              }
+            });
+          }
+        } catch (_e) {}
+      }
+
+      if (page === 1 && sort === 'popular' && rawgNormalized.length >= 8) {
         this.setCachedTrending(rawgNormalized);
       }
 
-      return rawgNormalized;
+      return shuffleArray(rawgNormalized);
     },
 
     async search(query, signal) {
