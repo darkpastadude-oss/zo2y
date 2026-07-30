@@ -992,6 +992,11 @@
   }
 
   async function fetchWikiHeroBackdrop(brand) {
+    // 1. Prioritize official Brandfetch banner artwork FIRST
+    const bfBanner = await fetchBrandfetchBanner(brand);
+    if (bfBanner) return bfBanner;
+
+    // 2. Check pre-curated brand_covers.json database
     const covers = await getBrandCovers();
     const keyId = String(brand.id || '').trim();
     const keySlug = String(brand.slug || '').trim().toLowerCase();
@@ -1002,9 +1007,6 @@
     if (keySlug && covers[keySlug]) return covers[keySlug];
     if (keyDomain && covers[keyDomain]) return covers[keyDomain];
     if (keyName && covers[keyName]) return covers[keyName];
-
-    const bfBanner = await fetchBrandfetchBanner(brand);
-    if (bfBanner) return bfBanner;
 
     const wikiTitle = brand.wiki?.title || brand.name;
     if (wikiTitle) {
