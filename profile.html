@@ -1884,53 +1884,31 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             
             <form id="editProfileForm" onsubmit="event.preventDefault(); ProfileManager.saveProfileChanges();">
                 <div class="modal-body">
-                    <div class="edit-profile-modal-wrap">
-                        <!-- Navigation Tabs -->
-                        <div class="edit-profile-tabs" role="tablist">
-                            <button type="button" class="edit-profile-tab active" data-tab="profile" onclick="ProfileManager.switchEditTab('profile')">
-                                <i class="fas fa-user"></i> Profile
-                            </button>
-                            <button type="button" class="edit-profile-tab" data-tab="privacy" onclick="ProfileManager.switchEditTab('privacy')">
-                                <i class="fas fa-shield-alt"></i> Privacy
-                            </button>
-                        </div>
-
-                        <!-- Tab Contents -->
-                        <div class="edit-profile-tab-content">
-                            <!-- Tab 1: Profile -->
-                            <div class="edit-tab-pane active" id="editTabProfile">
-                                <div class="form-group">
-                                    <label class="form-label">Username</label>
-                                    <input type="text" class="form-input" id="editUsername" maxlength="30" placeholder="username" autocomplete="username" autocapitalize="off" spellcheck="false" required>
-                                    <small class="text-muted d-block mt-4">3-30 letters, numbers, or underscores. No spaces.</small>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Bio</label>
-                                    <textarea class="form-textarea" id="editBio" rows="3" placeholder="Tell us what media you love..."></textarea>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Location</label>
-                                    <input type="text" class="form-input" id="editLocation" placeholder="Your city or region">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Custom Badges</label>
-                                    <input type="text" class="form-input" id="editCustomBadges" placeholder="Comma separated badges (e.g., Collector, Top Critic)">
-                                    <small class="text-muted d-block mt-4">Automatic milestone badges are added based on activity.</small>
-                                </div>
-                            </div>
-
-                            <!-- Tab 2: Privacy -->
-                            <div class="edit-tab-pane" id="editTabPrivacy">
-                                <div class="form-group">
-                                    <label class="form-label">Account Visibility</label>
-                                    <div class="mt-8">
-                                        <label class="d-flex align-items-center gap-8">
-                                            <input type="checkbox" id="editIsPrivate"> Private Account
-                                        </label>
-                                        <small class="text-muted d-block mt-4">Private accounts require approval for followers to see your profile details.</small>
-                                    </div>
-                                </div>
-                            </div>
+                    <div class="form-group">
+                        <label class="form-label">Username</label>
+                        <input type="text" class="form-input" id="editUsername" maxlength="30" placeholder="username" autocomplete="username" autocapitalize="off" spellcheck="false" required>
+                        <small class="text-muted d-block mt-4">3-30 letters, numbers, or underscores. No spaces.</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Bio</label>
+                        <textarea class="form-textarea" id="editBio" rows="3" placeholder="Tell us what media you love..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Location</label>
+                        <input type="text" class="form-input" id="editLocation" placeholder="Your city or region">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Custom Badges</label>
+                        <input type="text" class="form-input" id="editCustomBadges" placeholder="Comma separated badges (e.g., Collector, Top Critic)">
+                        <small class="text-muted d-block mt-4">Automatic milestone badges are added based on activity.</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Privacy</label>
+                        <div class="mt-8">
+                            <label class="d-flex align-items-center gap-8">
+                                <input type="checkbox" id="editIsPrivate"> Private Account
+                            </label>
+                            <small class="text-muted d-block mt-4">Private accounts require approval for followers to see your profile details.</small>
                         </div>
                     </div>
 
