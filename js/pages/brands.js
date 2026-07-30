@@ -251,23 +251,12 @@
       params.set('mode', 'logo');
       return '/api/logo?' + params.toString();
     }
-    const title = String(name || '').trim();
-    if (title) {
-      const params = new URLSearchParams();
-      params.set('title', title);
-      const dRaw = String(domain || '').trim();
-      if (dRaw) params.set('domain', dRaw);
-      params.set('mode', 'logo');
-      return '/api/logo?' + params.toString();
+    if (!dRaw) return '';
+    if (/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(dRaw)) {
+      return '/api/logo?domain=' + encodeURIComponent(dRaw) + '&size=128&mode=logo';
     }
-    const domainRaw = String(domain || '').trim();
-    const candidate = domainRaw;
-    if (!candidate) return '';
-    if (/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(candidate)) {
-      return '/api/logo?domain=' + encodeURIComponent(candidate) + '&size=128&mode=logo';
-    }
-    if (/^https?:\/\//i.test(candidate)) {
-      const match = candidate.match(/\/\/([^\/\?]+)/i);
+    if (/^https?:\/\//i.test(dRaw)) {
+      const match = dRaw.match(/\/\/([^\/\?]+)/i);
       if (match && match[1]) return '/api/logo?domain=' + encodeURIComponent(match[1]) + '&size=128&mode=logo';
       return candidate;
     }
