@@ -129,10 +129,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="pv2-identity">
                         <div class="pv2-name" id="profileName">Loading...</div>
                         <div class="pv2-username" id="profileUsername">@username</div>
+                        <!-- Bio -->
                         <div class="pv2-bio" id="profileBio">No bio yet. Click edit to add one!</div>
-
-                        <!-- Featured Showcase Strip (Visual Cover Badges) -->
-                        <div class="pv2-featured-showcase" id="profileFeaturedShowcase"></div>
 
                         <div class="pv2-meta">
                             <span class="pv2-meta-item"><i class="fas fa-map-marker-alt"></i> <span id="profileLocation">—</span></span>
@@ -1892,9 +1890,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                             <button type="button" class="edit-profile-tab active" data-tab="profile" onclick="ProfileManager.switchEditTab('profile')">
                                 <i class="fas fa-user"></i> Profile
                             </button>
-                            <button type="button" class="edit-profile-tab" data-tab="showcase" onclick="ProfileManager.switchEditTab('showcase')">
-                                <i class="fas fa-star"></i> Showcase
-                            </button>
                             <button type="button" class="edit-profile-tab" data-tab="privacy" onclick="ProfileManager.switchEditTab('privacy')">
                                 <i class="fas fa-shield-alt"></i> Privacy
                             </button>
@@ -1924,37 +1919,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                 </div>
                             </div>
 
-<!-- Tab 3: Showcase -->
-<div class="edit-tab-pane" id="editTabShowcase">
-                                <p class="text-muted small mb-16">Pick your absolute top favorite titles to display as visual cover badges directly below your bio.</p>
-                                
-                                <div class="form-group">
-                                    <label class="form-label"><i class="fas fa-film text-accent"></i> Favorite Movie</label>
-                                    <select class="form-input" id="editShowcaseMovie" onchange="ProfileManager.updateShowcasePreview('movie', this.value)">
-                                        <option value="">None Selected</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label"><i class="fas fa-gamepad text-accent"></i> Favorite Game</label>
-                                    <select class="form-input" id="editShowcaseGame" onchange="ProfileManager.updateShowcasePreview('game', this.value)">
-                                        <option value="">None Selected</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label"><i class="fas fa-book text-accent"></i> Favorite Book</label>
-                                    <select class="form-input" id="editShowcaseBook" onchange="ProfileManager.updateShowcasePreview('book', this.value)">
-                                        <option value="">None Selected</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label"><i class="fas fa-music text-accent"></i> Favorite Album</label>
-                                    <select class="form-input" id="editShowcaseMusic" onchange="ProfileManager.updateShowcasePreview('music', this.value)">
-                                        <option value="">None Selected</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <!-- Tab 4: Privacy -->
+                            <!-- Tab 2: Privacy -->
                             <div class="edit-tab-pane" id="editTabPrivacy">
                                 <div class="form-group">
                                     <label class="form-label">Account Visibility</label>
@@ -2169,11 +2134,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <form id="accountPasswordForm" class="mb-18">
                     <div class="form-group">
                         <label class="form-label" for="settingsNewPassword">Change password</label>
-                        <input type="password" class="form-input" id="settingsNewPassword" minlength="8" placeholder="New password (min 8 chars)" autocomplete="new-password" required>
+                        <input type="password" class="form-input" id="settingsNewPassword" minlength="12" placeholder="New password (min 12 chars)" autocomplete="new-password" required>
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="settingsConfirmPassword">Confirm new password</label>
-                        <input type="password" class="form-input" id="settingsConfirmPassword" minlength="8" placeholder="Confirm new password" autocomplete="new-password" required>
+                        <input type="password" class="form-input" id="settingsConfirmPassword" minlength="12" placeholder="Confirm new password" autocomplete="new-password" required>
                     </div>
                     <button type="submit" class="btn btn-primary w-100">
                         <i class="fas fa-lock"></i> Update Password
