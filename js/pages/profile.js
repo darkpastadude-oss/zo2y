@@ -10807,8 +10807,13 @@ const alreadyActive = isMobile
                 e.preventDefault();
                 const password = String(document.getElementById('settingsNewPassword')?.value || '');
                 const confirm = String(document.getElementById('settingsConfirmPassword')?.value || '');
-                if (password.length < 12) {
-                    showToast('Password must be at least 12 characters', 'error');
+                let classes = 0;
+                if (/[a-z]/.test(password)) classes += 1;
+                if (/[A-Z]/.test(password)) classes += 1;
+                if (/[0-9]/.test(password)) classes += 1;
+                if (/[^A-Za-z0-9]/.test(password)) classes += 1;
+                if (password.length < 12 || classes < 3) {
+                    showToast('Password must be at least 12 characters and include a mix of uppercase, lowercase, numbers, or symbols', 'error');
                     return;
                 }
                 if (password !== confirm) {

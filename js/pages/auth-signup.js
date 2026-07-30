@@ -245,9 +245,14 @@
       return;
     }
 
-    if (password.length < 12) {
-      showError('Password must be at least 12 characters.');
-      track('signup_validation_error', { reason: 'password_short', path: window.location.pathname });
+    var classes = 0;
+    if (/[a-z]/.test(password)) classes += 1;
+    if (/[A-Z]/.test(password)) classes += 1;
+    if (/[0-9]/.test(password)) classes += 1;
+    if (/[^A-Za-z0-9]/.test(password)) classes += 1;
+    if (password.length < 12 || classes < 3) {
+      showError('Password must be at least 12 characters and include a mix of uppercase, lowercase, numbers, or symbols.');
+      track('signup_validation_error', { reason: 'password_weak', path: window.location.pathname });
       return;
     }
 
