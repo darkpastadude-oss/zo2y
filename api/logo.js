@@ -1243,21 +1243,11 @@ const MANUAL_LOGO_OVERRIDES = new Map([
   ['domain:zenith-watches.com', 'Zenith_logo.svg']
 ]);
 
-function normalizeCommonsLogo(value, size) {
-  const raw = String(value || '').trim();
-  if (!raw) return '';
-  if (raw.startsWith('/')) return raw;
-  if (raw.includes('Special:FilePath/')) {
-    const url = raw.split('?')[0];
-    return `${url}?width=${Number.isFinite(size) ? size : 256}`;
-  }
-  if (raw.startsWith('http')) {
-    if (!/wikimedia|wikipedia/i.test(raw)) return raw;
-    const parts = raw.split('/');
-    const filename = parts[parts.length - 1];
-    return toCommonsFilePath(filename, size);
-  }
-  return toCommonsFilePath(raw, size);
+function normalizeCommonsLogo(raw, size) {
+  const str = String(raw || '').trim();
+  if (!str) return '';
+  if (str.startsWith('http') || str.startsWith('/')) return str;
+  return toCommonsFilePath(str, size);
 }
 
 function getManualLogoOverride(title, domain, size) {
