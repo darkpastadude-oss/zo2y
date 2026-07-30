@@ -229,7 +229,10 @@
 
   function resolveLogo(value, domain, name) {
     const direct = String(value || '').trim();
-    if (direct) {
+    const title = String(name || '').trim();
+    const dRaw = String(domain || '').trim();
+
+    if (direct && !direct.includes('/storage/v1/object/public/brand-logos/')) {
       if (/^https?:\/\//i.test(direct) || direct.startsWith('data:')) {
         let url = direct;
         if (url.indexOf('data:') !== 0 && url.indexOf('?') === -1) url += '?v=' + LOGO_CACHE_BUST;
@@ -240,8 +243,8 @@
         if (url.indexOf('?') === -1) url += '?v=' + LOGO_CACHE_BUST;
         return url;
       }
-      const title = String(name || '').trim();
-      const dRaw = String(domain || '').trim();
+    }
+    if (title || dRaw) {
       const params = new URLSearchParams();
       if (title) params.set('title', title);
       if (dRaw) params.set('domain', dRaw);
