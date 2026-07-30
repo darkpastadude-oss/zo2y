@@ -993,41 +993,54 @@
 
   async function fetchWikiHeroBackdrop(brand) {
     const covers = await getBrandCovers();
-    if (brand.id && covers[brand.id]) {
-      return covers[brand.id];
-    }
+    const keyId = String(brand.id || '').trim();
+    const keySlug = String(brand.slug || '').trim().toLowerCase();
+    const keyDomain = String(brand.domain || '').trim().toLowerCase();
+    const keyName = String(brand.name || '').trim().toLowerCase();
+
+    if (keyId && covers[keyId]) return covers[keyId];
+    if (keySlug && covers[keySlug]) return covers[keySlug];
+    if (keyDomain && covers[keyDomain]) return covers[keyDomain];
+    if (keyName && covers[keyName]) return covers[keyName];
 
     const bfBanner = await fetchBrandfetchBanner(brand);
     if (bfBanner) return bfBanner;
 
     const wikiTitle = brand.wiki?.title || brand.name;
-    if (!wikiTitle) return "";
+    if (wikiTitle) {
+      const url = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(wikiTitle)}&generator=images&gimlimit=50&prop=imageinfo&iiprop=url|size&iiurlwidth=1200&format=json&origin=*`;
+      try {
+        const res = await fetch(url);
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.query?.pages) {
+            const candidates = [];
+            Object.values(data.query.pages).forEach((p) => {
+              const info = p.imageinfo && p.imageinfo[0];
+              if (info && (info.thumburl || info.url)) {
+                candidates.push({
+                  title: p.title,
+                  url: info.thumburl || info.url,
+                  width: info.thumbwidth || info.width || 0,
+                  height: info.thumbheight || info.height || 0,
+                });
+              }
+            });
 
-    const url = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(wikiTitle)}&generator=images&gimlimit=50&prop=imageinfo&iiprop=url|size&iiurlwidth=1200&format=json&origin=*`;
-    try {
-      const res = await fetch(url);
-      if (!res.ok) return "";
-      const data = await res.json();
-      if (!data?.query?.pages) return "";
-
-      const candidates = [];
-      Object.values(data.query.pages).forEach((p) => {
-        const info = p.imageinfo && p.imageinfo[0];
-        if (info && (info.thumburl || info.url)) {
-          candidates.push({
-            title: p.title,
-            url: info.thumburl || info.url,
-            width: info.thumbwidth || info.width || 0,
-            height: info.thumbheight || info.height || 0,
-          });
+            const best = selectBestHeroImage(candidates, brandType);
+            if (best && best.url) return best.url;
+          }
         }
-      });
-
-      const best = selectBestHeroImage(candidates, brandType);
-      return best ? best.url : "";
-    } catch (_e) {
-      return "";
+      } catch (_e) {}
     }
+
+    const CATEGORY_PHOTO_BACKDROPS = {
+      food: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=2074&auto=format&fit=crop",
+      car: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=2070&auto=format&fit=crop",
+      fashion: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=2070&auto=format&fit=crop"
+    };
+    const bType = String(brandType || 'food').toLowerCase();
+    return CATEGORY_PHOTO_BACKDROPS[bType] || CATEGORY_PHOTO_BACKDROPS.food;
   }
 
   let brandHeroConfig = null;
