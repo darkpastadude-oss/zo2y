@@ -1651,7 +1651,7 @@
   async function repairBookListItems(client, items) {
     if (!client || !Array.isArray(items) || !items.length) return items;
     const needsRepair = items.filter(function (it) {
-      return !it.title || !it.image_url || it.title === 'Untitled';
+      return !it.title || !it.image_url || it.title === 'Untitled' || it.image_url === '/images/fallback/book.svg';
     });
     if (!needsRepair.length) return items;
     const ids = needsRepair.map(function (it) { return String(it.item_id || '').trim(); }).filter(Boolean);
@@ -1679,19 +1679,22 @@
             var bInfo = (apiData && apiData.books && apiData.books[0]) ? apiData.books[0] : (apiData && apiData.book ? apiData.book : apiData);
             var normTitle = String(bInfo?.title || bInfo?.name || '').trim();
             var normAuthors = Array.isArray(bInfo?.authors) ? bInfo.authors.join(', ') : String(bInfo?.authors || bInfo?.author || bInfo?.subtitle || '').trim();
-            var normImage = String(bInfo?.image || bInfo?.cover || bInfo?.thumbnail || '').trim();
+            var rawImg = String(bInfo?.image || bInfo?.cover || bInfo?.thumbnail || bInfo?.rawCover || '').trim();
+            var existingRecord = bookMap.get(fetchId);
+            var existingImg = existingRecord ? String(existingRecord.thumbnail || '').trim() : '';
+            var finalImg = (rawImg && rawImg !== '/images/fallback/book.svg') ? rawImg : (existingImg || '');
             if (normTitle && normTitle !== 'Untitled') {
-              var repairedObj = { id: fetchId, title: normTitle, thumbnail: normImage, authors: normAuthors };
+              var repairedObj = { id: fetchId, title: normTitle, thumbnail: finalImg, authors: normAuthors };
               bookMap.set(fetchId, repairedObj);
               // Self-heal Supabase books table
               client.from('books').upsert({
                 id: fetchId,
                 title: normTitle,
                 authors: normAuthors || null,
-                thumbnail: normImage || null
+                thumbnail: finalImg || null
               }, { onConflict: 'id', ignoreDuplicates: false }).then(function() {}).catch(function() {});
               // Sync cached metadata
-              cacheSavedItemMetadata('book', fetchId, { name: normTitle, image: normImage, subtitle: normAuthors });
+              cacheSavedItemMetadata('book', fetchId, { name: normTitle, image: finalImg, subtitle: normAuthors });
             }
           }
         } catch (_e) {}
@@ -1704,11 +1707,11 @@
       var book = bookMap.get(bookId);
       var patched = Object.assign({}, it);
       if ((!patched.title || patched.title === 'Untitled') && book && book.title && book.title !== 'Untitled') patched.title = book.title;
-      if (!patched.image_url && book && book.thumbnail) patched.image_url = book.thumbnail;
+      if ((!patched.image_url || patched.image_url === '/images/fallback/book.svg') && book && book.thumbnail && book.thumbnail !== '/images/fallback/book.svg') patched.image_url = book.thumbnail;
       if (!patched.subtitle && book && book.authors) patched.subtitle = book.authors;
       if (!patched.title) patched.title = 'Untitled';
       if (!patched.image_url) patched.image_url = '/images/fallback/book.svg';
-      if ((!it.title || it.title === 'Untitled' || !it.image_url) && (patched.title !== it.title || patched.image_url !== it.image_url) && patched.title !== 'Untitled') {
+      if ((!it.title || it.title === 'Untitled' || !it.image_url || it.image_url === '/images/fallback/book.svg') && (patched.title !== it.title || patched.image_url !== it.image_url) && patched.title !== 'Untitled') {
         client.from('list_items')
           .update({
             title: patched.title,
@@ -1733,7 +1736,7 @@
     try {
       const { data: badBooks } = await client
         .from('books')
-        .select('id, title')
+        .select('id, title, thumbnail')
         .or('title.is.null,title.eq.,title.eq.Untitled')
         .limit(20);
       if (badBooks && badBooks.length) {
@@ -1747,7 +1750,9 @@
               const b = (json && json.books && json.books[0]) ? json.books[0] : (json && json.book ? json.book : json);
               const realTitle = String(b?.title || b?.name || '').trim();
               const realAuthors = Array.isArray(b?.authors) ? b.authors.join(', ') : String(b?.authors || b?.author || '').trim();
-              const realThumb = String(b?.image || b?.cover || b?.thumbnail || '').trim();
+              const rawImg = String(b?.image || b?.cover || b?.thumbnail || b?.rawCover || '').trim();
+              const existingThumb = String(badBooks[i].thumbnail || '').trim();
+              const realThumb = (rawImg && rawImg !== '/images/fallback/book.svg') ? rawImg : existingThumb;
               if (realTitle && realTitle !== 'Untitled') {
                 await client.from('books').upsert({
                   id: bookId,
