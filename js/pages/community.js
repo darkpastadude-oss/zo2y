@@ -417,6 +417,7 @@ window.CommunityManager = (function() {
         }));
 
         // Assign back to item objects
+        const enrichedTuples = [];
         items.forEach(item => {
             const rawId = String(item.item_id || item.track_id || item.book_id || '').trim();
             const meta = mediaMap.get(rawId);
@@ -432,8 +433,30 @@ window.CommunityManager = (function() {
                     item.image = meta.image_url;
                     item.thumbnail = meta.image_url;
                 }
+                const itemType = (item.media_type || 'movie').toLowerCase();
+                const itemKey = String(item.item_id || item.track_id || item.book_id || '').trim();
+                if (item.user_id && itemKey && (meta.title || meta.image_url)) {
+                    enrichedTuples.push({ user_id: item.user_id, media_type: itemType, item_id: itemKey, title: meta.title || '', image_url: meta.image_url || '' });
+                }
             }
         });
+
+        // Update existing list_items rows with enriched metadata so it persists across reloads
+        if (enrichedTuples.length && client) {
+            const seen = new Set();
+            for (const t of enrichedTuples) {
+                const key = t.user_id + '::' + t.media_type + '::' + t.item_id;
+                if (seen.has(key)) continue;
+                seen.add(key);
+                try {
+                    await client.from('list_items').update({ title: t.title, image_url: t.image_url })
+                        .eq('user_id', t.user_id)
+                        .eq('media_type', t.media_type)
+                        .eq('item_id', t.item_id)
+                        .is('title', null);
+                } catch (_e) {}
+            }
+        }
     }
 
     // === REUSABLE REVIEW CARD COMPONENT ===

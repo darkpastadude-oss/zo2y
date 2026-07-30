@@ -4000,21 +4000,21 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
               showHomeToast('Book info is unavailable right now.', true);
               return result;
             }
-            const upsertRow = { user_id: activeUser.id, media_type: mediaType, list_type: listType };
+            const upsertRow = {
+              user_id: activeUser.id,
+              media_type: mediaType,
+              list_type: listType,
+              title: String(payload.title || '').trim() || 'Untitled',
+              image_url: String(payload.image || '').trim() || ''
+            };
             upsertRow[itemField] = itemId;
-            const { data: existingCheck } = await client
-              .from(table).select('id')
-              .eq('user_id', activeUser.id).eq('media_type', mediaType).eq(itemField, itemId)
-              .eq('list_type', listType).is('list_id', null)
-              .maybeSingle();
-            if (!existingCheck) {
-              const { error: insertError } = await client.from(table).insert(upsertRow);
-              if (insertError) {
-                const isConflict = String(insertError.code || '') === '23505' || Number(insertError.status || insertError.statusCode || 0) === 409;
-                if (!isConflict) {
-                  showHomeToast('Could not add to list', true);
-                  return result;
-                }
+            const onConflict = ['user_id', 'media_type', itemField, 'list_type'].join(',');
+            const { error: upsertError } = await client.from(table).upsert(upsertRow, { onConflict, ignoreDuplicates: true });
+            if (upsertError) {
+              const isConflict = String(upsertError.code || '') === '23505' || Number(upsertError.status || upsertError.statusCode || 0) === 409;
+              if (!isConflict) {
+                showHomeToast('Could not add to list', true);
+                return result;
               }
             }
             showHomeToast('Added to list');
@@ -4476,23 +4476,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     function buildCustomListItemPayloadForMenu() {
       const item = homeItemMenuState.currentItem;
       if (!item) return null;
-      const mediaType = String(item.mediaType || '').toLowerCase();
-      if (mediaType === 'travel') {
-        return {
-          id: String(item.itemId || '').toUpperCase(),
-          name: item.title || '',
-          region: item.subtitle || '',
-          image: item.image || ''
-        };
-      }
-      if (mediaType === 'music' || mediaType === 'artist') {
-        return {
-          name: item.title || '',
-          image: item.image || '',
-          url: item.href || ''
-        };
-      }
-      return null;
+      return {
+        name: item.title || '',
+        image: item.image || '',
+        url: item.href || '',
+        subtitle: item.subtitle || ''
+      };
     }
 
     function getQuickRowsForMenu(mediaType) {
@@ -4935,7 +4924,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       homeCurrentUser = activeUser;
       if (window.ListUtils) {
         const mediaType = String(homeCustomListState.mediaType || '').toLowerCase();
-        let itemPayload = null;
+        let itemPayload = {
+          name: String(homeCustomListState.title || '').trim() || 'Untitled',
+          image: String(homeCustomListState.image || '').trim() || '',
+          subtitle: String(homeCustomListState.subtitle || '').trim() || ''
+        };
         await ListUtils.saveCustomListChanges(
           client,
           activeUser.id,

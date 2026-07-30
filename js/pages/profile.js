@@ -1079,37 +1079,49 @@
                             return;
                         }
 
+                        // Build a map of DB-stored metadata for fallback
+                        const listItemsMeta = new Map();
+                        listItems.forEach(li => {
+                            const liId = String(li[idField] || li.item_id || '').trim();
+                            if (liId && (li.title || li.image_url)) {
+                                listItemsMeta.set(liId, { title: li.title, image_url: li.image_url });
+                            }
+                        });
+
                         // Fetch all detail images in parallel
                         const detailPromises = topIds.map(async (id) => {
                             let imgUrl = 'images/placeholder.jpg';
                             let title = '';
+                            const dbMeta = listItemsMeta.get(String(id));
                             try {
                                 if (mt.key === 'movies' || mt.key === 'movie') {
                                     const d = await fetchMovieDetails(id);
-                                    imgUrl = d && d.poster_path ? TMDB_POSTER + d.poster_path : imgUrl;
-                                    title = d ? d.title : '';
+                                    imgUrl = d && d.poster_path ? TMDB_POSTER + d.poster_path : (dbMeta?.image_url || imgUrl);
+                                    title = d ? d.title : (dbMeta?.title || '');
                                 } else if (mt.key === 'tv') {
                                     const d = await fetchTvDetails(id);
-                                    imgUrl = d && d.poster_path ? TMDB_POSTER + d.poster_path : imgUrl;
-                                    title = d ? d.name : '';
+                                    imgUrl = d && d.poster_path ? TMDB_POSTER + d.poster_path : (dbMeta?.image_url || imgUrl);
+                                    title = d ? d.name : (dbMeta?.title || '');
                                 } else if (mt.key === 'anime') {
                                     const d = await fetchAnimeDetails(id);
-                                    imgUrl = d && d.poster_path ? TMDB_POSTER + d.poster_path : imgUrl;
-                                    title = d ? d.title : '';
+                                    imgUrl = d && d.poster_path ? TMDB_POSTER + d.poster_path : (dbMeta?.image_url || imgUrl);
+                                    title = d ? d.title : (dbMeta?.title || '');
                                 } else if (mt.key === 'games') {
                                     const d = await fetchGameDetails(id);
-                                    imgUrl = d && d.cover_url ? d.cover_url : imgUrl;
-                                    title = d ? d.name : '';
+                                    imgUrl = d && d.cover_url ? d.cover_url : (dbMeta?.image_url || imgUrl);
+                                    title = d ? d.name : (dbMeta?.title || '');
                                 } else if (mt.key === 'books') {
                                     const d = await fetchBookDetails(id);
-                                    imgUrl = d && d.cover_url ? d.cover_url : imgUrl;
-                                    title = d ? d.title : '';
+                                    imgUrl = d && d.cover_url ? d.cover_url : (dbMeta?.image_url || imgUrl);
+                                    title = d ? d.title : (dbMeta?.title || '');
                                 } else if (mt.key === 'music') {
                                     const d = await fetchMusicDetails(id);
-                                    imgUrl = d && d.image_url ? d.image_url : imgUrl;
-                                    title = d ? d.name : '';
+                                    imgUrl = d && d.image_url ? d.image_url : (dbMeta?.image_url || imgUrl);
+                                    title = d ? d.name : (dbMeta?.title || '');
                                 }
-                            } catch (e) {}
+                            } catch (e) {
+                                if (dbMeta) { imgUrl = dbMeta.image_url || imgUrl; title = dbMeta.title || title; }
+                            }
                             return `<div style="display:inline-block; width:100px; margin-right:10px; vertical-align:top; border-radius:8px; overflow:hidden; background:rgba(255,255,255,0.05); aspect-ratio: 2/3;">
                                 <img src="${imgUrl}" alt="${title}" style="width:100%; height:100%; object-fit:cover;" loading="lazy">
                             </div>`;
@@ -3521,24 +3533,24 @@
                 const queryDefaultRows = async () => {
                     let result = await supabase
                         .from(table)
-                        .select(`${itemField}, list_type, list_id`)
+                        .select(`${itemField}, list_type, list_id, title, image_url`)
                         .eq('user_id', safeOwnerId);
 
                     if (result?.error && isColumnMissingError(result.error, 'list_id')) {
                         result = await supabase
                             .from(table)
-                            .select(`${itemField}, list_type`)
+                            .select(`${itemField}, list_type, title, image_url`)
                             .eq('user_id', safeOwnerId);
                     }
                     if (result?.error && isColumnMissingError(result.error, itemField)) {
                         result = await supabase
                             .from(table)
-                            .select('item_id, list_type, list_id')
+                            .select('item_id, list_type, list_id, title, image_url')
                             .eq('user_id', safeOwnerId);
                         if (result?.error && isColumnMissingError(result.error, 'list_id')) {
                             result = await supabase
                                 .from(table)
-                                .select('item_id, list_type')
+                                .select('item_id, list_type, title, image_url')
                                 .eq('user_id', safeOwnerId);
                         }
                     }
@@ -3549,24 +3561,24 @@
                     if (!safeCustomIds.length) return { data: [] };
                     let result = await supabase
                         .from(table)
-                        .select(`${itemField}, list_type, list_id`)
+                        .select(`${itemField}, list_type, list_id, title, image_url`)
                         .in('list_id', safeCustomIds);
 
                     if (result?.error && isColumnMissingError(result.error, itemField)) {
                         result = await supabase
                             .from(table)
-                            .select('item_id, list_type, list_id')
+                            .select('item_id, list_type, list_id, title, image_url')
                             .in('list_id', safeCustomIds);
                     }
                     if (result?.error && isColumnMissingError(result.error, 'list_id')) {
                         result = await supabase
                             .from(table)
-                            .select(`${itemField}, list_type`)
+                            .select(`${itemField}, list_type, title, image_url`)
                             .eq('user_id', safeOwnerId);
                         if (result?.error && isColumnMissingError(result.error, itemField)) {
                             result = await supabase
                                 .from(table)
-                                .select('item_id, list_type')
+                                .select('item_id, list_type, title, image_url')
                                 .eq('user_id', safeOwnerId);
                         }
                     }
@@ -4078,6 +4090,19 @@
                 return value;
             }
 
+            async function persistEnrichedItemMetadata(ownerUserId, mediaType, itemId, title, imageUrl) {
+                if (!ownerUserId || !itemId || !title) return;
+                try {
+                    const updateData = { title: title || 'Untitled' };
+                    if (imageUrl) updateData.image_url = imageUrl;
+                    await supabase.from('list_items').update(updateData)
+                        .eq('user_id', ownerUserId)
+                        .eq('media_type', mediaType)
+                        .eq('item_id', itemId)
+                        .is('title', null);
+                } catch (_e) {}
+            }
+
             function normalizeBookCoverUrl(url) {
                 const value = String(url || '').trim();
                 if (!value) return '';
@@ -4443,6 +4468,13 @@
                                 };
                                 merged.thumbnail = merged.cover_url;
                                 bookCache.set(key, merged);
+                                try {
+                                    const dbRow = { id: key };
+                                    if (merged.title) dbRow.title = merged.title;
+                                    if (merged.author_name) dbRow.authors = merged.author_name;
+                                    if (merged.cover_url) dbRow.thumbnail = merged.cover_url;
+                                    await supabase.from('books').upsert(dbRow, { onConflict: 'id', ignoreDuplicates: true });
+                                } catch (_dbErr) {}
                                 return merged;
                             }
                         }
@@ -4495,6 +4527,9 @@
                                 if (apiBook2 && (apiBook2.image || apiBook2.cover)) {
                                     dbData.cover_url = apiBook2.image || apiBook2.cover || dbData.cover_url;
                                     dbData.thumbnail = dbData.cover_url;
+                                    try {
+                                        await supabase.from('books').upsert({ id: key, thumbnail: dbData.cover_url }, { onConflict: 'id', ignoreDuplicates: true });
+                                    } catch (_dbErr2) {}
                                 }
                             }
                         } catch (_e2) { }
@@ -8251,6 +8286,7 @@ const alreadyActive = isMobile
                     const movie = movies[index];
                     if (!movie) continue;
                     const movieIdValue = rankedMovieIds[index] ?? movie.id;
+                    persistEnrichedItemMetadata(ownerUserId, 'movie', movieIdValue, movie.title, movie.poster_path ? TMDB_POSTER + movie.poster_path : '');
                     const canReorder = canReorderList;
                     const rankMarkup = tierMeta.isTier
                         ? buildTierRankControlMarkup(
@@ -8448,6 +8484,7 @@ const alreadyActive = isMobile
                     const show = shows[index];
                     if (!show) continue;
                     const tvIdValue = rankedTvIds[index] ?? show.id;
+                    persistEnrichedItemMetadata(ownerUserId, 'tv', tvIdValue, show.name || show.original_name || show.title, show.poster_path ? TMDB_POSTER + show.poster_path : '');
                     const canReorder = canReorderList;
                     const rankMarkup = tierMeta.isTier
                         ? buildTierRankControlMarkup(
@@ -8647,6 +8684,7 @@ const alreadyActive = isMobile
                     const show = shows[index];
                     if (!show) continue;
                     const animeIdValue = rankedAnimeIds[index] ?? show.id;
+                    persistEnrichedItemMetadata(ownerUserId, 'anime', animeIdValue, show.name || show.original_name || show.title, show.poster_path ? TMDB_POSTER + show.poster_path : '');
                     const canReorder = canReorderList;
                     const rankMarkup = tierMeta.isTier
                         ? buildTierRankControlMarkup(
@@ -8850,10 +8888,12 @@ const alreadyActive = isMobile
                     const game = entry?.game;
                     if (!game) continue;
 
-                    const itemCard = document.createElement('div');
-                    itemCard.className = 'collection-item-card';
                     const resolvedGameId = String(entry.id || game.id || '').trim();
                     if (!resolvedGameId) continue;
+                    persistEnrichedItemMetadata(ownerUserId, 'game', resolvedGameId, game.name || game.slug, game.cover_url || game.cover || '');
+
+                    const itemCard = document.createElement('div');
+                    itemCard.className = 'collection-item-card';
                     itemCard.onclick = () => window.location.href = `game.html?id=${encodeURIComponent(resolvedGameId)}`;
 
                     const gameTitle = game.name || game.slug || 'Untitled';
@@ -9330,6 +9370,9 @@ const alreadyActive = isMobile
                 for (let i = 0; i < rankedTrackIds.length; i++) {
                     const trackId = rankedTrackIds[i];
                     const track = tracks[i];
+                    if (track) {
+                        persistEnrichedItemMetadata(ownerUserId, 'music', trackId, track.name || track.title, track.image_url || '');
+                    }
                     const title = track?.name || 'Artist';
                     const artists = '';
                     const album = '';
