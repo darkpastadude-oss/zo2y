@@ -1148,30 +1148,57 @@
     if (!client || !payload) return false;
     const id = String(payload.id || payload.book_id || payload.bookId || '').trim();
     if (!id) return false;
-    const title = String(payload.title || payload.name || '').trim() || 'Untitled';
+    let title = String(payload.title || payload.name || '').trim();
+    if (title === 'Untitled') title = '';
     let incomingThumbnail = String(payload.thumbnail || payload.image || payload.cover || '').trim();
     if (incomingThumbnail.startsWith('//')) incomingThumbnail = `https:${incomingThumbnail}`;
     if (incomingThumbnail.startsWith('http://')) incomingThumbnail = incomingThumbnail.replace(/^http:\/\//i, 'https://');
-    const validThumbnail = /^https?:\/\//i.test(incomingThumbnail) || incomingThumbnail.startsWith('/') ? incomingThumbnail : null;
-    const incomingAuthors = String(payload.authors || payload.author_name || payload.subtitle || '').trim() || null;
-    let row = { id, title, authors: incomingAuthors, thumbnail: validThumbnail };
+    let validThumbnail = /^https?:\/\//i.test(incomingThumbnail) || incomingThumbnail.startsWith('/') ? incomingThumbnail : null;
+    let incomingAuthors = String(payload.authors || payload.author_name || payload.subtitle || '').trim() || null;
+
     try {
-      const { data: existing } = await client.from('books').select('id, title, thumbnail').eq('id', id).maybeSingle();
+      const { data: existing } = await client.from('books').select('id, title, thumbnail, authors').eq('id', id).maybeSingle();
       if (existing) {
-        const mergedTitle = existing.title || title;
+        const exTitle = (existing.title && existing.title !== 'Untitled') ? existing.title : '';
+        title = title || exTitle;
         let existingThumb = String(existing.thumbnail || '').trim();
         if (existingThumb.startsWith('//')) existingThumb = `https:${existingThumb}`;
         if (existingThumb.startsWith('http://')) existingThumb = existingThumb.replace(/^http:\/\//i, 'https://');
         const existingValid = /^https?:\/\//i.test(existingThumb) || existingThumb.startsWith('/');
-        const mergedThumbnail = existingValid ? existingThumb : (validThumbnail || existing.thumbnail);
-        row = { id, title: mergedTitle, authors: incomingAuthors || existing.authors || null, thumbnail: mergedThumbnail };
+        validThumbnail = existingValid ? existingThumb : (validThumbnail || existing.thumbnail);
+        incomingAuthors = incomingAuthors || existing.authors || null;
       }
     } catch (_checkErr) {
-      // Proceed with insert; the check is best-effort.
+      // Best-effort check
     }
+
+    if (!title || title === 'Untitled') {
+      try {
+        const res = await fetch('/api/books/' + encodeURIComponent(id));
+        if (res.ok) {
+          const apiData = await res.json();
+          const bInfo = (apiData && apiData.books && apiData.books[0]) ? apiData.books[0] : (apiData && apiData.book ? apiData.book : apiData);
+          if (bInfo) {
+            title = String(bInfo.title || bInfo.name || '').trim();
+            if (!validThumbnail && (bInfo.image || bInfo.cover || bInfo.thumbnail)) {
+              validThumbnail = String(bInfo.image || bInfo.cover || bInfo.thumbnail).trim();
+            }
+            if (!incomingAuthors && (bInfo.authors || bInfo.author || bInfo.subtitle)) {
+              incomingAuthors = Array.isArray(bInfo.authors) ? bInfo.authors.join(', ') : String(bInfo.authors || bInfo.author || bInfo.subtitle).trim();
+            }
+          }
+        }
+      } catch (_apiErr) {}
+    }
+
+    const finalTitle = title || 'Untitled';
+    let row = { id, title: finalTitle, authors: incomingAuthors, thumbnail: validThumbnail };
     try {
       const { error } = await client.from('books').upsert(row, { onConflict: 'id', ignoreDuplicates: false });
       if (error && String(error.code || '') !== '23505') return false;
+      if (finalTitle !== 'Untitled') {
+        cacheSavedItemMetadata('book', id, { name: finalTitle, image: validThumbnail || '', subtitle: incomingAuthors || '' });
+      }
       return true;
     } catch (_err) {
       return false;
@@ -1638,17 +1665,34 @@
     const needApiFetch = [];
     for (var j = 0; j < needsRepair.length; j++) {
       var bid = String(needsRepair[j].item_id || '').trim();
-      if (!bookMap.has(bid)) needApiFetch.push(bid);
+      var existingBook = bookMap.get(bid);
+      var hasValidTitle = existingBook && existingBook.title && String(existingBook.title).trim() !== '' && String(existingBook.title).trim() !== 'Untitled';
+      if (!hasValidTitle) needApiFetch.push(bid);
     }
     if (needApiFetch.length) {
       for (var k = 0; k < needApiFetch.length && k < 10; k++) {
+        var fetchId = needApiFetch[k];
         try {
-          var res = await fetch('/api/books/' + encodeURIComponent(needApiFetch[k]));
+          var res = await fetch('/api/books/' + encodeURIComponent(fetchId));
           if (res.ok) {
             var apiData = await res.json();
-            var bInfo = apiData || {};
-            var norm = typeof window !== 'undefined' && window.normalizeBook ? window.normalizeBook(bInfo) : bInfo;
-            if (norm && norm.title) bookMap.set(needApiFetch[k], { id: needApiFetch[k], title: norm.title, thumbnail: norm.image || '', authors: norm.authors || '' });
+            var bInfo = (apiData && apiData.books && apiData.books[0]) ? apiData.books[0] : (apiData && apiData.book ? apiData.book : apiData);
+            var normTitle = String(bInfo?.title || bInfo?.name || '').trim();
+            var normAuthors = Array.isArray(bInfo?.authors) ? bInfo.authors.join(', ') : String(bInfo?.authors || bInfo?.author || bInfo?.subtitle || '').trim();
+            var normImage = String(bInfo?.image || bInfo?.cover || bInfo?.thumbnail || '').trim();
+            if (normTitle && normTitle !== 'Untitled') {
+              var repairedObj = { id: fetchId, title: normTitle, thumbnail: normImage, authors: normAuthors };
+              bookMap.set(fetchId, repairedObj);
+              // Self-heal Supabase books table
+              client.from('books').upsert({
+                id: fetchId,
+                title: normTitle,
+                authors: normAuthors || null,
+                thumbnail: normImage || null
+              }, { onConflict: 'id', ignoreDuplicates: false }).then(function() {}).catch(function() {});
+              // Sync cached metadata
+              cacheSavedItemMetadata('book', fetchId, { name: normTitle, image: normImage, subtitle: normAuthors });
+            }
           }
         } catch (_e) {}
       }
@@ -1659,12 +1703,12 @@
       var bookId = String(it.item_id || '').trim();
       var book = bookMap.get(bookId);
       var patched = Object.assign({}, it);
-      if ((!patched.title || patched.title === 'Untitled') && book && book.title) patched.title = book.title;
+      if ((!patched.title || patched.title === 'Untitled') && book && book.title && book.title !== 'Untitled') patched.title = book.title;
       if (!patched.image_url && book && book.thumbnail) patched.image_url = book.thumbnail;
       if (!patched.subtitle && book && book.authors) patched.subtitle = book.authors;
       if (!patched.title) patched.title = 'Untitled';
       if (!patched.image_url) patched.image_url = '/images/fallback/book.svg';
-      if ((!it.title || it.title === 'Untitled' || !it.image_url) && (patched.title !== it.title || patched.image_url !== it.image_url)) {
+      if ((!it.title || it.title === 'Untitled' || !it.image_url) && (patched.title !== it.title || patched.image_url !== it.image_url) && patched.title !== 'Untitled') {
         client.from('list_items')
           .update({
             title: patched.title,
@@ -1680,6 +1724,49 @@
       repaired.push(patched);
     }
     return repaired;
+  }
+
+  async function repairCorruptedBookDatabase(client) {
+    if (!client || typeof window === 'undefined') return;
+    if (window.__zo2yBookDbRepaired) return;
+    window.__zo2yBookDbRepaired = true;
+    try {
+      const { data: badBooks } = await client
+        .from('books')
+        .select('id, title')
+        .or('title.is.null,title.eq.,title.eq.Untitled')
+        .limit(20);
+      if (badBooks && badBooks.length) {
+        for (let i = 0; i < badBooks.length; i++) {
+          const bookId = String(badBooks[i].id || '').trim();
+          if (!bookId) continue;
+          try {
+            const res = await fetch('/api/books/' + encodeURIComponent(bookId));
+            if (res.ok) {
+              const json = await res.json();
+              const b = (json && json.books && json.books[0]) ? json.books[0] : (json && json.book ? json.book : json);
+              const realTitle = String(b?.title || b?.name || '').trim();
+              const realAuthors = Array.isArray(b?.authors) ? b.authors.join(', ') : String(b?.authors || b?.author || '').trim();
+              const realThumb = String(b?.image || b?.cover || b?.thumbnail || '').trim();
+              if (realTitle && realTitle !== 'Untitled') {
+                await client.from('books').upsert({
+                  id: bookId,
+                  title: realTitle,
+                  authors: realAuthors || null,
+                  thumbnail: realThumb || null
+                }, { onConflict: 'id', ignoreDuplicates: false });
+                await client.from('list_items').update({
+                  title: realTitle,
+                  image_url: realThumb || undefined,
+                  subtitle: realAuthors || undefined
+                }).eq('item_id', bookId).eq('media_type', 'book');
+                cacheSavedItemMetadata('book', bookId, { name: realTitle, image: realThumb, subtitle: realAuthors });
+              }
+            }
+          } catch (_e) {}
+        }
+      }
+    } catch (_err) {}
   }
 
   async function loadList(client, userId, type, listId) {
@@ -1740,6 +1827,7 @@
 
     if (String(type || '').toLowerCase() === 'book' && items.length) {
       items = await repairBookListItems(client, items);
+      repairCorruptedBookDatabase(client).catch(function() {});
     }
 
     return {
@@ -1780,6 +1868,7 @@
     syncActiveMenuModals,
     bindGlobalListUx,
     ensureBookRecord,
+    repairCorruptedBookDatabase,
     ensureTrackRecord,
     ensureEntityRecord,
     resolveEntityId,

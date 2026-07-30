@@ -4432,7 +4432,12 @@
             async function fetchBookDetails(bookId) {
                 const key = String(bookId || '').trim();
                 if (!key) return null;
-                if (bookCache.has(key)) return bookCache.get(key);
+                if (bookCache.has(key)) {
+                    const cached = bookCache.get(key);
+                    if (cached && cached.title && String(cached.title).trim() !== '' && String(cached.title).trim() !== 'Untitled') {
+                        return cached;
+                    }
+                }
                 let dbData = null;
                 try {
                     const { data } = await supabase
@@ -4443,39 +4448,59 @@
                     if (data) {
                         dbData = {
                             id: data.id,
-                            title: data.title,
-                            author_name: data.authors,
+                            title: (data.title && data.title !== 'Untitled') ? data.title : '',
+                            author_name: data.authors || '',
                             cover_url: normalizeBookCoverUrl(data.thumbnail),
                             thumbnail: normalizeBookCoverUrl(data.thumbnail)
                         };
                     }
                 } catch (_err) { }
                 
+                const hasValidTitle = dbData && dbData.title && String(dbData.title).trim() !== '' && dbData.title !== 'Untitled';
                 const dbCover = dbData?.cover_url || dbData?.thumbnail || '';
-                if (!dbData || !dbCover || String(dbCover).trim() === '') {
+                const hasValidCover = dbCover && String(dbCover).trim() !== '' && dbCover !== '/images/fallback/book.svg';
+
+                if (!hasValidTitle || !hasValidCover) {
                     try {
                         const res = await fetch(`/api/books/${key}`);
                         if (res.ok) {
                             const json = await res.json();
                             const apiBook = json.books && json.books[0] ? json.books[0] : (json.book || json);
-                            if (apiBook && apiBook.id) {
-                                const merged = {
-                                    id: key,
-                                    title: apiBook.title || dbData?.title || 'Untitled',
-                                    author_name: apiBook.authors || apiBook.author || dbData?.author_name || '',
-                                    cover_url: normalizeBookCoverUrl(apiBook.image || apiBook.cover || dbData?.cover_url || ''),
-                                    external_url: apiBook.externalUrl || dbData?.external_url || ''
-                                };
-                                merged.thumbnail = merged.cover_url;
-                                bookCache.set(key, merged);
-                                try {
-                                    const dbRow = { id: key };
-                                    if (merged.title) dbRow.title = merged.title;
-                                    if (merged.author_name) dbRow.authors = merged.author_name;
-                                    if (merged.cover_url) dbRow.thumbnail = merged.cover_url;
-                                    await supabase.from('books').upsert(dbRow, { onConflict: 'id', ignoreDuplicates: true });
-                                } catch (_dbErr) {}
-                                return merged;
+                            if (apiBook) {
+                                const fetchedTitle = String(apiBook.title || apiBook.name || dbData?.title || '').trim();
+                                const fetchedAuthors = Array.isArray(apiBook.authors) ? apiBook.authors.join(', ') : String(apiBook.authors || apiBook.author || dbData?.author_name || '').trim();
+                                const fetchedCover = normalizeBookCoverUrl(apiBook.image || apiBook.cover || apiBook.thumbnail || dbData?.cover_url || '');
+                                if (fetchedTitle && fetchedTitle !== 'Untitled') {
+                                    const merged = {
+                                        id: key,
+                                        title: fetchedTitle,
+                                        author_name: fetchedAuthors,
+                                        cover_url: fetchedCover,
+                                        external_url: apiBook.externalUrl || dbData?.external_url || ''
+                                    };
+                                    merged.thumbnail = merged.cover_url;
+                                    bookCache.set(key, merged);
+                                    try {
+                                        const dbRow = {
+                                            id: key,
+                                            title: merged.title,
+                                            authors: merged.author_name || null,
+                                            thumbnail: merged.cover_url || null
+                                        };
+                                        await supabase.from('books').upsert(dbRow, { onConflict: 'id', ignoreDuplicates: false });
+                                    } catch (_dbErr) {}
+                                    try {
+                                        await supabase.from('list_items').update({
+                                            title: merged.title,
+                                            image_url: merged.cover_url || undefined,
+                                            subtitle: merged.author_name || undefined
+                                        }).eq('item_id', key).eq('media_type', 'book');
+                                    } catch (_liErr) {}
+                                    if (window.ListUtils && typeof window.ListUtils.cacheSavedItemMetadata === 'function') {
+                                        window.ListUtils.cacheSavedItemMetadata('book', key, { name: merged.title, image: merged.cover_url, subtitle: merged.author_name });
+                                    }
+                                    return merged;
+                                }
                             }
                         }
                     } catch (e) { }
@@ -4492,10 +4517,10 @@
                         .order('created_at', { ascending: false })
                         .limit(1)
                         .maybeSingle();
-                    if (liRows && (liRows.title || liRows.image_url)) {
+                    if (liRows && liRows.title && liRows.title !== 'Untitled') {
                         liFallback = {
                             id: key,
-                            title: liRows.title || '',
+                            title: liRows.title,
                             author_name: liRows.subtitle || '',
                             cover_url: normalizeBookCoverUrl(liRows.image_url || ''),
                             thumbnail: normalizeBookCoverUrl(liRows.image_url || '')
@@ -4503,54 +4528,30 @@
                     }
                 } catch (_liErr) { }
 
-                if (dbData) {
+                if (dbData && dbData.title && dbData.title !== 'Untitled') {
                     if (!dbData.cover_url && liFallback?.cover_url) {
                         dbData.cover_url = liFallback.cover_url;
                         dbData.thumbnail = liFallback.cover_url;
                     }
-                    if (!dbData.title && liFallback?.title) {
-                        dbData.title = liFallback.title;
-                    }
                     if (!dbData.author_name && liFallback?.author_name) {
                         dbData.author_name = liFallback.author_name;
                     }
-                    dbData.thumbnail = dbData.cover_url || dbData.thumbnail || '';
-                    dbData.cover_url = dbData.cover_url || dbData.thumbnail || '';
-
-                    const mergedCover = String(dbData.cover_url || '').trim();
-                    if (!mergedCover || mergedCover === '/images/fallback/book.svg') {
-                        try {
-                            const res2 = await fetch(`/api/books/${key}`);
-                            if (res2.ok) {
-                                const json2 = await res2.json();
-                                const apiBook2 = json2.books && json2.books[0] ? json2.books[0] : (json2.book || json2);
-                                if (apiBook2 && (apiBook2.image || apiBook2.cover)) {
-                                    dbData.cover_url = apiBook2.image || apiBook2.cover || dbData.cover_url;
-                                    dbData.thumbnail = dbData.cover_url;
-                                    try {
-                                        await supabase.from('books').upsert({ id: key, thumbnail: dbData.cover_url }, { onConflict: 'id', ignoreDuplicates: true });
-                                    } catch (_dbErr2) {}
-                                }
-                            }
-                        } catch (_e2) { }
-                    }
-
                     bookCache.set(key, dbData);
                     return dbData;
                 }
 
-                if (liFallback) {
+                if (liFallback && liFallback.title && liFallback.title !== 'Untitled') {
                     bookCache.set(key, liFallback);
                     return liFallback;
                 }
 
                 if (window.ListUtils && typeof window.ListUtils.getCachedSavedItemMetadata === 'function') {
                     const cached = window.ListUtils.getCachedSavedItemMetadata('book', key);
-                    if (cached && (cached.name || cached.image)) {
+                    if (cached && cached.name && cached.name !== 'Untitled') {
                         const fallback = {
                             id: key,
-                            title: cached.name || 'Untitled',
-                            author_name: '',
+                            title: cached.name,
+                            author_name: cached.subtitle || '',
                             cover_url: cached.image || '',
                             thumbnail: cached.image || ''
                         };
@@ -4559,7 +4560,7 @@
                     }
                 }
 
-                return null;
+                return dbData || liFallback || null;
             }
 
             const resolveProfileBookRecord = fetchBookDetails;
