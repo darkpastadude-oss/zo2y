@@ -46,8 +46,23 @@
             let customLists = [];
             let currentTab = DEFAULT_PROFILE_TAB;
             let journalFilter = 'all';
-            let currentActiveList = null;
             let selectedAvatarIcon = null;
+
+            function forceScrollToTop() {
+                window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                document.documentElement.scrollTop = 0;
+                document.body.scrollTop = 0;
+                requestAnimationFrame(() => {
+                    window.scrollTo(0, 0);
+                    document.documentElement.scrollTop = 0;
+                    document.body.scrollTop = 0;
+                });
+                setTimeout(() => {
+                    window.scrollTo(0, 0);
+                    document.documentElement.scrollTop = 0;
+                    document.body.scrollTop = 0;
+                }, 50);
+            }
             let currentEditingJournalEntry = null;
             let loadedUserIds = new Set();
             let communitySystem = null;
@@ -3913,22 +3928,6 @@
                 const isMediaTab = ['movies', 'tvshows', 'tv', 'anime', 'games', 'game', 'books', 'book', 'music', 'sports', 'travel', 'fashion', 'food', 'cars', 'car'].includes(requestedTab);
                 const hasDetailRoute = !!(routeCollection && routeListId && VALID_COLLECTION_TYPES.has(routeCollection));
                 const hasCategoryRoute = !hasDetailRoute && isMediaTab && requestedTab !== 'sports' && requestedTab !== 'overview';
-
-            function forceScrollToTop() {
-                window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-                document.documentElement.scrollTop = 0;
-                document.body.scrollTop = 0;
-                requestAnimationFrame(() => {
-                    window.scrollTo(0, 0);
-                    document.documentElement.scrollTop = 0;
-                    document.body.scrollTop = 0;
-                });
-                setTimeout(() => {
-                    window.scrollTo(0, 0);
-                    document.documentElement.scrollTop = 0;
-                    document.body.scrollTop = 0;
-                }, 50);
-            }
 
             const resetScrollTop = forceScrollToTop;
 
