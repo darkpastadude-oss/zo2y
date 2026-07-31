@@ -10876,10 +10876,6 @@ const alreadyActive = isMobile
 
                 // 2. ASYNC BACKGROUND PERSISTENCE ACROSS DEVICES (Supabase Auth Metadata & DB)
                 const nowIso = new Date().toISOString();
-                const payload = {
-                    avatar_url: finalAvatarUrl,
-                    updated_at: nowIso
-                };
 
                 (async () => {
                     try {
@@ -10890,52 +10886,46 @@ const alreadyActive = isMobile
                             }).catch(err => console.warn('Could not sync auth metadata avatar:', err));
                         }
 
-                        // B. Sync to user_profiles table
-                        let byIdResult = await supabase
+                        // B. Upsert & query user_profiles table in Supabase to guarantee row persistence
+                        const idSuffix = String(currentUser?.id || '').replace(/-/g, '').slice(0, 6) || 'user';
+                        const usernameSeed = String(userProfile?.username || `user_${idSuffix}`).trim();
+                        const usernameCandidates = buildProfileUsernameCandidates(usernameSeed, currentUser?.id);
+                        const fullNameSeed = String(userProfile?.full_name || usernameCandidates[0] || 'User').trim();
+
+                        const upsertPayload = {
+                            id: currentUser.id,
+                            user_id: currentUser.id,
+                            username: userProfile?.username || usernameCandidates[0] || 'user',
+                            full_name: userProfile?.full_name || fullNameSeed,
+                            bio: String(userProfile?.bio || ''),
+                            location: String(userProfile?.location || ''),
+                            is_private: !!userProfile?.is_private,
+                            avatar_url: finalAvatarUrl,
+                            created_at: userProfile?.created_at || nowIso,
+                            updated_at: nowIso
+                        };
+
+                        let { data, error } = await supabase
                             .from('user_profiles')
-                            .update(payload)
-                            .eq('id', currentUser.id)
-                            .select('*')
-                            .limit(1);
+                            .upsert(upsertPayload, { onConflict: 'id' })
+                            .select('*');
 
-                        if (byIdResult.error && isColumnMissingError(byIdResult.error, 'avatar_url')) {
-                            return;
-                        }
-
-                        let saved = Array.isArray(byIdResult.data) && byIdResult.data.length > 0;
-                        if (!saved) {
-                            let byUserIdResult = await supabase
+                        if (error && isColumnMissingError(error, 'user_id')) {
+                            const { user_id, ...fallbackPayload } = upsertPayload;
+                            ({ data, error } = await supabase
                                 .from('user_profiles')
-                                .update(payload)
-                                .eq('user_id', currentUser.id)
-                                .select('*')
-                                .limit(1);
-                            saved = Array.isArray(byUserIdResult.data) && byUserIdResult.data.length > 0;
+                                .upsert(fallbackPayload, { onConflict: 'id' })
+                                .select('*'));
                         }
 
-                        if (!saved) {
-                            const idSuffix = String(currentUser?.id || '').replace(/-/g, '').slice(0, 6) || 'user';
-                            const usernameSeed = String(userProfile?.username || `user_${idSuffix}`).trim();
-                            const usernameCandidates = buildProfileUsernameCandidates(usernameSeed, currentUser?.id);
-                            const fullNameSeed = String(userProfile?.full_name || usernameCandidates[0] || 'User').trim();
-                            const upsertPayload = {
-                                id: currentUser.id,
-                                user_id: currentUser.id,
-                                username: usernameCandidates[0] || 'user',
-                                full_name: fullNameSeed,
-                                bio: String(userProfile?.bio || ''),
-                                location: String(userProfile?.location || ''),
-                                is_private: !!userProfile?.is_private,
-                                avatar_url: finalAvatarUrl,
-                                created_at: userProfile?.created_at || nowIso,
-                                updated_at: nowIso
-                            };
-
-                            let result = await supabase.from('user_profiles').upsert(upsertPayload, { onConflict: 'id' });
-                            if (result.error && isColumnMissingError(result.error, 'user_id')) {
-                                const { user_id, ...fallbackPayload } = upsertPayload;
-                                await supabase.from('user_profiles').upsert(fallbackPayload, { onConflict: 'id' });
-                            }
+                        if (error && isColumnMissingError(error, 'avatar_url')) {
+                            console.warn('avatar_url column missing from user_profiles table on Supabase');
+                        } else if (error) {
+                            console.error('Error upserting avatar_url to user_profiles table:', error);
+                        } else if (Array.isArray(data) && data[0]) {
+                            userProfile = { ...userProfile, ...data[0] };
+                            window.userProfile = userProfile;
+                            updateProfileUI(userProfile);
                         }
                     } catch (err) {
                         console.error('Background avatar save failed:', err);
