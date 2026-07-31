@@ -2040,7 +2040,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
     <!-- Avatar Modal -->
     <div class="modal" id="avatarModal">
-        <div class="modal-content">
+        <div class="modal-content avatar-modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">Profile Picture</h3>
                 <button class="modal-close" onclick="ProfileManager.closeModal('avatarModal')">&times;</button>
@@ -2048,11 +2048,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             
             <div class="modal-body">
                 <!-- Live Preview -->
-                <div class="avatar-modal-preview-wrap mb-24 text-center">
+                <div class="avatar-modal-preview-wrap mb-20 text-center">
                     <div class="avatar-modal-preview" id="avatarPreviewBubble" title="Profile Picture Preview">
                         <i class="fa-solid fa-user avatar-silhouette-icon"></i>
                     </div>
-                    <div class="avatar-preview-caption text-muted mt-10" id="avatarPreviewCaption">Empty Silhouette (Default)</div>
+                    <div class="avatar-preview-caption text-muted mt-8" id="avatarPreviewCaption">Empty Silhouette (Default)</div>
                 </div>
 
                 <!-- Direct Device Photo Upload -->
@@ -2072,13 +2072,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     </div>
                 </div>
                 
-                <div class="form-actions avatar-modal-actions mt-24">
+                <div class="avatar-modal-actions mt-24">
                     <button type="button" class="btn btn-secondary-subtle" onclick="ProfileManager.resetAvatarToSilhouette()">
                         <i class="fa-solid fa-user-slash mr-6"></i> Remove Photo
                     </button>
-                    <div class="flex-spacer"></div>
-                    <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('avatarModal')">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="ProfileManager.saveAvatar()">Save Changes</button>
+                    <div class="avatar-modal-actions-right">
+                        <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('avatarModal')">Cancel</button>
+                        <button type="button" class="btn btn-primary" onclick="ProfileManager.saveAvatar()">Save Changes</button>
+                    </div>
                 </div>
             </div>
         </div>

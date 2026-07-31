@@ -1401,6 +1401,11 @@
                 }
 
                 userProfile = profile || {};
+                if (userProfile && !userProfile.avatar_url) {
+                    userProfile.avatar_url = currentUser?.user_metadata?.avatar_url || currentUser?.user_metadata?.avatar || (function() {
+                        try { return localStorage.getItem('zo2y_user_avatar_url'); } catch(e) { return null; }
+                    })() || null;
+                }
                 window.userProfile = userProfile;
                 if (profile) return;
 
@@ -10847,7 +10852,7 @@ const alreadyActive = isMobile
 
                 const finalAvatarUrl = pendingAvatarUrl || selectedPresetPhotoUrl || null;
 
-                // 1. INSTANT OPTIMISTIC UI UPDATE (0ms delay)
+                // 1. INSTANT OPTIMISTIC UI UPDATE & LOCAL SYNC
                 userProfile = {
                     ...(userProfile || {}),
                     avatar_url: finalAvatarUrl
@@ -10856,7 +10861,20 @@ const alreadyActive = isMobile
                 closeModal('avatarModal');
                 showToast('Profile picture updated!', 'success');
 
-                // 2. ASYNC BACKGROUND PERSISTENCE
+                try {
+                    if (finalAvatarUrl) {
+                        localStorage.setItem('zo2y_user_avatar_url', finalAvatarUrl);
+                    } else {
+                        localStorage.removeItem('zo2y_user_avatar_url');
+                    }
+                    if ('BroadcastChannel' in window) {
+                        const bc = new BroadcastChannel('zo2y_profile_sync');
+                        bc.postMessage({ type: 'AVATAR_UPDATED', avatar_url: finalAvatarUrl });
+                        bc.close();
+                    }
+                } catch (e) {}
+
+                // 2. ASYNC BACKGROUND PERSISTENCE ACROSS DEVICES (Supabase Auth Metadata & DB)
                 const nowIso = new Date().toISOString();
                 const payload = {
                     avatar_url: finalAvatarUrl,
@@ -10865,6 +10883,14 @@ const alreadyActive = isMobile
 
                 (async () => {
                     try {
+                        // A. Sync to Supabase Auth user_metadata so login on any device restores avatar_url
+                        if (currentUser && supabase?.auth?.updateUser) {
+                            await supabase.auth.updateUser({
+                                data: { avatar_url: finalAvatarUrl, avatar: finalAvatarUrl }
+                            }).catch(err => console.warn('Could not sync auth metadata avatar:', err));
+                        }
+
+                        // B. Sync to user_profiles table
                         let byIdResult = await supabase
                             .from('user_profiles')
                             .update(payload)
@@ -11843,6 +11869,25 @@ const alreadyActive = isMobile
         function bootProfileManager() {
             if (window.__profileManagerBooted) return;
             window.__profileManagerBooted = true;
+
+            if ('BroadcastChannel' in window) {
+                try {
+                    const syncChannel = new BroadcastChannel('zo2y_profile_sync');
+                    syncChannel.onmessage = (event) => {
+                        if (event.data && event.data.type === 'AVATAR_UPDATED' && isViewingOwnProfile && userProfile) {
+                            userProfile.avatar_url = event.data.avatar_url;
+                            updateProfileUI(userProfile);
+                        }
+                    };
+                } catch(e) {}
+            }
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'zo2y_user_avatar_url' && isViewingOwnProfile && userProfile) {
+                    userProfile.avatar_url = e.newValue;
+                    updateProfileUI(userProfile);
+                }
+            });
+
             ProfileManager.initialize();
         }
 
