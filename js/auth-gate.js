@@ -401,7 +401,7 @@
   }
 
   function getStoredSessionSnapshot() {
-    var keys = [STORAGE_KEY, LEGACY_STORAGE_KEY, PERSIST_STORAGE_KEY];
+    var keys = [STORAGE_KEY, LEGACY_STORAGE_KEY, PERSIST_STORAGE_KEY, SUPABASE_SDK_STORAGE_KEY];
     for (var i = 0; i < keys.length; i += 1) {
       var raw = safeGetStorageItem(keys[i]);
       if (!raw) continue;
@@ -411,6 +411,21 @@
         if (session && session.access_token && session.refresh_token) return session;
       } catch (_err) {}
     }
+    try {
+      if (typeof localStorage !== 'undefined') {
+        for (var k = 0; k < localStorage.length; k += 1) {
+          var keyName = localStorage.key(k);
+          if (keyName && /^sb-[a-z0-9]+-auth-token$/i.test(keyName)) {
+            var sbRaw = localStorage.getItem(keyName);
+            if (sbRaw) {
+              var sbParsed = JSON.parse(sbRaw);
+              var sbSession = extractSessionFromPayload(sbParsed);
+              if (sbSession && sbSession.access_token && sbSession.refresh_token) return sbSession;
+            }
+          }
+        }
+      }
+    } catch (_eSb) {}
     var durableRaw = safeGetLocalStorage(DURABLE_STORAGE_KEY);
     if (!durableRaw) return null;
     try {

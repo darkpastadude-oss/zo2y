@@ -11364,6 +11364,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const authenticated = !!detail?.authenticated;
       if (authenticated) {
         document.body?.classList.remove('landing-mode');
+        document.documentElement?.classList.remove('landing-mode');
+        const landingEl = document.getElementById('homeLandingExperience');
+        if (landingEl) landingEl.style.display = 'none';
+        const feedEl = document.getElementById('homeFeedView');
+        if (feedEl) feedEl.style.display = '';
         void bootAuthenticatedHome().catch((error) => {
           console.error('Home boot failed after auth verification:', error);
           setStatus('Could not load your home feed right now. Please refresh.', true);
