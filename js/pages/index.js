@@ -11358,34 +11358,19 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     let homeDomReady = false;
 
     function handleHomeAuthGateVerified(event) {
-      const detail = event?.detail || getHomeAuthGateState() || window.ZO2Y_AUTH_GATE || null;
-      if (detail) {
-        homeAuthGateVerifiedEvent = detail;
-      }
+      const detail = event?.detail || null;
+      homeAuthGateVerifiedEvent = detail;
       if (!homeDomReady) return;
-
-      const currentGate = detail || getHomeAuthGateState() || window.ZO2Y_AUTH_GATE || null;
-      const authenticated = !!(currentGate && (currentGate.authenticated || currentGate.authShell === 'app'));
-      const verified = !!(currentGate && currentGate.verified);
-
+      const authenticated = !!detail?.authenticated;
       if (authenticated) {
         document.body?.classList.remove('landing-mode');
-        document.documentElement?.classList.remove('landing-mode');
-        const landingEl = document.getElementById('homeLandingExperience');
-        if (landingEl) landingEl.style.display = 'none';
-        const feedEl = document.getElementById('homeFeedView');
-        if (feedEl) feedEl.style.display = '';
-
         void bootAuthenticatedHome().catch((error) => {
           console.error('Home boot failed after auth verification:', error);
           setStatus('Could not load your home feed right now. Please refresh.', true);
         });
         return;
       }
-
-      if (verified && !authenticated) {
-        initLandingExperience();
-      }
+      initLandingExperience();
     }
 
     // Attach this immediately so we never miss refresh-only auth verification events.
@@ -11436,20 +11421,20 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
     document.addEventListener('DOMContentLoaded', () => {
       homeDomReady = true;
-      const targetDetail = homeAuthGateVerifiedEvent || getHomeAuthGateState() || window.ZO2Y_AUTH_GATE || null;
-
-      if (targetDetail && (targetDetail.verified || targetDetail.authenticated)) {
-        handleHomeAuthGateVerified({ detail: targetDetail });
+      const authGateState = getHomeAuthGateState();
+      if (authGateState?.authShell === 'landing' && authGateState?.verified && !authGateState?.authenticated) {
+        initLandingExperience();
+      } else if (authGateState?.authShell === 'app' && authGateState?.authenticated) {
+        void bootAuthenticatedHome().catch((error) => {
+          console.error('Home boot failed:', error);
+          setStatus('Could not load your home feed right now. Please refresh.', true);
+        });
       }
 
-      window.setTimeout(() => {
-        if (!homeAppBootPromise) {
-          const currentGate = getHomeAuthGateState() || window.ZO2Y_AUTH_GATE || null;
-          if (currentGate) {
-            handleHomeAuthGateVerified({ detail: currentGate });
-          }
-        }
-      }, 1000);
+      // If auth-gate verified before DOMContentLoaded (rare refresh timing), replay the latest event.
+      if (homeAuthGateVerifiedEvent) {
+        handleHomeAuthGateVerified({ detail: homeAuthGateVerifiedEvent });
+      }
 
       scheduleHomeNonCritical(() => {
         void ensureHomeHeavyLoaders().catch(() => {});

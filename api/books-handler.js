@@ -461,6 +461,8 @@ export default async function booksHandler(req, res) {
       return res.status(500).json({ ok: false, message: String(e?.message || e) });
     }
   }
+
+  if (section === "similar") {
     setCache(res, { maxAge: 3600, staleWhileRevalidate: 86400 });
     const bookId = String(query.id || "").trim();
     if (!bookId) return res.status(400).json({ ok: false, message: "Missing book id" });
