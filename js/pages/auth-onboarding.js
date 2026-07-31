@@ -19,7 +19,7 @@
     return;
   }
 
-  if (!statusEl || !usernameInput || !saveButton || !skipButton || !signOutButton) return;
+  if (!statusEl || !usernameInput || !saveButton || !signOutButton) return;
 
   function setStatus(message, type) {
     statusEl.className = 'status' + (type ? ' ' + type : '');
@@ -141,7 +141,7 @@
   usernameInput.addEventListener('keydown', function (event) {
     if (event.key === 'Enter') {
       event.preventDefault();
-      if (toTeamsButton) toTeamsButton.click();
+      void completeOnboarding();
     }
     if (event.key === ' ') {
       event.preventDefault();
