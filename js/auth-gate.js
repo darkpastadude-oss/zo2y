@@ -664,15 +664,23 @@
 
   function clearOnboardingPending(userId) {
     safeRemoveLocalStorage(getOnboardingPendingKey(userId));
-    safeRemoveLocalStorage(ONBOARDING_SESSION_PREFIX + String(userId || '').trim());
+    markOnboardingRedirectedThisSession(userId);
   }
 
   function wasOnboardingRedirectedThisSession(userId) {
-    return safeGetLocalStorage(ONBOARDING_SESSION_PREFIX + String(userId || '').trim()) === '1';
+    var key = ONBOARDING_SESSION_PREFIX + String(userId || '').trim();
+    try {
+      if (sessionStorage.getItem(key) === '1') return true;
+    } catch (_e) {}
+    return safeGetLocalStorage(key) === '1';
   }
 
   function markOnboardingRedirectedThisSession(userId) {
-    safeSetLocalStorage(ONBOARDING_SESSION_PREFIX + String(userId || '').trim(), '1');
+    var key = ONBOARDING_SESSION_PREFIX + String(userId || '').trim();
+    safeSetLocalStorage(key, '1');
+    try {
+      sessionStorage.setItem(key, '1');
+    } catch (_e) {}
   }
 
   function normalizeProfileUsername(value, fallbackValue) {
@@ -748,7 +756,7 @@
     if (!normalizedProfile) return true;
     if (!isValidProfileUsername(normalizedProfile)) return true;
     if (normalizedProfile === 'user') return true;
-    return normalizedProfile === getGeneratedPlaceholderProfileUsername(user);
+    return false;
   }
 
   function getAuthProfileSnapshot(user) {

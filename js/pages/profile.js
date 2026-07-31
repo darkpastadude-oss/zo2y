@@ -512,8 +512,9 @@
             function maybeRedirectUsernameOnboarding() {
                 const auth = window.ZO2Y_AUTH;
                 if (!auth || !currentUser || !currentUser.id) return false;
-                const profileUsername = (userProfile && userProfile.username) || '';
-                if (!profileUsername || isPlaceholderUsername(profileUsername)) {
+                const profileUsername = String(userProfile?.username || '').trim();
+                // If user is already on profile.html and has any valid username record, don't loop redirect
+                if (!profileUsername) {
                     try {
                         auth.redirectToOnboarding('profile.html', currentUser.id);
                     } catch (_e) {
