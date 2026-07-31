@@ -10822,44 +10822,65 @@ const alreadyActive = isMobile
                             }).catch(err => console.warn('Could not sync auth metadata avatar:', err));
                         }
 
-                        // B. Upsert & query user_profiles table in Supabase to guarantee row persistence
-                        const idSuffix = String(currentUser?.id || '').replace(/-/g, '').slice(0, 6) || 'user';
-                        const usernameSeed = String(userProfile?.username || `user_${idSuffix}`).trim();
-                        const usernameCandidates = buildProfileUsernameCandidates(usernameSeed, currentUser?.id);
-                        const fullNameSeed = String(userProfile?.full_name || usernameCandidates[0] || 'User').trim();
-
-                        const upsertPayload = {
-                            id: currentUser.id,
-                            user_id: currentUser.id,
-                            username: userProfile?.username || usernameCandidates[0] || 'user',
-                            full_name: userProfile?.full_name || fullNameSeed,
-                            bio: String(userProfile?.bio || ''),
-                            location: String(userProfile?.location || ''),
-                            is_private: !!userProfile?.is_private,
+                        // B. UPDATE ONLY avatar_url on existing user_profiles row (NEVER overwrite username)
+                        const updatePayload = {
                             avatar_url: finalAvatarUrl,
-                            created_at: userProfile?.created_at || nowIso,
                             updated_at: nowIso
                         };
 
                         let { data, error } = await supabase
                             .from('user_profiles')
-                            .upsert(upsertPayload, { onConflict: 'id' })
+                            .update(updatePayload)
+                            .eq('id', currentUser.id)
                             .select('*');
 
-                        if (error && isColumnMissingError(error, 'user_id')) {
-                            const { user_id, ...fallbackPayload } = upsertPayload;
-                            ({ data, error } = await supabase
+                        let savedRow = Array.isArray(data) && data[0] ? data[0] : null;
+
+                        if (!savedRow) {
+                            let byUserIdResult = await supabase
                                 .from('user_profiles')
-                                .upsert(fallbackPayload, { onConflict: 'id' })
-                                .select('*'));
+                                .update(updatePayload)
+                                .eq('user_id', currentUser.id)
+                                .select('*');
+                            savedRow = Array.isArray(byUserIdResult.data) && byUserIdResult.data[0] ? byUserIdResult.data[0] : null;
                         }
 
-                        if (error && isColumnMissingError(error, 'avatar_url')) {
-                            console.warn('avatar_url column missing from user_profiles table on Supabase');
-                        } else if (error) {
-                            console.error('Error upserting avatar_url to user_profiles table:', error);
-                        } else if (Array.isArray(data) && data[0]) {
-                            userProfile = { ...userProfile, ...data[0] };
+                        // C. Fallback: If row doesn't exist yet, insert a new record keeping existing username intact
+                        if (!savedRow) {
+                            const { data: existingProfiles } = await supabase
+                                .from('user_profiles')
+                                .select('username, full_name, bio, location, is_private')
+                                .or(`id.eq.${currentUser.id},user_id.eq.${currentUser.id}`)
+                                .limit(1);
+
+                            const existing = Array.isArray(existingProfiles) && existingProfiles[0] ? existingProfiles[0] : null;
+                            const existingUsername = existing?.username || userProfile?.username;
+
+                            if (existingUsername) {
+                                const upsertPayload = {
+                                    id: currentUser.id,
+                                    user_id: currentUser.id,
+                                    username: existingUsername,
+                                    full_name: existing?.full_name || userProfile?.full_name || 'User',
+                                    bio: existing?.bio || userProfile?.bio || '',
+                                    location: existing?.location || userProfile?.location || '',
+                                    is_private: existing?.is_private ?? userProfile?.is_private ?? false,
+                                    avatar_url: finalAvatarUrl,
+                                    created_at: userProfile?.created_at || nowIso,
+                                    updated_at: nowIso
+                                };
+
+                                let result = await supabase.from('user_profiles').upsert(upsertPayload, { onConflict: 'id' }).select('*');
+                                if (result.error && isColumnMissingError(result.error, 'user_id')) {
+                                    const { user_id, ...fallbackPayload } = upsertPayload;
+                                    result = await supabase.from('user_profiles').upsert(fallbackPayload, { onConflict: 'id' }).select('*');
+                                }
+                                savedRow = Array.isArray(result.data) && result.data[0] ? result.data[0] : null;
+                            }
+                        }
+
+                        if (savedRow) {
+                            userProfile = { ...userProfile, ...savedRow };
                             window.userProfile = userProfile;
                             updateProfileUI(userProfile);
                         }
