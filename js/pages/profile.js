@@ -247,23 +247,7 @@
             const COLLECTION_VIEW_STORAGE_KEY = 'zo2y_profile_collection_view_modes_v2';
             let collectionViewModes = loadCollectionViewModes();
 
-            // Curated Atmospheric Aesthetics Presets (Themed for zo2y)
-            const ATMOSPHERIC_PRESETS = [
-                { name: 'Sunset Coast', keywords: 'sunset ocean coast water', url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=500&q=80' },
-                { name: 'Rainy Neon City', keywords: 'city neon rain street cyberpunk', url: 'https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=500&q=80' },
-                { name: 'Moody Mountain Peak', keywords: 'mountain peak dark moody sunset', url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=500&q=80' },
-                { name: 'Ocean Cliff Waters', keywords: 'ocean sea cliff coast water', url: 'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?auto=format&fit=crop&w=500&q=80' },
-                { name: 'Sunlit Forest', keywords: 'forest trees nature sun beam', url: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=500&q=80' },
-                { name: 'Misty Mountains', keywords: 'mountains fog mist lake', url: 'https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?auto=format&fit=crop&w=500&q=80' },
-                { name: 'Starry Cosmos Night', keywords: 'star space galaxy cosmos sky', url: 'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=500&q=80' },
-                { name: 'Night City Alley', keywords: 'city street lights night urban', url: 'https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=500&q=80' },
-                { name: 'Golden Eclipse Ring', keywords: 'eclipse gold ring circle dark', url: 'https://images.unsplash.com/photo-1532693322450-2cb5c511067d?auto=format&fit=crop&w=500&q=80' },
-                { name: 'Crimson Sunset Clouds', keywords: 'sunset clouds sky pink crimson', url: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=500&q=80' },
-                { name: 'Minimalist Architecture', keywords: 'minimalist architecture shadows', url: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=500&q=80' },
-                { name: 'Deep Aurora Sky', keywords: 'aurora sky stars night blue', url: 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?auto=format&fit=crop&w=500&q=80' }
-            ];
             let pendingAvatarUrl = null;
-            let selectedPresetPhotoUrl = null;
 
             async function resolveAuthenticatedProfileUser(client) {
                 if (!client?.auth) return null;
@@ -10597,11 +10581,7 @@ const alreadyActive = isMobile
                     
                     if (modalId === 'avatarModal') {
                         pendingAvatarUrl = null;
-                        selectedPresetPhotoUrl = userProfile?.avatar_url || null;
-                        const searchInput = document.getElementById('avatarPresetSearchInput');
-                        if (searchInput) searchInput.value = '';
                         updateAvatarModalPreview();
-                        renderAvatarPresets(ATMOSPHERIC_PRESETS);
                         setupAvatarDropZone();
                     }
                     
@@ -10695,53 +10675,6 @@ const alreadyActive = isMobile
             }
 
             // ===== AVATAR FUNCTIONS =====
-            function renderAvatarPresets(items) {
-                const grid = document.getElementById('avatarGalleryGrid');
-                if (!grid) return;
-                grid.innerHTML = '';
-
-                if (!items || !items.length) {
-                    grid.innerHTML = '<div class="text-muted text-center p-12 col-span-full" style="font-size:13px; color:rgba(255,255,255,0.4);">No matching presets found</div>';
-                    return;
-                }
-
-                items.forEach(c => {
-                    const item = document.createElement('div');
-                    item.className = 'avatar-gallery-item';
-                    item.title = c.name;
-                    if (c.url === selectedPresetPhotoUrl) {
-                        item.classList.add('selected');
-                    }
-                    const img = document.createElement('img');
-                    img.src = c.url;
-                    img.alt = c.name;
-                    img.loading = 'lazy';
-                    item.appendChild(img);
-
-                    item.onclick = () => {
-                        document.querySelectorAll('.avatar-gallery-item').forEach(el => el.classList.remove('selected'));
-                        item.classList.add('selected');
-                        pendingAvatarUrl = null;
-                        selectedPresetPhotoUrl = c.url;
-                        updateAvatarModalPreview();
-                    };
-                    grid.appendChild(item);
-                });
-            }
-
-            function filterAvatarPresets(query) {
-                const cleanQuery = String(query || '').trim().toLowerCase();
-                if (!cleanQuery) {
-                    renderAvatarPresets(ATMOSPHERIC_PRESETS);
-                    return;
-                }
-                const filtered = ATMOSPHERIC_PRESETS.filter(p => 
-                    p.name.toLowerCase().includes(cleanQuery) || 
-                    (p.keywords && p.keywords.toLowerCase().includes(cleanQuery))
-                );
-                renderAvatarPresets(filtered);
-            }
-
             function setupAvatarDropZone() {
                 const dropZone = document.getElementById('avatarDropZone');
                 if (!dropZone || dropZone.__dropZoneInitialized) return;
@@ -10777,7 +10710,7 @@ const alreadyActive = isMobile
                 const captionEl = document.getElementById('avatarPreviewCaption');
                 if (!previewEl) return;
 
-                const currentUrl = pendingAvatarUrl || selectedPresetPhotoUrl || userProfile?.avatar_url;
+                const currentUrl = pendingAvatarUrl || userProfile?.avatar_url;
 
                 if (currentUrl) {
                     previewEl.innerHTML = '';
@@ -10789,7 +10722,7 @@ const alreadyActive = isMobile
                         if (captionEl) captionEl.textContent = 'silhouette photo';
                     };
                     img.onload = () => {
-                        if (captionEl) captionEl.textContent = pendingAvatarUrl ? 'uploaded photo' : (selectedPresetPhotoUrl ? 'preset photo' : 'current photo');
+                        if (captionEl) captionEl.textContent = pendingAvatarUrl ? 'uploaded photo' : 'current photo';
                     };
                     previewEl.appendChild(img);
                 } else {
@@ -10814,8 +10747,6 @@ const alreadyActive = isMobile
                 reader.onload = function(e) {
                     resizeAvatarImage(e.target.result, 220, 220, (resizedDataUrl) => {
                         pendingAvatarUrl = resizedDataUrl;
-                        selectedPresetPhotoUrl = null;
-                        document.querySelectorAll('.avatar-gallery-item').forEach(el => el.classList.remove('selected'));
                         updateAvatarModalPreview();
                         showToast('Photo selected! Click Save Changes to update.', 'success');
                     });
@@ -10850,8 +10781,6 @@ const alreadyActive = isMobile
 
             function resetAvatarToSilhouette() {
                 pendingAvatarUrl = null;
-                selectedPresetPhotoUrl = null;
-                document.querySelectorAll('.avatar-gallery-item').forEach(el => el.classList.remove('selected'));
                 if (userProfile) userProfile.avatar_url = null;
                 updateAvatarModalPreview();
                 showToast('Reset to empty silhouette', 'info');
@@ -10868,7 +10797,7 @@ const alreadyActive = isMobile
                     return;
                 }
 
-                const finalAvatarUrl = pendingAvatarUrl || selectedPresetPhotoUrl || null;
+                const finalAvatarUrl = pendingAvatarUrl || (userProfile?.avatar_url || null);
 
                 // 1. INSTANT OPTIMISTIC UI UPDATE & LOCAL SYNC
                 userProfile = {
@@ -11843,7 +11772,6 @@ const alreadyActive = isMobile
                 saveAvatar,
                 handleAvatarFileSelect,
                 resetAvatarToSilhouette,
-                filterAvatarPresets,
                 setRating,
                 toggleFollow,
                 showMobileMenu,
