@@ -117,7 +117,7 @@
     }, 2400);
   }
 
-  const LOGO_CACHE_BUST = "20260731bk";
+  const LOGO_CACHE_BUST = "20260731brands";
 
   function resolveLogo(value, domain, name) {
     const direct = String(value || "").trim();

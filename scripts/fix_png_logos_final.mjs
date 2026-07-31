@@ -31,7 +31,6 @@ const delay = ms => new Promise(res => setTimeout(res, ms));
 // ============================================================
 const SI = {
   "KFC": "kfc",
-  "McDonald's": "mcdonalds",
   "Starbucks": "starbucks",
   "Taco Bell": "tacobell",
 };

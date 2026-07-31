@@ -33,7 +33,6 @@ const WIKI_UA = 'zo2y-brand-fetcher/1.0 (contact@zo2y.com)';
 const VERIFIED_WIKI_TITLES = {
   // SimpleIcons (black, guaranteed correct)
   "KFC": { type: "simpleicons", slug: "kfc" },
-  "McDonald's": { type: "simpleicons", slug: "mcdonalds" },
   "Starbucks": { type: "simpleicons", slug: "starbucks" },
   "Taco Bell": { type: "simpleicons", slug: "tacobell" },
 
