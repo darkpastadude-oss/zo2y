@@ -2042,38 +2042,42 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     <div class="modal" id="avatarModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Customize Profile Avatar</h3>
+                <h3 class="modal-title">Profile Picture</h3>
                 <button class="modal-close" onclick="ProfileManager.closeModal('avatarModal')">&times;</button>
             </div>
             
             <div class="modal-body">
                 <!-- Live Preview -->
-                <div class="avatar-modal-preview-wrap mb-20 text-center">
-                    <div class="avatar-modal-preview" id="avatarPreviewBubble" title="Avatar Preview">👤</div>
-                    <div class="avatar-preview-caption text-muted mt-8" id="avatarPreviewCaption">Current Preview</div>
-                </div>
-
-                <!-- Custom Image URL -->
-                <div class="form-group mb-20">
-                    <label class="form-label" for="customAvatarUrlInput">Custom Profile Image URL</label>
-                    <div class="input-with-action">
-                        <input type="url" id="customAvatarUrlInput" class="form-control" placeholder="https://example.com/my-photo.jpg" oninput="ProfileManager.onAvatarUrlInput(this.value)" />
-                        <button type="button" class="btn btn-secondary btn-sm" id="clearAvatarUrlBtn" onclick="ProfileManager.clearCustomAvatarUrl()">Clear</button>
+                <div class="avatar-modal-preview-wrap mb-24 text-center">
+                    <div class="avatar-modal-preview" id="avatarPreviewBubble" title="Profile Picture Preview">
+                        <i class="fa-solid fa-user avatar-silhouette-icon"></i>
                     </div>
-                    <small class="form-help text-muted">Paste a link to an image (JPEG, PNG, SVG, WebP) to use your own photo.</small>
+                    <div class="avatar-preview-caption text-muted mt-10" id="avatarPreviewCaption">Empty Silhouette (Default)</div>
                 </div>
 
-                <!-- Preset Icon Selector -->
-                <div class="form-group mb-16">
-                    <label class="form-label">Or Choose a Preset Icon</label>
-                    <div class="avatar-icon-grid" id="avatarIconGrid">
-                        <!-- Icons will be populated here -->
+                <!-- Direct Device Photo Upload -->
+                <div class="avatar-upload-box mb-24">
+                    <input type="file" id="avatarFileInput" accept="image/*" style="display: none;" onchange="ProfileManager.handleAvatarFileSelect(event)" />
+                    <button type="button" class="btn btn-primary btn-block avatar-upload-btn" onclick="document.getElementById('avatarFileInput').click()">
+                        <i class="fa-solid fa-camera mr-8"></i> Upload Photo from Device
+                    </button>
+                </div>
+
+                <!-- Curated Preset Avatars Gallery -->
+                <div class="form-group mb-20">
+                    <label class="form-label">Or Pick a Preset Profile Photo</label>
+                    <div class="avatar-gallery-grid" id="avatarGalleryGrid">
+                        <!-- Preset profile photos populated here -->
                     </div>
                 </div>
                 
-                <div class="form-actions mt-20">
+                <div class="form-actions avatar-modal-actions mt-24">
+                    <button type="button" class="btn btn-secondary-subtle" onclick="ProfileManager.resetAvatarToSilhouette()">
+                        <i class="fa-solid fa-user-slash mr-6"></i> Remove Photo
+                    </button>
+                    <div class="flex-spacer"></div>
                     <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('avatarModal')">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="ProfileManager.saveAvatar()">Save Avatar</button>
+                    <button type="button" class="btn btn-primary" onclick="ProfileManager.saveAvatar()">Save Changes</button>
                 </div>
             </div>
         </div>

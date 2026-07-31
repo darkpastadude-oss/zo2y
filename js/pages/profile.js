@@ -247,14 +247,19 @@
             const COLLECTION_VIEW_STORAGE_KEY = 'zo2y_profile_collection_view_modes_v2';
             let collectionViewModes = loadCollectionViewModes();
 
-            // Avatar/icon palette (unicode escapes to avoid encoding issues)
-            const avatarIcons = [
-                "\u{1F464}", "\u{1F3AC}", "\u{1F3A5}", "\u{1F4FA}", "\u{1F409}",
-                "\u{1F3AE}", "\u{1F4DA}", "\u{1F3B5}", "\u{1F3A7}", "\u{1F3A4}",
-                "\u{1F3B8}", "\u{1F3B9}", "\u{1F3BB}", "\u{1F4F7}", "\u{1F3AD}",
-                "\u{1F39F}\uFE0F", "\u{1F3AB}", "\u{1F3AA}", "\u{1F4FD}", "\u{1F31F}",
-                "\u{2B50}", "\u{1F680}", "\u{1F3AF}", "\u{1F3C6}", "\u{2728}"
+            // Preset profile photos gallery
+            const PRESET_AVATAR_PHOTOS = [
+                'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
+                'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
+                'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=80',
+                'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
+                'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=300&q=80',
+                'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=300&q=80',
+                'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=300&q=80',
+                'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=300&q=80'
             ];
+            let pendingAvatarUrl = null;
+            let selectedPresetPhotoUrl = null;
 
             async function resolveAuthenticatedProfileUser(client) {
                 if (!client?.auth) return null;
@@ -1566,19 +1571,18 @@
             function renderAvatarElement(containerEl, profile = userProfile) {
                 if (!containerEl) return;
                 const avatarUrl = String(profile?.avatar_url || '').trim();
-                const avatarIcon = String(profile?.avatar_icon || '').trim() || iconGlyphText('user');
                 
-                if (avatarUrl && /^https?:\/\//i.test(avatarUrl)) {
+                if (avatarUrl && (/^https?:\/\//i.test(avatarUrl) || /^data:image\//i.test(avatarUrl))) {
                     containerEl.innerHTML = '';
                     const img = document.createElement('img');
                     img.src = avatarUrl;
                     img.alt = 'Profile Avatar';
                     img.onerror = () => {
-                        containerEl.textContent = avatarIcon;
+                        containerEl.innerHTML = '<i class="fa-solid fa-user avatar-silhouette-icon"></i>';
                     };
                     containerEl.appendChild(img);
                 } else {
-                    containerEl.textContent = avatarIcon;
+                    containerEl.innerHTML = '<i class="fa-solid fa-user avatar-silhouette-icon"></i>';
                 }
             }
 
@@ -10582,35 +10586,32 @@ const alreadyActive = isMobile
                         if (newEmail) newEmail.value = currentUser.email || '';
                     }
                     
-                    // 4. FIX: Update avatar system to use avatar_icon and avatar_url columns
                     if (modalId === 'avatarModal') {
-                        const customAvatarUrlInput = document.getElementById('customAvatarUrlInput');
-                        if (customAvatarUrlInput) {
-                            customAvatarUrlInput.value = userProfile?.avatar_url || '';
-                        }
-                        selectedAvatarIcon = userProfile?.avatar_icon || iconGlyphText('user');
-                        updateAvatarPreviewBubble(userProfile?.avatar_url || '', selectedAvatarIcon);
+                        pendingAvatarUrl = null;
+                        selectedPresetPhotoUrl = userProfile?.avatar_url || null;
+                        updateAvatarModalPreview();
 
-                        const avatarIconGrid = document.getElementById('avatarIconGrid');
-                        if (avatarIconGrid) {
-                            avatarIconGrid.innerHTML = '';
-                            avatarIcons.forEach(icon => {
-                                const iconOption = document.createElement('div');
-                                iconOption.className = 'avatar-icon-option';
-                                iconOption.textContent = icon;
-                                iconOption.onclick = () => {
-                                    document.querySelectorAll('.avatar-icon-option').forEach(opt => {
-                                        opt.classList.remove('selected');
-                                    });
-                                    iconOption.classList.add('selected');
-                                    selectedAvatarIcon = icon;
-                                    const currentCustomUrl = String(document.getElementById('customAvatarUrlInput')?.value || '').trim();
-                                    updateAvatarPreviewBubble(currentCustomUrl, icon);
-                                };
-                                if (icon === selectedAvatarIcon) {
-                                    iconOption.classList.add('selected');
+                        const avatarGalleryGrid = document.getElementById('avatarGalleryGrid');
+                        if (avatarGalleryGrid) {
+                            avatarGalleryGrid.innerHTML = '';
+                            PRESET_AVATAR_PHOTOS.forEach(photoUrl => {
+                                const item = document.createElement('div');
+                                item.className = 'avatar-gallery-item';
+                                if (photoUrl === selectedPresetPhotoUrl) {
+                                    item.classList.add('selected');
                                 }
-                                avatarIconGrid.appendChild(iconOption);
+                                const img = document.createElement('img');
+                                img.src = photoUrl;
+                                img.alt = 'Preset Avatar Photo';
+                                item.appendChild(img);
+                                item.onclick = () => {
+                                    document.querySelectorAll('.avatar-gallery-item').forEach(el => el.classList.remove('selected'));
+                                    item.classList.add('selected');
+                                    pendingAvatarUrl = null;
+                                    selectedPresetPhotoUrl = photoUrl;
+                                    updateAvatarModalPreview();
+                                };
+                                avatarGalleryGrid.appendChild(item);
                             });
                         }
                     }
@@ -10705,40 +10706,87 @@ const alreadyActive = isMobile
             }
 
             // ===== AVATAR FUNCTIONS =====
-            function updateAvatarPreviewBubble(url, icon) {
+            function updateAvatarModalPreview() {
                 const previewEl = document.getElementById('avatarPreviewBubble');
                 const captionEl = document.getElementById('avatarPreviewCaption');
                 if (!previewEl) return;
-                const cleanUrl = String(url || '').trim();
-                const fallbackIcon = String(icon || selectedAvatarIcon || userProfile?.avatar_icon || iconGlyphText('user')).trim();
-                
-                if (cleanUrl && /^https?:\/\//i.test(cleanUrl)) {
+
+                const currentUrl = pendingAvatarUrl || selectedPresetPhotoUrl;
+                if (currentUrl) {
                     previewEl.innerHTML = '';
                     const img = document.createElement('img');
-                    img.src = cleanUrl;
+                    img.src = currentUrl;
                     img.alt = 'Avatar Preview';
                     img.onerror = () => {
-                        previewEl.textContent = fallbackIcon;
-                        if (captionEl) captionEl.textContent = 'Invalid Image Link (Using Preset Icon)';
+                        previewEl.innerHTML = '<i class="fa-solid fa-user avatar-silhouette-icon"></i>';
+                        if (captionEl) captionEl.textContent = 'Empty Silhouette (Default)';
                     };
                     img.onload = () => {
-                        if (captionEl) captionEl.textContent = 'Custom Profile Image Preview';
+                        if (captionEl) captionEl.textContent = pendingAvatarUrl ? 'Uploaded Photo Preview' : 'Preset Photo Preview';
                     };
                     previewEl.appendChild(img);
                 } else {
-                    previewEl.textContent = fallbackIcon;
-                    if (captionEl) captionEl.textContent = cleanUrl ? 'Enter a valid http/https image URL' : 'Preset Icon Preview';
+                    previewEl.innerHTML = '<i class="fa-solid fa-user avatar-silhouette-icon"></i>';
+                    if (captionEl) captionEl.textContent = 'Empty Silhouette (Default)';
                 }
             }
 
-            function onAvatarUrlInput(val) {
-                updateAvatarPreviewBubble(val, selectedAvatarIcon);
+            function handleAvatarFileSelect(event) {
+                const file = event?.target?.files?.[0];
+                if (!file) return;
+                if (!file.type.startsWith('image/')) {
+                    showToast('Please select a valid image file', 'error');
+                    return;
+                }
+                if (file.size > 10 * 1024 * 1024) {
+                    showToast('File size is too large (max 10MB)', 'error');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    resizeAvatarImage(e.target.result, 256, 256, (resizedDataUrl) => {
+                        pendingAvatarUrl = resizedDataUrl;
+                        selectedPresetPhotoUrl = null;
+                        document.querySelectorAll('.avatar-gallery-item').forEach(el => el.classList.remove('selected'));
+                        updateAvatarModalPreview();
+                        showToast('Photo selected! Click Save Changes to update.', 'success');
+                    });
+                };
+                reader.onerror = function() {
+                    showToast('Error reading image file', 'error');
+                };
+                reader.readAsDataURL(file);
             }
 
-            function clearCustomAvatarUrl() {
-                const input = document.getElementById('customAvatarUrlInput');
-                if (input) input.value = '';
-                updateAvatarPreviewBubble('', selectedAvatarIcon);
+            function resizeAvatarImage(dataUrl, maxWidth, maxHeight, callback) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const minDim = Math.min(width, height);
+                    const sx = (width - minDim) / 2;
+                    const sy = (height - minDim) / 2;
+                    
+                    canvas.width = maxWidth;
+                    canvas.height = maxHeight;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, maxWidth, maxHeight);
+                    callback(canvas.toDataURL('image/jpeg', 0.88));
+                };
+                img.onerror = function() {
+                    callback(dataUrl);
+                };
+                img.src = dataUrl;
+            }
+
+            function resetAvatarToSilhouette() {
+                pendingAvatarUrl = null;
+                selectedPresetPhotoUrl = null;
+                document.querySelectorAll('.avatar-gallery-item').forEach(el => el.classList.remove('selected'));
+                updateAvatarModalPreview();
+                showToast('Reset to empty silhouette', 'info');
             }
 
             function showAvatarModal() {
@@ -10748,17 +10796,16 @@ const alreadyActive = isMobile
 
             async function saveAvatar() {
                 if (!isViewingOwnProfile) {
-                    showToast('Please sign in to change your avatar', 'error');
+                    showToast('Please sign in to change your profile picture', 'error');
                     return;
                 }
 
-                const customUrl = String(document.getElementById('customAvatarUrlInput')?.value || '').trim();
+                const finalAvatarUrl = pendingAvatarUrl || selectedPresetPhotoUrl || null;
 
                 try {
                     const nowIso = new Date().toISOString();
                     const payload = {
-                        avatar_icon: selectedAvatarIcon || iconGlyphText('user'),
-                        avatar_url: customUrl || null,
+                        avatar_url: finalAvatarUrl,
                         updated_at: nowIso
                     };
                     let saved = false;
@@ -10771,13 +10818,8 @@ const alreadyActive = isMobile
                         .limit(1);
 
                     if (byIdResult.error && isColumnMissingError(byIdResult.error, 'avatar_url')) {
-                        delete payload.avatar_url;
-                        byIdResult = await supabase
-                            .from('user_profiles')
-                            .update(payload)
-                            .eq('id', currentUser.id)
-                            .select('*')
-                            .limit(1);
+                        showToast('avatar_url column missing on server schema', 'error');
+                        return;
                     }
 
                     if (byIdResult.error && !isColumnMissingError(byIdResult.error, 'id')) {
@@ -10792,16 +10834,6 @@ const alreadyActive = isMobile
                             .eq('user_id', currentUser.id)
                             .select('*')
                             .limit(1);
-
-                        if (byUserIdResult.error && isColumnMissingError(byUserIdResult.error, 'avatar_url')) {
-                            delete payload.avatar_url;
-                            byUserIdResult = await supabase
-                                .from('user_profiles')
-                                .update(payload)
-                                .eq('user_id', currentUser.id)
-                                .select('*')
-                                .limit(1);
-                        }
 
                         if (byUserIdResult.error && !isColumnMissingError(byUserIdResult.error, 'user_id')) {
                             throw byUserIdResult.error;
@@ -10822,8 +10854,7 @@ const alreadyActive = isMobile
                             bio: String(userProfile?.bio || ''),
                             location: String(userProfile?.location || ''),
                             is_private: !!userProfile?.is_private,
-                            avatar_icon: selectedAvatarIcon || iconGlyphText('user'),
-                            avatar_url: customUrl || null,
+                            avatar_url: finalAvatarUrl,
                             created_at: userProfile?.created_at || nowIso,
                             updated_at: nowIso
                         };
@@ -10831,12 +10862,6 @@ const alreadyActive = isMobile
                         let upsertError = null;
                         const result = await supabase.from('user_profiles').upsert(upsertPayload, { onConflict: 'id' });
                         upsertError = result.error || null;
-
-                        if (upsertError && isColumnMissingError(upsertError, 'avatar_url')) {
-                            delete upsertPayload.avatar_url;
-                            const retry = await supabase.from('user_profiles').upsert(upsertPayload, { onConflict: 'id' });
-                            upsertError = retry.error || null;
-                        }
 
                         if (upsertError && isColumnMissingError(upsertError, 'user_id')) {
                             const { user_id, ...fallbackPayload } = upsertPayload;
@@ -10849,15 +10874,14 @@ const alreadyActive = isMobile
 
                     await loadUserProfile();
                     if (userProfile) {
-                        userProfile.avatar_icon = selectedAvatarIcon || iconGlyphText('user');
-                        userProfile.avatar_url = customUrl || null;
+                        userProfile.avatar_url = finalAvatarUrl;
                     }
                     updateProfileUI(userProfile);
-                    showToast('Avatar updated successfully!', 'success');
+                    showToast('Profile picture updated successfully!', 'success');
                     closeModal('avatarModal');
                 } catch (error) {
-                    console.error('Error saving avatar:', error);
-                    showToast('Error saving avatar', 'error');
+                    console.error('Error saving profile picture:', error);
+                    showToast('Error saving profile picture', 'error');
                 }
             }
 
@@ -11751,8 +11775,8 @@ const alreadyActive = isMobile
                 deleteCollection,
                 togglePinnedCollection,
                 saveAvatar,
-                onAvatarUrlInput,
-                clearCustomAvatarUrl,
+                handleAvatarFileSelect,
+                resetAvatarToSilhouette,
                 setRating,
                 toggleFollow,
                 showMobileMenu,
