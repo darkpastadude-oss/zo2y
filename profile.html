@@ -2056,11 +2056,20 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 </div>
 
                 <!-- Direct Device Photo Upload -->
-                <div class="avatar-upload-box mb-24">
+                <div class="avatar-upload-box mb-20">
                     <input type="file" id="avatarFileInput" accept="image/*" style="display: none;" onchange="ProfileManager.handleAvatarFileSelect(event)" />
                     <button type="button" class="btn btn-primary btn-block avatar-upload-btn" onclick="document.getElementById('avatarFileInput').click()">
                         <i class="fa-solid fa-camera mr-8"></i> Upload Photo from Device
                     </button>
+                </div>
+
+                <!-- TMDB Character Search & Presets -->
+                <div class="form-group mb-20">
+                    <label class="form-label mb-8">Movie Character Presets (TMDB)</label>
+                    <input type="search" id="tmdbCharacterSearchInput" class="form-control mb-12" placeholder="Search any movie character (e.g. Ironman, Batman, Spider-Man)..." oninput="ProfileManager.onTmdbCharacterSearch(this.value)" />
+                    <div class="avatar-gallery-grid" id="avatarGalleryGrid">
+                        <!-- Character posters populated dynamically -->
+                    </div>
                 </div>
                 
                 <div class="form-actions avatar-modal-actions mt-24">

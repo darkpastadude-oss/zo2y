@@ -247,19 +247,23 @@
             const COLLECTION_VIEW_STORAGE_KEY = 'zo2y_profile_collection_view_modes_v2';
             let collectionViewModes = loadCollectionViewModes();
 
-            // Preset profile photos gallery
-            const PRESET_AVATAR_PHOTOS = [
-                'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
-                'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
-                'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=80',
-                'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
-                'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=300&q=80',
-                'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=300&q=80',
-                'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=300&q=80',
-                'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=300&q=80'
+            // Iconic TMDB Movie Character Profile Presets
+            const TMDB_CHARACTER_PRESETS = [
+                { name: 'Iron Man', title: 'Iron Man', url: 'https://image.tmdb.org/t/p/w500/78lPtwv72eTNqFW9COBYI0dWDJa.jpg' },
+                { name: 'Batman', title: 'The Dark Knight', url: 'https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg' },
+                { name: 'Spider-Man', title: 'Spider-Man: No Way Home', url: 'https://image.tmdb.org/t/p/w500/1g0dhYtq4irTY1GPXvft6k4YLjm.jpg' },
+                { name: 'Darth Vader', title: 'Rogue One', url: 'https://image.tmdb.org/t/p/w500/i0yw1mFbB7sNGHCs7EXZPzFkdA1.jpg' },
+                { name: 'Deadpool', title: 'Deadpool & Wolverine', url: 'https://image.tmdb.org/t/p/w500/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg' },
+                { name: 'Wolverine', title: 'Logan', url: 'https://image.tmdb.org/t/p/w500/fnbjcRDYn6YviCcePDnGdyAkYsB.jpg' },
+                { name: 'Jack Sparrow', title: 'Pirates of the Caribbean', url: 'https://image.tmdb.org/t/p/w500/poHwCZeWzJCShH7tOjg8RIoyjcw.jpg' },
+                { name: 'Harry Potter', title: 'Harry Potter', url: 'https://image.tmdb.org/t/p/w500/wuMc08IPKEatf9rnMNXvIDxqP4W.jpg' },
+                { name: 'Captain America', title: 'Captain America', url: 'https://image.tmdb.org/t/p/w500/vSNxAJTlD0r02V9sPYpOjqDZXUK.jpg' },
+                { name: 'Thor', title: 'Thor: Ragnarok', url: 'https://image.tmdb.org/t/p/w500/rzRwTcFvttcN1ZpX2xv4j3tSdJu.jpg' },
+                { name: 'Wonder Woman', title: 'Wonder Woman', url: 'https://image.tmdb.org/t/p/w500/v4ncgZjG2Zu8ZW5al1vIZTsSjqX.jpg' }
             ];
             let pendingAvatarUrl = null;
             let selectedPresetPhotoUrl = null;
+            let tmdbSearchDebounceTimer = null;
 
             async function resolveAuthenticatedProfileUser(client) {
                 if (!client?.auth) return null;
@@ -10588,7 +10592,11 @@ const alreadyActive = isMobile
                     
                     if (modalId === 'avatarModal') {
                         pendingAvatarUrl = null;
+                        selectedPresetPhotoUrl = userProfile?.avatar_url || null;
+                        const searchInput = document.getElementById('tmdbCharacterSearchInput');
+                        if (searchInput) searchInput.value = '';
                         updateAvatarModalPreview();
+                        renderTmdbCharacterPresets(TMDB_CHARACTER_PRESETS);
                     }
                     
                     if (modalId === 'createListModal') {
@@ -10681,32 +10689,84 @@ const alreadyActive = isMobile
             }
 
             // ===== AVATAR FUNCTIONS =====
+            function renderTmdbCharacterPresets(items) {
+                const grid = document.getElementById('avatarGalleryGrid');
+                if (!grid) return;
+                grid.innerHTML = '';
+
+                if (!items || !items.length) {
+                    grid.innerHTML = '<div class="text-muted text-center p-12 col-span-full">No character posters found</div>';
+                    return;
+                }
+
+                items.forEach(c => {
+                    const item = document.createElement('div');
+                    item.className = 'avatar-gallery-item';
+                    item.title = `${c.name} (${c.title || 'Movie'})`;
+                    if (c.url === selectedPresetPhotoUrl) {
+                        item.classList.add('selected');
+                    }
+                    const img = document.createElement('img');
+                    img.src = c.url;
+                    img.alt = c.name;
+                    img.loading = 'lazy';
+                    item.appendChild(img);
+
+                    item.onclick = () => {
+                        document.querySelectorAll('.avatar-gallery-item').forEach(el => el.classList.remove('selected'));
+                        item.classList.add('selected');
+                        pendingAvatarUrl = null;
+                        selectedPresetPhotoUrl = c.url;
+                        updateAvatarModalPreview();
+                    };
+                    grid.appendChild(item);
+                });
+            }
+
+            function onTmdbCharacterSearch(query) {
+                const cleanQuery = String(query || '').trim();
+                if (tmdbSearchDebounceTimer) clearTimeout(tmdbSearchDebounceTimer);
+
+                if (!cleanQuery) {
+                    renderTmdbCharacterPresets(TMDB_CHARACTER_PRESETS);
+                    return;
+                }
+
+                tmdbSearchDebounceTimer = setTimeout(async () => {
+                    try {
+                        const res = await fetch(`/api/tmdb/search/movie?query=${encodeURIComponent(cleanQuery)}&language=en`);
+                        if (!res.ok) return;
+                        const data = await res.json();
+                        const results = (data.results || []).slice(0, 12).filter(r => r.poster_path).map(r => ({
+                            name: r.title,
+                            title: r.release_date ? r.release_date.split('-')[0] : '',
+                            url: `https://image.tmdb.org/t/p/w500${r.poster_path}`
+                        }));
+                        renderTmdbCharacterPresets(results);
+                    } catch (err) {
+                        console.error('TMDB character search failed:', err);
+                    }
+                }, 280);
+            }
+
             function updateAvatarModalPreview() {
                 const previewEl = document.getElementById('avatarPreviewBubble');
                 const captionEl = document.getElementById('avatarPreviewCaption');
                 if (!previewEl) return;
 
-                if (pendingAvatarUrl) {
+                const currentUrl = pendingAvatarUrl || selectedPresetPhotoUrl || userProfile?.avatar_url;
+
+                if (currentUrl) {
                     previewEl.innerHTML = '';
                     const img = document.createElement('img');
-                    img.src = pendingAvatarUrl;
+                    img.src = currentUrl;
                     img.alt = 'Avatar Preview';
                     img.onerror = () => {
                         previewEl.innerHTML = '<i class="fa-solid fa-user avatar-silhouette-icon"></i>';
                         if (captionEl) captionEl.textContent = 'Empty Silhouette (Default)';
                     };
                     img.onload = () => {
-                        if (captionEl) captionEl.textContent = 'Uploaded Photo Preview';
-                    };
-                    previewEl.appendChild(img);
-                } else if (userProfile?.avatar_url) {
-                    previewEl.innerHTML = '';
-                    const img = document.createElement('img');
-                    img.src = userProfile.avatar_url;
-                    img.alt = 'Avatar Preview';
-                    img.onerror = () => {
-                        previewEl.innerHTML = '<i class="fa-solid fa-user avatar-silhouette-icon"></i>';
-                        if (captionEl) captionEl.textContent = 'Empty Silhouette (Default)';
+                        if (captionEl) captionEl.textContent = pendingAvatarUrl ? 'Uploaded Photo Preview' : (selectedPresetPhotoUrl ? 'Character Preset Preview' : 'Current Avatar');
                     };
                     previewEl.appendChild(img);
                 } else {
@@ -10731,6 +10791,8 @@ const alreadyActive = isMobile
                 reader.onload = function(e) {
                     resizeAvatarImage(e.target.result, 220, 220, (resizedDataUrl) => {
                         pendingAvatarUrl = resizedDataUrl;
+                        selectedPresetPhotoUrl = null;
+                        document.querySelectorAll('.avatar-gallery-item').forEach(el => el.classList.remove('selected'));
                         updateAvatarModalPreview();
                         showToast('Photo selected! Click Save Changes to update.', 'success');
                     });
@@ -10765,6 +10827,8 @@ const alreadyActive = isMobile
 
             function resetAvatarToSilhouette() {
                 pendingAvatarUrl = null;
+                selectedPresetPhotoUrl = null;
+                document.querySelectorAll('.avatar-gallery-item').forEach(el => el.classList.remove('selected'));
                 if (userProfile) userProfile.avatar_url = null;
                 updateAvatarModalPreview();
                 showToast('Reset to empty silhouette', 'info');
@@ -10781,7 +10845,7 @@ const alreadyActive = isMobile
                     return;
                 }
 
-                const finalAvatarUrl = pendingAvatarUrl;
+                const finalAvatarUrl = pendingAvatarUrl || selectedPresetPhotoUrl || null;
 
                 // 1. INSTANT OPTIMISTIC UI UPDATE (0ms delay)
                 userProfile = {
@@ -11745,6 +11809,7 @@ const alreadyActive = isMobile
                 saveAvatar,
                 handleAvatarFileSelect,
                 resetAvatarToSilhouette,
+                onTmdbCharacterSearch,
                 setRating,
                 toggleFollow,
                 showMobileMenu,
