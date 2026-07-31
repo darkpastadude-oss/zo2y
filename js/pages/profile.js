@@ -8016,9 +8016,12 @@ const alreadyActive = isMobile
                 const parentTab = getTabForCollectionType(safeType);
                 currentMediaDetail = null;
 
-                const nextUrl = buildProfileUrl({ tab: parentTab });
+                hideDetailPanelsImmediate();
+                const safeTab = normalizeProfileTab(parentTab);
+                await showTab(safeTab, { skipUrlSync: true });
+
+                const nextUrl = buildProfileUrl({ tab: safeTab });
                 history.replaceState({}, '', nextUrl);
-                await hydrateInitialRoute();
             }
 
             function filterCollectionItems(mediaType, query) {
@@ -10322,10 +10325,24 @@ const alreadyActive = isMobile
             function hideGameDetail() { hideDetailByType('game'); }
 
             function backToProfile() {
+                forceScrollToTop();
                 currentMediaDetail = null;
+
+                restoreProfileHeader();
+                const categoryView = document.getElementById('pv2CategoryView');
+                if (categoryView) categoryView.style.display = 'none';
+                resetDetailPanels();
+
+                const desktopView = document.querySelector('.desktop-only');
+                const mobileView = document.querySelector('.mobile-only');
+                if (desktopView) desktopView.style.display = '';
+                if (mobileView) mobileView.style.display = '';
+
+                const overview = document.getElementById('pv2Overview');
+                if (overview) overview.style.display = '';
+
                 const nextUrl = buildProfileUrl({});
                 history.replaceState({}, '', nextUrl);
-                hydrateInitialRoute().catch(err => console.error(err));
             }
 
             function showShowcaseDetail(type) {
