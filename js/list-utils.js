@@ -1194,14 +1194,24 @@
     const finalTitle = title || 'Untitled';
     let row = { id, title: finalTitle, authors: incomingAuthors, thumbnail: validThumbnail };
     try {
-      const { error } = await client.from('books').upsert(row, { onConflict: 'id', ignoreDuplicates: false });
-      if (error && String(error.code || '') !== '23505') return false;
+      const { error } = await client.from('books').upsert(row, { onConflict: 'id', ignoreDuplicates: true });
+      if (error) {
+        const synced = await syncBookRecordViaApi({ id, title: finalTitle, authors: incomingAuthors, thumbnail: validThumbnail }, client);
+        if (synced) {
+          if (finalTitle !== 'Untitled') {
+            cacheSavedItemMetadata('book', id, { name: finalTitle, image: validThumbnail || '', subtitle: incomingAuthors || '' });
+          }
+          return true;
+        }
+        if (String(error.code || '') !== '23505') return false;
+      }
       if (finalTitle !== 'Untitled') {
         cacheSavedItemMetadata('book', id, { name: finalTitle, image: validThumbnail || '', subtitle: incomingAuthors || '' });
       }
       return true;
     } catch (_err) {
-      return false;
+      const synced = await syncBookRecordViaApi({ id, title: finalTitle, authors: incomingAuthors, thumbnail: validThumbnail }, client);
+      return synced;
     }
   }
 

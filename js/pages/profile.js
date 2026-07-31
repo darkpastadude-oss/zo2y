@@ -11458,7 +11458,10 @@ const alreadyActive = isMobile
                     var results = await Promise.all(batches[b].map(async function(entry) {
                         try {
                             if (entry.type === 'game') {
-                                var res = await supabase.from('games').select('hero_url,cover_url').eq('id', entry.id).maybeSingle();
+                                var cleanGameId = String(entry.id || '').replace(/^rawg_/i, '').trim();
+                                var numGameId = Number(cleanGameId);
+                                if (!cleanGameId || !Number.isFinite(numGameId) || isNaN(numGameId)) return null;
+                                var res = await supabase.from('games').select('hero_url,cover_url').eq('id', numGameId).maybeSingle();
                                 var data = res && res.data;
                                 if (data && data.hero_url) return data.hero_url;
                                 if (data && data.cover_url) return data.cover_url;
@@ -11544,7 +11547,10 @@ const alreadyActive = isMobile
                             }
                             return null;
                         } else if (type === 'game') {
-                            const res = await supabase.from('games').select('hero_url, background_url').eq('id', id).maybeSingle();
+                            const cleanGameId = String(id || '').replace(/^rawg_/i, '').trim();
+                            const numGameId = Number(cleanGameId);
+                            if (!cleanGameId || !Number.isFinite(numGameId) || isNaN(numGameId)) return null;
+                            const res = await supabase.from('games').select('hero_url, background_url').eq('id', numGameId).maybeSingle();
                             const data = res && res.data;
                             if (data && data.hero_url) return data.hero_url;
                             if (data && data.background_url) return data.background_url;

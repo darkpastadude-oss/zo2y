@@ -594,8 +594,10 @@ window.BannerPicker = (function () {
         }
       } else if (type === 'game') {
         const sb = getSupabase();
-        if (sb) {
-          const { data } = await sb.from('games').select('hero_url, background_url, screenshots').eq('id', id).maybeSingle();
+        const cleanGameId = String(id || '').replace(/^rawg_/i, '').trim();
+        const numGameId = Number(cleanGameId);
+        if (sb && cleanGameId && Number.isFinite(numGameId) && !isNaN(numGameId)) {
+          const { data } = await sb.from('games').select('hero_url, background_url, screenshots').eq('id', numGameId).maybeSingle();
           if (data) {
             if (data.hero_url) urls.push(data.hero_url);
             if (data.background_url) urls.push(data.background_url);
@@ -668,8 +670,10 @@ window.BannerPicker = (function () {
         }
       } else if (type === 'game') {
         const sb = getSupabase();
-        if (sb) {
-          const { data } = await sb.from('games').select('hero_url, background_url').eq('id', id).maybeSingle();
+        const cleanGameId = String(id || '').replace(/^rawg_/i, '').trim();
+        const numGameId = Number(cleanGameId);
+        if (sb && cleanGameId && Number.isFinite(numGameId) && !isNaN(numGameId)) {
+          const { data } = await sb.from('games').select('hero_url, background_url').eq('id', numGameId).maybeSingle();
           if (data) return data.hero_url || data.background_url || null;
         }
       }

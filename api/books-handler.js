@@ -431,7 +431,36 @@ export default async function booksHandler(req, res) {
     return res.json({ ok: true, books: [], total: 0 });
   }
 
-  if (section === "recommendations") {
+  if (req.method === "POST" && (pathParts.includes("sync") || section === "sync")) {
+    try {
+      const body = typeof req.body === "string" ? JSON.parse(req.body) : (req.body || {});
+      const id = String(body.id || body.book_id || body.bookId || "").trim();
+      const title = String(body.title || body.name || "").trim();
+      const thumbnail = String(body.thumbnail || body.image || body.cover || "").trim();
+      const authors = String(body.authors || body.author || body.author_name || "").trim();
+
+      if (!id || !title) {
+        return res.status(400).json({ ok: false, message: "Missing id or title" });
+      }
+
+      const adminClient = getSupabaseAdminClient();
+      if (adminClient) {
+        const { error } = await adminClient.from("books").upsert({
+          id,
+          title,
+          thumbnail: thumbnail || null,
+          authors: authors || null
+        }, { onConflict: "id", ignoreDuplicates: true });
+
+        if (error && String(error.code) !== "23505") {
+          return res.status(500).json({ ok: false, message: error.message });
+        }
+      }
+      return res.status(200).json({ ok: true, id });
+    } catch (e) {
+      return res.status(500).json({ ok: false, message: String(e?.message || e) });
+    }
+  }
     setCache(res, { maxAge: 3600, staleWhileRevalidate: 86400 });
     const bookId = String(query.id || "").trim();
     if (!bookId) return res.status(400).json({ ok: false, message: "Missing book id" });
