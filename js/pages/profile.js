@@ -10588,32 +10588,7 @@ const alreadyActive = isMobile
                     
                     if (modalId === 'avatarModal') {
                         pendingAvatarUrl = null;
-                        selectedPresetPhotoUrl = userProfile?.avatar_url || null;
                         updateAvatarModalPreview();
-
-                        const avatarGalleryGrid = document.getElementById('avatarGalleryGrid');
-                        if (avatarGalleryGrid) {
-                            avatarGalleryGrid.innerHTML = '';
-                            PRESET_AVATAR_PHOTOS.forEach(photoUrl => {
-                                const item = document.createElement('div');
-                                item.className = 'avatar-gallery-item';
-                                if (photoUrl === selectedPresetPhotoUrl) {
-                                    item.classList.add('selected');
-                                }
-                                const img = document.createElement('img');
-                                img.src = photoUrl;
-                                img.alt = 'Preset Avatar Photo';
-                                item.appendChild(img);
-                                item.onclick = () => {
-                                    document.querySelectorAll('.avatar-gallery-item').forEach(el => el.classList.remove('selected'));
-                                    item.classList.add('selected');
-                                    pendingAvatarUrl = null;
-                                    selectedPresetPhotoUrl = photoUrl;
-                                    updateAvatarModalPreview();
-                                };
-                                avatarGalleryGrid.appendChild(item);
-                            });
-                        }
                     }
                     
                     if (modalId === 'createListModal') {
@@ -10711,18 +10686,27 @@ const alreadyActive = isMobile
                 const captionEl = document.getElementById('avatarPreviewCaption');
                 if (!previewEl) return;
 
-                const currentUrl = pendingAvatarUrl || selectedPresetPhotoUrl;
-                if (currentUrl) {
+                if (pendingAvatarUrl) {
                     previewEl.innerHTML = '';
                     const img = document.createElement('img');
-                    img.src = currentUrl;
+                    img.src = pendingAvatarUrl;
                     img.alt = 'Avatar Preview';
                     img.onerror = () => {
                         previewEl.innerHTML = '<i class="fa-solid fa-user avatar-silhouette-icon"></i>';
                         if (captionEl) captionEl.textContent = 'Empty Silhouette (Default)';
                     };
                     img.onload = () => {
-                        if (captionEl) captionEl.textContent = pendingAvatarUrl ? 'Uploaded Photo Preview' : 'Preset Photo Preview';
+                        if (captionEl) captionEl.textContent = 'Uploaded Photo Preview';
+                    };
+                    previewEl.appendChild(img);
+                } else if (userProfile?.avatar_url) {
+                    previewEl.innerHTML = '';
+                    const img = document.createElement('img');
+                    img.src = userProfile.avatar_url;
+                    img.alt = 'Avatar Preview';
+                    img.onerror = () => {
+                        previewEl.innerHTML = '<i class="fa-solid fa-user avatar-silhouette-icon"></i>';
+                        if (captionEl) captionEl.textContent = 'Empty Silhouette (Default)';
                     };
                     previewEl.appendChild(img);
                 } else {
@@ -10745,10 +10729,8 @@ const alreadyActive = isMobile
 
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    resizeAvatarImage(e.target.result, 256, 256, (resizedDataUrl) => {
+                    resizeAvatarImage(e.target.result, 220, 220, (resizedDataUrl) => {
                         pendingAvatarUrl = resizedDataUrl;
-                        selectedPresetPhotoUrl = null;
-                        document.querySelectorAll('.avatar-gallery-item').forEach(el => el.classList.remove('selected'));
                         updateAvatarModalPreview();
                         showToast('Photo selected! Click Save Changes to update.', 'success');
                     });
@@ -10763,17 +10745,17 @@ const alreadyActive = isMobile
                 const img = new Image();
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
-                    let width = img.width;
-                    let height = img.height;
-                    const minDim = Math.min(width, height);
-                    const sx = (width - minDim) / 2;
-                    const sy = (height - minDim) / 2;
+                    const minDim = Math.min(img.width, img.height);
+                    const sx = (img.width - minDim) / 2;
+                    const sy = (img.height - minDim) / 2;
                     
                     canvas.width = maxWidth;
                     canvas.height = maxHeight;
-                    const ctx = canvas.getContext('2d');
+                    const ctx = canvas.getContext('2d', { alpha: false });
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'medium';
                     ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, maxWidth, maxHeight);
-                    callback(canvas.toDataURL('image/jpeg', 0.88));
+                    callback(canvas.toDataURL('image/jpeg', 0.80));
                 };
                 img.onerror = function() {
                     callback(dataUrl);
@@ -10783,8 +10765,7 @@ const alreadyActive = isMobile
 
             function resetAvatarToSilhouette() {
                 pendingAvatarUrl = null;
-                selectedPresetPhotoUrl = null;
-                document.querySelectorAll('.avatar-gallery-item').forEach(el => el.classList.remove('selected'));
+                if (userProfile) userProfile.avatar_url = null;
                 updateAvatarModalPreview();
                 showToast('Reset to empty silhouette', 'info');
             }
@@ -10800,89 +10781,76 @@ const alreadyActive = isMobile
                     return;
                 }
 
-                const finalAvatarUrl = pendingAvatarUrl || selectedPresetPhotoUrl || null;
+                const finalAvatarUrl = pendingAvatarUrl;
 
-                try {
-                    const nowIso = new Date().toISOString();
-                    const payload = {
-                        avatar_url: finalAvatarUrl,
-                        updated_at: nowIso
-                    };
-                    let saved = false;
+                // 1. INSTANT OPTIMISTIC UI UPDATE (0ms delay)
+                userProfile = {
+                    ...(userProfile || {}),
+                    avatar_url: finalAvatarUrl
+                };
+                updateProfileUI(userProfile);
+                closeModal('avatarModal');
+                showToast('Profile picture updated!', 'success');
 
-                    let byIdResult = await supabase
-                        .from('user_profiles')
-                        .update(payload)
-                        .eq('id', currentUser.id)
-                        .select('*')
-                        .limit(1);
+                // 2. ASYNC BACKGROUND PERSISTENCE
+                const nowIso = new Date().toISOString();
+                const payload = {
+                    avatar_url: finalAvatarUrl,
+                    updated_at: nowIso
+                };
 
-                    if (byIdResult.error && isColumnMissingError(byIdResult.error, 'avatar_url')) {
-                        showToast('avatar_url column missing on server schema', 'error');
-                        return;
-                    }
-
-                    if (byIdResult.error && !isColumnMissingError(byIdResult.error, 'id')) {
-                        throw byIdResult.error;
-                    }
-                    saved = Array.isArray(byIdResult.data) && byIdResult.data.length > 0;
-
-                    if (!saved) {
-                        let byUserIdResult = await supabase
+                (async () => {
+                    try {
+                        let byIdResult = await supabase
                             .from('user_profiles')
                             .update(payload)
-                            .eq('user_id', currentUser.id)
+                            .eq('id', currentUser.id)
                             .select('*')
                             .limit(1);
 
-                        if (byUserIdResult.error && !isColumnMissingError(byUserIdResult.error, 'user_id')) {
-                            throw byUserIdResult.error;
-                        }
-                        saved = Array.isArray(byUserIdResult.data) && byUserIdResult.data.length > 0;
-                    }
-
-                    if (!saved) {
-                        const idSuffix = String(currentUser?.id || '').replace(/-/g, '').slice(0, 6) || 'user';
-                        const usernameSeed = String(userProfile?.username || `user_${idSuffix}`).trim();
-                        const usernameCandidates = buildProfileUsernameCandidates(usernameSeed, currentUser?.id);
-                        const fullNameSeed = String(userProfile?.full_name || usernameCandidates[0] || 'User').trim();
-                        const upsertPayload = {
-                            id: currentUser.id,
-                            user_id: currentUser.id,
-                            username: usernameCandidates[0] || 'user',
-                            full_name: fullNameSeed,
-                            bio: String(userProfile?.bio || ''),
-                            location: String(userProfile?.location || ''),
-                            is_private: !!userProfile?.is_private,
-                            avatar_url: finalAvatarUrl,
-                            created_at: userProfile?.created_at || nowIso,
-                            updated_at: nowIso
-                        };
-
-                        let upsertError = null;
-                        const result = await supabase.from('user_profiles').upsert(upsertPayload, { onConflict: 'id' });
-                        upsertError = result.error || null;
-
-                        if (upsertError && isColumnMissingError(upsertError, 'user_id')) {
-                            const { user_id, ...fallbackPayload } = upsertPayload;
-                            const retry = await supabase.from('user_profiles').upsert(fallbackPayload, { onConflict: 'id' });
-                            upsertError = retry.error || null;
+                        if (byIdResult.error && isColumnMissingError(byIdResult.error, 'avatar_url')) {
+                            return;
                         }
 
-                        if (upsertError) throw upsertError;
-                    }
+                        let saved = Array.isArray(byIdResult.data) && byIdResult.data.length > 0;
+                        if (!saved) {
+                            let byUserIdResult = await supabase
+                                .from('user_profiles')
+                                .update(payload)
+                                .eq('user_id', currentUser.id)
+                                .select('*')
+                                .limit(1);
+                            saved = Array.isArray(byUserIdResult.data) && byUserIdResult.data.length > 0;
+                        }
 
-                    await loadUserProfile();
-                    if (userProfile) {
-                        userProfile.avatar_url = finalAvatarUrl;
+                        if (!saved) {
+                            const idSuffix = String(currentUser?.id || '').replace(/-/g, '').slice(0, 6) || 'user';
+                            const usernameSeed = String(userProfile?.username || `user_${idSuffix}`).trim();
+                            const usernameCandidates = buildProfileUsernameCandidates(usernameSeed, currentUser?.id);
+                            const fullNameSeed = String(userProfile?.full_name || usernameCandidates[0] || 'User').trim();
+                            const upsertPayload = {
+                                id: currentUser.id,
+                                user_id: currentUser.id,
+                                username: usernameCandidates[0] || 'user',
+                                full_name: fullNameSeed,
+                                bio: String(userProfile?.bio || ''),
+                                location: String(userProfile?.location || ''),
+                                is_private: !!userProfile?.is_private,
+                                avatar_url: finalAvatarUrl,
+                                created_at: userProfile?.created_at || nowIso,
+                                updated_at: nowIso
+                            };
+
+                            let result = await supabase.from('user_profiles').upsert(upsertPayload, { onConflict: 'id' });
+                            if (result.error && isColumnMissingError(result.error, 'user_id')) {
+                                const { user_id, ...fallbackPayload } = upsertPayload;
+                                await supabase.from('user_profiles').upsert(fallbackPayload, { onConflict: 'id' });
+                            }
+                        }
+                    } catch (err) {
+                        console.error('Background avatar save failed:', err);
                     }
-                    updateProfileUI(userProfile);
-                    showToast('Profile picture updated successfully!', 'success');
-                    closeModal('avatarModal');
-                } catch (error) {
-                    console.error('Error saving profile picture:', error);
-                    showToast('Error saving profile picture', 'error');
-                }
+                })();
             }
 
             // ===== RATING FUNCTIONS =====
