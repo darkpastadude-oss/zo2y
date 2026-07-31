@@ -2042,43 +2042,56 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     <div class="modal" id="avatarModal">
         <div class="modal-content avatar-modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Profile Picture</h3>
+                <div>
+                    <h3 class="modal-title">choose profile photo</h3>
+                    <div class="modal-subtitle">personalize your profile</div>
+                </div>
                 <button class="modal-close" onclick="ProfileManager.closeModal('avatarModal')">&times;</button>
             </div>
             
             <div class="modal-body">
-                <!-- Live Preview -->
-                <div class="avatar-modal-preview-wrap mb-20 text-center">
+                <!-- Top Avatar Preview -->
+                <div class="avatar-modal-preview-wrap text-center">
                     <div class="avatar-modal-preview" id="avatarPreviewBubble" title="Profile Picture Preview">
                         <i class="fa-solid fa-user avatar-silhouette-icon"></i>
                     </div>
-                    <div class="avatar-preview-caption text-muted mt-8" id="avatarPreviewCaption">Empty Silhouette (Default)</div>
+                    <div class="avatar-current-badge mt-10">
+                        <span class="badge-dot"></span>
+                        <span id="avatarPreviewCaption">current photo</span>
+                    </div>
+                    <div class="avatar-helper-text mt-6">your profile photo will represent you across zo2y.</div>
                 </div>
 
-                <!-- Direct Device Photo Upload -->
-                <div class="avatar-upload-box mb-20">
+                <!-- Drag & Drop Upload Zone -->
+                <div class="avatar-dropzone mt-20" id="avatarDropZone" onclick="document.getElementById('avatarFileInput').click()">
                     <input type="file" id="avatarFileInput" accept="image/*" style="display: none;" onchange="ProfileManager.handleAvatarFileSelect(event)" />
-                    <button type="button" class="btn btn-primary btn-block avatar-upload-btn" onclick="document.getElementById('avatarFileInput').click()">
-                        <i class="fa-solid fa-camera mr-8"></i> Upload Photo from Device
-                    </button>
+                    <div class="dropzone-icon mb-8">
+                        <i class="fa-solid fa-upload"></i>
+                    </div>
+                    <div class="dropzone-title">drag and drop an image here</div>
+                    <div class="dropzone-subtitle mt-2">or <span class="text-orange">click to browse</span></div>
+                    <div class="dropzone-hint mt-6">recommended: square image, at least 512x512</div>
                 </div>
 
-                <!-- TMDB Character Search & Presets -->
-                <div class="form-group mb-20">
-                    <label class="form-label mb-8">Movie Character Presets (TMDB)</label>
-                    <input type="search" id="tmdbCharacterSearchInput" class="form-control mb-12" placeholder="Search any movie character (e.g. Ironman, Batman, Spider-Man)..." oninput="ProfileManager.onTmdbCharacterSearch(this.value)" />
+                <!-- Aesthetic Presets Section with Search -->
+                <div class="avatar-presets-section mt-20">
+                    <div class="avatar-preset-search-wrap mb-12">
+                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        <input type="search" id="avatarPresetSearchInput" class="avatar-search-control" placeholder="search presets..." oninput="ProfileManager.filterAvatarPresets(this.value)" />
+                    </div>
                     <div class="avatar-gallery-grid" id="avatarGalleryGrid">
-                        <!-- Character posters populated dynamically -->
+                        <!-- Atmospheric aesthetic preset photos populated dynamically -->
                     </div>
                 </div>
                 
+                <!-- Modal Action Footer -->
                 <div class="avatar-modal-actions mt-24">
-                    <button type="button" class="btn btn-secondary-subtle" onclick="ProfileManager.resetAvatarToSilhouette()">
-                        <i class="fa-solid fa-user-slash mr-6"></i> Remove Photo
+                    <button type="button" class="btn btn-remove-photo" onclick="ProfileManager.resetAvatarToSilhouette()">
+                        <i class="fa-solid fa-trash-can mr-6"></i> remove photo
                     </button>
                     <div class="avatar-modal-actions-right">
-                        <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('avatarModal')">Cancel</button>
-                        <button type="button" class="btn btn-primary" onclick="ProfileManager.saveAvatar()">Save Changes</button>
+                        <button type="button" class="btn btn-modal-cancel" onclick="ProfileManager.closeModal('avatarModal')">cancel</button>
+                        <button type="button" class="btn btn-modal-save" onclick="ProfileManager.saveAvatar()">save changes</button>
                     </div>
                 </div>
             </div>
