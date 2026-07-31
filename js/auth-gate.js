@@ -1928,7 +1928,7 @@
           persistSessionSnapshot(session);
         }
 
-        if (authenticated && !AUTH_ENTRY_PAGES.has(pageKey) && pageKey !== 'onboarding') {
+        if (authenticated && !AUTH_ENTRY_PAGES.has(pageKey) && pageKey !== 'onboarding' && pageKey !== 'profile') {
           var userId = String(session.user.id || '').trim();
           var onboardingParam = false;
           try {
