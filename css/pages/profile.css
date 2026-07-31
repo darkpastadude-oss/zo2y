@@ -9730,24 +9730,25 @@ body.bp-modal-open {
   flex-shrink: 0;
 }
 
-/* ===== ULTRA-PREMIUM AVATAR MODAL (IMAGE 2 MATCH) ===== */
+/* ===== ULTRA-PREMIUM AVATAR MODAL ===== */
 .avatar-modal-content {
   max-width: 520px !important;
   width: 92% !important;
   border-radius: 20px !important;
-  background: #090f1d !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+  background: var(--color-bg-primary, #0b1633) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.06) !important;
   padding: 0 !important;
   overflow: hidden;
 }
 
 .avatar-modal-content .modal-header {
   padding: 20px 24px 16px !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
   display: flex !important;
   align-items: flex-start !important;
   justify-content: space-between !important;
+  background: var(--color-bg-primary, #0b1633) !important;
 }
 
 .avatar-modal-content .modal-title {
@@ -9761,12 +9762,13 @@ body.bp-modal-open {
 
 .avatar-modal-content .modal-subtitle {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.5);
   margin-top: 4px;
 }
 
 .avatar-modal-content .modal-body {
   padding: 20px 24px 24px !important;
+  background: var(--color-bg-primary, #0b1633) !important;
 }
 
 /* Preview Section */
@@ -9784,7 +9786,7 @@ body.bp-modal-open {
   border-radius: 50%;
   border: 2px solid var(--color-accent, #f59e0b);
   box-shadow: 0 8px 30px rgba(245, 158, 11, 0.25), 0 4px 16px rgba(0, 0, 0, 0.5);
-  background: #111a2e;
+  background: var(--color-bg-tertiary, #132347);
   color: #8ca3c7;
   display: flex;
   align-items: center;
@@ -9809,7 +9811,7 @@ body.bp-modal-open {
   align-items: center;
   gap: 6px;
   background: rgba(245, 158, 11, 0.12);
-  border: 1px solid rgba(245, 158, 11, 0.25);
+  border: 1px solid rgba(245, 158, 11, 0.28);
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 12px;
@@ -9827,13 +9829,13 @@ body.bp-modal-open {
 
 .avatar-helper-text {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.5);
 }
 
 /* Drag & Drop Zone */
 .avatar-dropzone {
-  border: 1.5px dashed rgba(255, 255, 255, 0.15);
-  background: rgba(255, 255, 255, 0.02);
+  border: 1.5px dashed rgba(255, 255, 255, 0.18);
+  background: var(--color-bg-tertiary, #132347);
   border-radius: 14px;
   padding: 24px 16px;
   text-align: center;
@@ -9844,7 +9846,7 @@ body.bp-modal-open {
 .avatar-dropzone:hover,
 .avatar-dropzone.drag-over {
   border-color: var(--color-accent, #f59e0b);
-  background: rgba(245, 158, 11, 0.05);
+  background: rgba(245, 158, 11, 0.08);
 }
 
 .avatar-dropzone .dropzone-icon {
@@ -9860,7 +9862,7 @@ body.bp-modal-open {
 
 .avatar-dropzone .dropzone-subtitle {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.55);
 }
 
 .avatar-dropzone .text-orange {
@@ -9871,80 +9873,7 @@ body.bp-modal-open {
 
 .avatar-dropzone .dropzone-hint {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.35);
-}
-
-/* Presets Search & Grid */
-.avatar-presets-section {
-  width: 100%;
-}
-
-.avatar-preset-search-wrap {
-  position: relative;
-  width: 100%;
-}
-
-.avatar-preset-search-wrap .search-icon {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: rgba(255, 255, 255, 0.35);
-  font-size: 13px;
-  pointer-events: none;
-}
-
-.avatar-search-control {
-  width: 100%;
-  padding: 10px 14px 10px 38px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  color: #fff;
-  font-size: 13px;
-  outline: none;
-  transition: border-color 0.15s, background 0.15s;
-}
-
-.avatar-search-control:focus {
-  border-color: rgba(245, 158, 11, 0.5);
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.avatar-gallery-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
-  max-height: 190px;
-  overflow-y: auto;
-  padding-right: 4px;
-}
-
-.avatar-gallery-item {
-  aspect-ratio: 1 / 1;
-  border-radius: 10px;
-  overflow: hidden;
-  border: 2px solid transparent;
-  cursor: pointer;
-  background: rgba(255, 255, 255, 0.04);
-  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.avatar-gallery-item:hover {
-  transform: scale(1.05);
-  border-color: rgba(245, 158, 11, 0.5);
-}
-
-.avatar-gallery-item.selected {
-  border-color: var(--color-accent, #f59e0b);
-  box-shadow: 0 0 14px rgba(245, 158, 11, 0.5);
-  transform: scale(1.03);
-}
-
-.avatar-gallery-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 /* Footer Action Buttons */
@@ -9965,7 +9894,7 @@ body.bp-modal-open {
 
 .btn-remove-photo {
   background: transparent !important;
-  color: rgba(255, 255, 255, 0.45) !important;
+  color: rgba(255, 255, 255, 0.5) !important;
   border: none !important;
   padding: 8px 12px !important;
   font-size: 13px !important;
@@ -9980,9 +9909,9 @@ body.bp-modal-open {
 }
 
 .btn-modal-cancel {
-  background: rgba(255, 255, 255, 0.06) !important;
-  color: rgba(255, 255, 255, 0.8) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
   padding: 10px 20px !important;
   font-size: 14px !important;
   font-weight: 500 !important;
@@ -9992,13 +9921,13 @@ body.bp-modal-open {
 }
 
 .btn-modal-cancel:hover {
-  background: rgba(255, 255, 255, 0.1) !important;
-  border-color: rgba(255, 255, 255, 0.2) !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(255, 255, 255, 0.22) !important;
 }
 
 .btn-modal-save {
   background: var(--color-accent, #f59e0b) !important;
-  color: #090f1d !important;
+  color: #0b1633 !important;
   border: none !important;
   padding: 10px 22px !important;
   font-size: 14px !important;
