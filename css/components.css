@@ -374,22 +374,29 @@
 
         /* === MODALS === */
         .modal {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100dvw;
-            height: 100dvh;
-            background: rgba(6, 12, 28, 0.72);
-            backdrop-filter: blur(4px);
+            position: fixed !important;
+            inset: 0 !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            height: 100dvh !important;
+            background: rgba(4, 9, 20, 0.82) !important;
+            backdrop-filter: blur(8px) !important;
+            -webkit-backdrop-filter: blur(8px) !important;
             display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: var(--z-modal);
-            padding: 20px;
+            align-items: center !important;
+            justify-content: center !important;
+            z-index: 999999 !important;
+            padding: 20px !important;
+            margin: 0 !important;
+            box-sizing: border-box !important;
         }
 
         .modal.active {
-            display: flex;
+            display: flex !important;
         }
 
         .modal-content {

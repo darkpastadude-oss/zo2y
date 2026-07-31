@@ -798,17 +798,13 @@
 
             function syncProfileModalViewport(modal) {
                 if (!modal || !modal.classList.contains('active')) return;
-                // menu-modals use CSS flexbox centering with inset:0 — inline styles break that
-                if (modal.classList.contains('menu-modal')) return;
-                const visual = window.visualViewport;
-                const top = (visual?.offsetTop || 0) + window.scrollY;
-                const left = (visual?.offsetLeft || 0) + window.scrollX;
-                const width = Math.max(0, Math.ceil(visual?.width || window.innerWidth || document.documentElement.clientWidth || 0));
-                const height = Math.max(0, Math.ceil(visual?.height || window.innerHeight || document.documentElement.clientHeight || 0));
-                modal.style.top = `${top}px`;
-                modal.style.left = `${left}px`;
-                modal.style.width = `${width}px`;
-                modal.style.height = `${height}px`;
+                // For fixed backdrop overlays, keep top/left at 0 and size at 100vw/100vh so full screen is covered cleanly
+                if (!modal.classList.contains('menu-modal')) {
+                    modal.style.top = '0px';
+                    modal.style.left = '0px';
+                    modal.style.width = '100vw';
+                    modal.style.height = '100vh';
+                }
             }
 
             function getActiveProfileModals() {

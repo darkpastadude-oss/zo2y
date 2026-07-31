@@ -9734,6 +9734,7 @@ body.bp-modal-open {
 .avatar-modal-content {
   max-width: 520px !important;
   width: 92% !important;
+  margin: auto !important;
   border-radius: 20px !important;
   background: var(--color-bg-primary, #0b1633) !important;
   border: 1px solid rgba(255, 255, 255, 0.12) !important;
