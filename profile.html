@@ -2042,13 +2042,33 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     <div class="modal" id="avatarModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Choose Avatar</h3>
+                <h3 class="modal-title">Customize Profile Avatar</h3>
                 <button class="modal-close" onclick="ProfileManager.closeModal('avatarModal')">&times;</button>
             </div>
             
             <div class="modal-body">
-                <div class="avatar-icon-grid" id="avatarIconGrid">
-                    <!-- Icons will be populated here -->
+                <!-- Live Preview -->
+                <div class="avatar-modal-preview-wrap mb-20 text-center">
+                    <div class="avatar-modal-preview" id="avatarPreviewBubble" title="Avatar Preview">👤</div>
+                    <div class="avatar-preview-caption text-muted mt-8" id="avatarPreviewCaption">Current Preview</div>
+                </div>
+
+                <!-- Custom Image URL -->
+                <div class="form-group mb-20">
+                    <label class="form-label" for="customAvatarUrlInput">Custom Profile Image URL</label>
+                    <div class="input-with-action">
+                        <input type="url" id="customAvatarUrlInput" class="form-control" placeholder="https://example.com/my-photo.jpg" oninput="ProfileManager.onAvatarUrlInput(this.value)" />
+                        <button type="button" class="btn btn-secondary btn-sm" id="clearAvatarUrlBtn" onclick="ProfileManager.clearCustomAvatarUrl()">Clear</button>
+                    </div>
+                    <small class="form-help text-muted">Paste a link to an image (JPEG, PNG, SVG, WebP) to use your own photo.</small>
+                </div>
+
+                <!-- Preset Icon Selector -->
+                <div class="form-group mb-16">
+                    <label class="form-label">Or Choose a Preset Icon</label>
+                    <div class="avatar-icon-grid" id="avatarIconGrid">
+                        <!-- Icons will be populated here -->
+                    </div>
                 </div>
                 
                 <div class="form-actions mt-20">

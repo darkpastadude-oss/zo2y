@@ -1563,6 +1563,25 @@
                 container.innerHTML = items.join('');
             }
 
+            function renderAvatarElement(containerEl, profile = userProfile) {
+                if (!containerEl) return;
+                const avatarUrl = String(profile?.avatar_url || '').trim();
+                const avatarIcon = String(profile?.avatar_icon || '').trim() || iconGlyphText('user');
+                
+                if (avatarUrl && /^https?:\/\//i.test(avatarUrl)) {
+                    containerEl.innerHTML = '';
+                    const img = document.createElement('img');
+                    img.src = avatarUrl;
+                    img.alt = 'Profile Avatar';
+                    img.onerror = () => {
+                        containerEl.textContent = avatarIcon;
+                    };
+                    containerEl.appendChild(img);
+                } else {
+                    containerEl.textContent = avatarIcon;
+                }
+            }
+
             function updateProfileUI(profile = userProfile) {
                 const isMobile = window.innerWidth <= 768;
                 const resolvedTheme = applyProfileTheme(profile?.profile_theme || 'navy');
@@ -1583,7 +1602,7 @@
                     document.getElementById('mobileProfileName').textContent = primaryIdentity;
                     document.getElementById('mobileProfileUsername').textContent = secondaryIdentity;
                     document.getElementById('mobileProfileBio').textContent = profile?.bio || "No bio yet. Tap edit to add one!";
-                    document.getElementById('mobileAvatar').textContent = profile?.avatar_icon || iconGlyphText('user');
+                    renderAvatarElement(document.getElementById('mobileAvatar'), profile);
                     const mobileAboutBio = document.getElementById('mobileAboutBio');
                     const mobileAboutLocation = document.getElementById('mobileAboutLocation');
                     const mobileAboutMember = document.getElementById('mobileAboutMemberSince');
@@ -1596,7 +1615,7 @@
                     document.getElementById('profileBio').textContent = profile?.bio || "No bio yet. Click edit to add one!";
                     document.getElementById('profileLocation').textContent = profile?.location || "Location not set";
                     document.getElementById('memberSince').textContent = `Member since ${new Date(currentUser.created_at).getFullYear()}`;
-                    document.getElementById('profileAvatar').textContent = profile?.avatar_icon || iconGlyphText('user');
+                    renderAvatarElement(document.getElementById('profileAvatar'), profile);
                     const aboutBio = document.getElementById('aboutBio');
                     const aboutLocation = document.getElementById('aboutLocation');
                     const aboutMember = document.getElementById('aboutMemberSince');
@@ -10563,8 +10582,15 @@ const alreadyActive = isMobile
                         if (newEmail) newEmail.value = currentUser.email || '';
                     }
                     
-                    // 4. FIX: Update avatar system to use avatar_icon column
+                    // 4. FIX: Update avatar system to use avatar_icon and avatar_url columns
                     if (modalId === 'avatarModal') {
+                        const customAvatarUrlInput = document.getElementById('customAvatarUrlInput');
+                        if (customAvatarUrlInput) {
+                            customAvatarUrlInput.value = userProfile?.avatar_url || '';
+                        }
+                        selectedAvatarIcon = userProfile?.avatar_icon || iconGlyphText('user');
+                        updateAvatarPreviewBubble(userProfile?.avatar_url || '', selectedAvatarIcon);
+
                         const avatarIconGrid = document.getElementById('avatarIconGrid');
                         if (avatarIconGrid) {
                             avatarIconGrid.innerHTML = '';
@@ -10578,10 +10604,11 @@ const alreadyActive = isMobile
                                     });
                                     iconOption.classList.add('selected');
                                     selectedAvatarIcon = icon;
+                                    const currentCustomUrl = String(document.getElementById('customAvatarUrlInput')?.value || '').trim();
+                                    updateAvatarPreviewBubble(currentCustomUrl, icon);
                                 };
-                                if (icon === (userProfile?.avatar_icon || iconGlyphText('user'))) {
+                                if (icon === selectedAvatarIcon) {
                                     iconOption.classList.add('selected');
-                                    selectedAvatarIcon = icon;
                                 }
                                 avatarIconGrid.appendChild(iconOption);
                             });
@@ -10678,44 +10705,104 @@ const alreadyActive = isMobile
             }
 
             // ===== AVATAR FUNCTIONS =====
+            function updateAvatarPreviewBubble(url, icon) {
+                const previewEl = document.getElementById('avatarPreviewBubble');
+                const captionEl = document.getElementById('avatarPreviewCaption');
+                if (!previewEl) return;
+                const cleanUrl = String(url || '').trim();
+                const fallbackIcon = String(icon || selectedAvatarIcon || userProfile?.avatar_icon || iconGlyphText('user')).trim();
+                
+                if (cleanUrl && /^https?:\/\//i.test(cleanUrl)) {
+                    previewEl.innerHTML = '';
+                    const img = document.createElement('img');
+                    img.src = cleanUrl;
+                    img.alt = 'Avatar Preview';
+                    img.onerror = () => {
+                        previewEl.textContent = fallbackIcon;
+                        if (captionEl) captionEl.textContent = 'Invalid Image Link (Using Preset Icon)';
+                    };
+                    img.onload = () => {
+                        if (captionEl) captionEl.textContent = 'Custom Profile Image Preview';
+                    };
+                    previewEl.appendChild(img);
+                } else {
+                    previewEl.textContent = fallbackIcon;
+                    if (captionEl) captionEl.textContent = cleanUrl ? 'Enter a valid http/https image URL' : 'Preset Icon Preview';
+                }
+            }
+
+            function onAvatarUrlInput(val) {
+                updateAvatarPreviewBubble(val, selectedAvatarIcon);
+            }
+
+            function clearCustomAvatarUrl() {
+                const input = document.getElementById('customAvatarUrlInput');
+                if (input) input.value = '';
+                updateAvatarPreviewBubble('', selectedAvatarIcon);
+            }
+
             function showAvatarModal() {
                 if (!isViewingOwnProfile) return;
-                
                 showModal('avatarModal');
             }
 
             async function saveAvatar() {
-                if (!selectedAvatarIcon || !isViewingOwnProfile) {
-                    showToast('Please select an avatar', 'error');
+                if (!isViewingOwnProfile) {
+                    showToast('Please sign in to change your avatar', 'error');
                     return;
                 }
+
+                const customUrl = String(document.getElementById('customAvatarUrlInput')?.value || '').trim();
 
                 try {
                     const nowIso = new Date().toISOString();
                     const payload = {
-                        avatar_icon: selectedAvatarIcon,
+                        avatar_icon: selectedAvatarIcon || iconGlyphText('user'),
+                        avatar_url: customUrl || null,
                         updated_at: nowIso
                     };
                     let saved = false;
 
-                    const byIdResult = await supabase
+                    let byIdResult = await supabase
                         .from('user_profiles')
                         .update(payload)
                         .eq('id', currentUser.id)
                         .select('*')
                         .limit(1);
+
+                    if (byIdResult.error && isColumnMissingError(byIdResult.error, 'avatar_url')) {
+                        delete payload.avatar_url;
+                        byIdResult = await supabase
+                            .from('user_profiles')
+                            .update(payload)
+                            .eq('id', currentUser.id)
+                            .select('*')
+                            .limit(1);
+                    }
+
                     if (byIdResult.error && !isColumnMissingError(byIdResult.error, 'id')) {
                         throw byIdResult.error;
                     }
                     saved = Array.isArray(byIdResult.data) && byIdResult.data.length > 0;
 
                     if (!saved) {
-                        const byUserIdResult = await supabase
+                        let byUserIdResult = await supabase
                             .from('user_profiles')
                             .update(payload)
                             .eq('user_id', currentUser.id)
                             .select('*')
                             .limit(1);
+
+                        if (byUserIdResult.error && isColumnMissingError(byUserIdResult.error, 'avatar_url')) {
+                            delete payload.avatar_url;
+                            byUserIdResult = await supabase
+                                .from('user_profiles')
+                                .update(payload)
+                                .eq('user_id', currentUser.id)
+                                .select('*')
+                                .limit(1);
+                        }
+
                         if (byUserIdResult.error && !isColumnMissingError(byUserIdResult.error, 'user_id')) {
                             throw byUserIdResult.error;
                         }
@@ -10724,16 +10811,9 @@ const alreadyActive = isMobile
 
                     if (!saved) {
                         const idSuffix = String(currentUser?.id || '').replace(/-/g, '').slice(0, 6) || 'user';
-                        const usernameSeed = String(
-                            userProfile?.username ||
-                            `user_${idSuffix}`
-                        ).trim();
+                        const usernameSeed = String(userProfile?.username || `user_${idSuffix}`).trim();
                         const usernameCandidates = buildProfileUsernameCandidates(usernameSeed, currentUser?.id);
-                        const fullNameSeed = String(
-                            userProfile?.full_name ||
-                            usernameCandidates[0] ||
-                            'User'
-                        ).trim();
+                        const fullNameSeed = String(userProfile?.full_name || usernameCandidates[0] || 'User').trim();
                         const upsertPayload = {
                             id: currentUser.id,
                             user_id: currentUser.id,
@@ -10742,31 +10822,35 @@ const alreadyActive = isMobile
                             bio: String(userProfile?.bio || ''),
                             location: String(userProfile?.location || ''),
                             is_private: !!userProfile?.is_private,
-                            avatar_icon: selectedAvatarIcon,
+                            avatar_icon: selectedAvatarIcon || iconGlyphText('user'),
+                            avatar_url: customUrl || null,
                             created_at: userProfile?.created_at || nowIso,
                             updated_at: nowIso
                         };
 
                         let upsertError = null;
-                        {
-                            const result = await supabase
-                                .from('user_profiles')
-                                .upsert(upsertPayload, { onConflict: 'id' });
-                            upsertError = result.error || null;
-                        }
-                        if (upsertError && isColumnMissingError(upsertError, 'user_id')) {
-                            const { user_id, ...fallbackPayload } = upsertPayload;
-                            const retry = await supabase
-                                .from('user_profiles')
-                                .upsert(fallbackPayload, { onConflict: 'id' });
+                        const result = await supabase.from('user_profiles').upsert(upsertPayload, { onConflict: 'id' });
+                        upsertError = result.error || null;
+
+                        if (upsertError && isColumnMissingError(upsertError, 'avatar_url')) {
+                            delete upsertPayload.avatar_url;
+                            const retry = await supabase.from('user_profiles').upsert(upsertPayload, { onConflict: 'id' });
                             upsertError = retry.error || null;
                         }
+
+                        if (upsertError && isColumnMissingError(upsertError, 'user_id')) {
+                            const { user_id, ...fallbackPayload } = upsertPayload;
+                            const retry = await supabase.from('user_profiles').upsert(fallbackPayload, { onConflict: 'id' });
+                            upsertError = retry.error || null;
+                        }
+
                         if (upsertError) throw upsertError;
                     }
 
                     await loadUserProfile();
                     if (userProfile) {
-                        userProfile.avatar_icon = selectedAvatarIcon;
+                        userProfile.avatar_icon = selectedAvatarIcon || iconGlyphText('user');
+                        userProfile.avatar_url = customUrl || null;
                     }
                     updateProfileUI(userProfile);
                     showToast('Avatar updated successfully!', 'success');
@@ -11667,6 +11751,8 @@ const alreadyActive = isMobile
                 deleteCollection,
                 togglePinnedCollection,
                 saveAvatar,
+                onAvatarUrlInput,
+                clearCustomAvatarUrl,
                 setRating,
                 toggleFollow,
                 showMobileMenu,

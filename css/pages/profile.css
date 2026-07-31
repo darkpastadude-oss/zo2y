@@ -9729,3 +9729,44 @@ body.bp-modal-open {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
 }
+
+/* Avatar Modal Customization */
+.avatar-modal-preview-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 0 6px;
+}
+
+.avatar-modal-preview {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 3px solid var(--color-accent, #f59e0b);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  background: var(--color-bg-elevated, #172b58);
+  color: #fff;
+  font-size: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  user-select: none;
+}
+
+.avatar-modal-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.input-with-action {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.input-with-action input {
+  flex: 1;
+}
