@@ -30,7 +30,6 @@ const delay = ms => new Promise(res => setTimeout(res, ms));
 // SimpleIcons (black SVG, zero quality issues)
 // ============================================================
 const SI = {
-  "Burger King": "burgerking",
   "KFC": "kfc",
   "McDonald's": "mcdonalds",
   "Starbucks": "starbucks",
