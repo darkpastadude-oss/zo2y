@@ -64,11 +64,14 @@
       <form id="signupForm">
         <div class="input-group">
           <i class="fas fa-envelope"></i>
-          <input type="email" placeholder="Email" id="email" required>
+          <input type="email" placeholder="Email" id="email" required autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false">
         </div>
         <div class="input-group">
           <i class="fas fa-lock"></i>
-          <input type="password" placeholder="Password" id="password" required minlength="12">
+          <input type="password" placeholder="Password" id="password" class="has-toggle" required minlength="12" autocomplete="new-password" autocapitalize="none" autocorrect="off" spellcheck="false">
+          <button type="button" class="password-toggle-btn" id="togglePasswordBtn" aria-label="Toggle password visibility" title="Show password">
+            <i class="fa-solid fa-eye" id="togglePasswordIcon"></i>
+          </button>
         </div>
         <label class="auth-consent-row" for="signupConsent">
           <input type="checkbox" id="signupConsent" required>
