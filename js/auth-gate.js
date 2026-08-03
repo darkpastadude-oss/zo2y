@@ -124,6 +124,33 @@
     });
   }
 
+  function withTimeout(promise, ms) {
+    var limit = Number(ms || 4000) || 4000;
+    return new Promise(function (resolve) {
+      var settled = false;
+      var timer = window.setTimeout(function () {
+        if (settled) return;
+        settled = true;
+        authDebug('profile-query-timeout', { ms: limit });
+        resolve(null);
+      }, limit);
+      Promise.resolve(promise).then(
+        function (value) {
+          if (settled) return;
+          settled = true;
+          window.clearTimeout(timer);
+          resolve(value);
+        },
+        function () {
+          if (settled) return;
+          settled = true;
+          window.clearTimeout(timer);
+          resolve(null);
+        }
+      );
+    });
+  }
+
   function authDebugEnabled() {
     try {
       var params = new URLSearchParams(window.location.search || '');
@@ -768,19 +795,25 @@
     var safeUserId = String(userId || '').trim();
     if (!client || !safeUserId || !client.from) return null;
     try {
-      var byId = await client
-        .from('user_profiles')
-        .select('id, username, full_name')
-        .eq('id', safeUserId)
-        .maybeSingle();
+      var byId = await withTimeout(
+        client
+          .from('user_profiles')
+          .select('id, username, full_name')
+          .eq('id', safeUserId)
+          .maybeSingle(),
+        4000
+      );
       if (!byId || !byId.error) {
         return byId && byId.data ? byId.data : null;
       }
-      var byUserId = await client
-        .from('user_profiles')
-        .select('id, username, full_name')
-        .eq('user_id', safeUserId)
-        .maybeSingle();
+      var byUserId = await withTimeout(
+        client
+          .from('user_profiles')
+          .select('id, username, full_name')
+          .eq('user_id', safeUserId)
+          .maybeSingle(),
+        4000
+      );
       if (!byUserId || !byUserId.error) {
         return byUserId && byUserId.data ? byUserId.data : null;
       }
