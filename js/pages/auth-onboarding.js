@@ -6,7 +6,6 @@
   var saveButton = document.getElementById('saveBtn');
   var skipButton = document.getElementById('skipBtn');
   var signOutButton = document.getElementById('signOutBtn');
-  var toTeamsButton = document.getElementById('toTeamsBtn');
   var auth = window.ZO2Y_AUTH;
   var client = null;
   var activeUser = null;
@@ -157,7 +156,7 @@
   usernameInput.addEventListener('keydown', function (event) {
     if (event.key === 'Enter') {
       event.preventDefault();
-      if (toTeamsButton) toTeamsButton.click();
+      if (saveButton) saveButton.click();
     }
     if (event.key === ' ') {
       event.preventDefault();
