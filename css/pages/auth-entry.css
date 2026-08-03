@@ -334,55 +334,8 @@ body[data-auth-variant]::before {
   box-shadow: 0 0 0 4px rgba(255, 178, 63, 0.1);
 }
 
-.input-group:focus-within i.fas,
-.input-group:focus-within i.fa-solid {
+.input-group:focus-within i {
   color: var(--auth-accent);
-}
-
-.password-toggle-btn {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: transparent !important;
-  border: none !important;
-  color: rgba(224, 232, 255, 0.48) !important;
-  font-size: 15px !important;
-  cursor: pointer;
-  padding: 0 !important;
-  width: 36px !important;
-  height: 36px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  transition: color 160ms ease, transform 160ms ease;
-  outline: none;
-  z-index: 5;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-}
-
-.password-toggle-btn i {
-  position: static !important;
-  top: auto !important;
-  left: auto !important;
-  transform: none !important;
-  color: inherit !important;
-  font-size: 15px !important;
-}
-
-.password-toggle-btn:hover {
-  color: var(--auth-accent, #ffb23f) !important;
-}
-
-.password-toggle-btn:active {
-  transform: translateY(-50%) scale(0.92) !important;
-}
-
-.input-group input.has-toggle {
-  padding-right: 48px !important;
-  text-transform: none !important;
 }
 
 .actions-row {
