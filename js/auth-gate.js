@@ -427,6 +427,56 @@
     return null;
   }
 
+  function decodeJwtPayload(token) {
+    if (!token || typeof token !== 'string') return null;
+    var parts = token.split('.');
+    if (parts.length < 2) return null;
+    var payloadPart = parts[1];
+    try {
+      var base64 = payloadPart.replace(/-/g, '+').replace(/_/g, '/');
+      while (base64.length % 4 !== 0) base64 += '=';
+      var binary = atob(base64);
+      var decoded = null;
+      if (typeof TextDecoder === 'function') {
+        var bytes = new Uint8Array(binary.length);
+        for (var i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+        decoded = new TextDecoder('utf-8').decode(bytes);
+      } else {
+        decoded = decodeURIComponent(escape(binary));
+      }
+      return JSON.parse(decoded);
+    } catch (_err) {
+      return null;
+    }
+  }
+
+  function normalizeSessionFromJwt(session) {
+    if (!session || !session.access_token || !session.refresh_token) return session;
+    if (session.user && session.user.id) return session;
+    var claims = decodeJwtPayload(session.access_token);
+    if (!claims || !claims.sub) return session;
+    var email = String(claims.email || '').trim();
+    var user = {
+      id: String(claims.sub || ''),
+      email: email || undefined,
+      aud: claims.aud || undefined,
+      role: claims.role || undefined
+    };
+    var appMetadata = claims['app_metadata'];
+    if (appMetadata && typeof appMetadata === 'object') user.app_metadata = appMetadata;
+    var userMetadata = claims['user_metadata'];
+    if (userMetadata && typeof userMetadata === 'object') user.user_metadata = userMetadata;
+    session.user = user;
+    return session;
+  }
+
+  function isValidSessionSnapshot(session) {
+    if (!session || !session.access_token || !session.refresh_token) return false;
+    if (session.user && session.user.id) return true;
+    var claims = decodeJwtPayload(session.access_token);
+    return !!(claims && claims.sub);
+  }
+
   function getStoredSessionSnapshot() {
     var keys = [STORAGE_KEY, LEGACY_STORAGE_KEY, PERSIST_STORAGE_KEY];
     for (var i = 0; i < keys.length; i += 1) {
@@ -435,7 +485,8 @@
       try {
         var parsed = JSON.parse(raw);
         var session = extractSessionFromPayload(parsed);
-        if (session && session.access_token && session.refresh_token) return session;
+        session = normalizeSessionFromJwt(session);
+        if (isValidSessionSnapshot(session)) return session;
       } catch (_err) {}
     }
     var durableRaw = safeGetLocalStorage(DURABLE_STORAGE_KEY);
@@ -443,13 +494,15 @@
     try {
       var durableParsed = JSON.parse(durableRaw);
       var durableSession = extractSessionFromPayload(durableParsed);
-      if (durableSession && durableSession.access_token && durableSession.refresh_token) return durableSession;
+      durableSession = normalizeSessionFromJwt(durableSession);
+      if (isValidSessionSnapshot(durableSession)) return durableSession;
     } catch (_err2) {}
     return null;
   }
 
   function persistSessionSnapshot(session) {
-    if (!session || !session.access_token || !session.refresh_token) return false;
+    session = normalizeSessionFromJwt(session);
+    if (!isValidSessionSnapshot(session)) return false;
     try {
       lastKnownSessionSnapshot = session;
       var payload = JSON.stringify(session);
@@ -980,8 +1033,9 @@
     client.__zo2yAuthListenersBound = true;
     client.auth.onAuthStateChange(function (event, session) {
       var normalizedEvent = String(event || '').trim().toUpperCase();
-      lastKnownSessionSnapshot = session && session.access_token && session.refresh_token ? session : null;
-      if (session && session.access_token && session.refresh_token) {
+      session = normalizeSessionFromJwt(session);
+      lastKnownSessionSnapshot = isValidSessionSnapshot(session) ? session : null;
+      if (isValidSessionSnapshot(session)) {
         persistSessionSnapshot(session);
         if (normalizedEvent === 'SIGNED_IN') {
           clearExplicitSignoutMarker();
@@ -1132,14 +1186,19 @@
         return { session: null, error: null };
       }
       try {
-        var result = await activeClient.auth.setSession({
+        var result = await withTimeout(activeClient.auth.setSession({
           access_token: storedSession.access_token,
           refresh_token: storedSession.refresh_token
-        });
-        var session = result && result.data ? result.data.session : null;
-        if (session && session.access_token && session.refresh_token) {
+        }), 3500);
+        var session = normalizeSessionFromJwt(result && result.data ? result.data.session : null);
+        if (isValidSessionSnapshot(session)) {
           persistSessionSnapshot(session);
           return { session: session, error: null };
+        }
+        // SDK call hung/timed out; fall back to the JWT-normalized stored snapshot.
+        var fallbackSession = getStoredSessionSnapshot();
+        if (isValidSessionSnapshot(fallbackSession)) {
+          return { session: fallbackSession, error: null };
         }
         return {
           session: null,
@@ -1151,7 +1210,7 @@
     }
 
     var storedSession = getStoredSessionSnapshot();
-    if (!storedSession || !storedSession.access_token || !storedSession.refresh_token) return null;
+    if (!isValidSessionSnapshot(storedSession)) return null;
     pushAuthDebugEvent('session:restore:start', {
       userId: String(storedSession.user && storedSession.user.id || '').trim() || null,
       expiresAt: storedSession.expires_at || null
@@ -1193,9 +1252,9 @@
       }
 
       try {
-        var liveSessionResult = await activeClient.auth.getSession();
-        var liveSession = liveSessionResult && liveSessionResult.data ? liveSessionResult.data.session : null;
-        if (liveSession && liveSession.access_token && liveSession.refresh_token) {
+        var liveSessionResult = await withTimeout(activeClient.auth.getSession(), 3000);
+        var liveSession = normalizeSessionFromJwt(liveSessionResult && liveSessionResult.data ? liveSessionResult.data.session : null);
+        if (isValidSessionSnapshot(liveSession)) {
           persistSessionSnapshot(liveSession);
           pushAuthDebugEvent('session:restore:success', {
             userId: String(liveSession.user && liveSession.user.id || '').trim() || null,
@@ -1233,11 +1292,17 @@
           if (!client || !client.auth || typeof client.auth.getSession !== 'function') {
             return null;
           }
-          var res = await client.auth.getSession();
-          var session = res && res.data ? res.data.session : null;
-          if (session && session.access_token && session.refresh_token) {
+          var res = await withTimeout(client.auth.getSession(), 3500);
+          var session = normalizeSessionFromJwt(res && res.data ? res.data.session : null);
+          if (isValidSessionSnapshot(session)) {
             persistSessionSnapshot(session);
             return session;
+          }
+          // Fall back to JWT-normalized stored snapshot if the SDK call timed out/hung.
+          var fallbackSnapshot = getStoredSessionSnapshot();
+          if (isValidSessionSnapshot(fallbackSnapshot)) {
+            persistSessionSnapshot(fallbackSnapshot);
+            return fallbackSnapshot;
           }
           // If no session in response, return null
           return null;
@@ -1262,9 +1327,9 @@
       var startedAt = Date.now();
       var initialSessionError = null;
       try {
-        var sessionResult = await activeClient.auth.getSession();
-        var session = sessionResult && sessionResult.data ? sessionResult.data.session : null;
-        if (session && session.access_token && session.refresh_token) {
+        var sessionResult = await withTimeout(activeClient.auth.getSession(), 3500);
+        var session = normalizeSessionFromJwt(sessionResult && sessionResult.data ? sessionResult.data.session : null);
+        if (isValidSessionSnapshot(session)) {
           persistSessionSnapshot(session);
           pushAuthDebugEvent('session:get:live', {
             userId: String(session.user && session.user.id || '').trim() || null,
@@ -1290,8 +1355,8 @@
       }
 
       if (opts.restore !== false) {
-        var restored = await restoreClientSessionFromSnapshot(activeClient);
-        if (restored && restored.user) {
+        var restored = await withTimeout(restoreClientSessionFromSnapshot(activeClient), 3500);
+        if (restored && isValidSessionSnapshot(restored)) {
           pushAuthDebugEvent('session:get:restored', {
             userId: String(restored.user && restored.user.id || '').trim() || null,
             ms: Date.now() - startedAt
@@ -1302,15 +1367,22 @@
 
       if (opts.refreshIfNeeded !== false && typeof activeClient.auth.refreshSession === 'function' && hasStoredSupabaseSession() && !hasRecentExplicitSignout()) {
         try {
-          var refreshResult = await activeClient.auth.refreshSession();
-          var refreshed = refreshResult && refreshResult.data ? refreshResult.data.session : null;
-          if (refreshed && refreshed.access_token && refreshed.refresh_token) {
+          var refreshResult = await withTimeout(activeClient.auth.refreshSession(), 3500);
+          var refreshed = normalizeSessionFromJwt(refreshResult && refreshResult.data ? refreshResult.data.session : null);
+          if (isValidSessionSnapshot(refreshed)) {
             persistSessionSnapshot(refreshed);
             pushAuthDebugEvent('session:get:refreshed', {
               userId: String(refreshed.user && refreshed.user.id || '').trim() || null,
               ms: Date.now() - startedAt
             });
             return refreshed;
+          }
+          if (!refreshResult) {
+            var timedSnapshot = getStoredSessionSnapshot();
+            if (timedSnapshot && timedSnapshot.access_token) {
+              pushAuthDebugEvent('session:get:refresh-timeout-fallback', { ms: Date.now() - startedAt });
+              return timedSnapshot;
+            }
           }
           if (refreshResult && refreshResult.error) {
             if (isRecoverableSessionRaceError(refreshResult.error)) {
@@ -1948,24 +2020,9 @@
           refreshIfNeeded: true,
           restore: true
         });
-        authenticated = !!(session && session.user);
+        authenticated = !!(session && isValidSessionSnapshot(session));
         if (authenticated) {
           persistSessionSnapshot(session);
-        }
-
-        if (authenticated && !AUTH_ENTRY_PAGES.has(pageKey) && pageKey !== 'onboarding') {
-          var userId = String(session.user.id || '').trim();
-          var onboardingParam = false;
-          try {
-            onboardingParam = new URLSearchParams(window.location.search || '').get('onboarding') === '1';
-          } catch (_errSearch) {}
-          if (userId && !onboardingParam) {
-            var profileResult = await ensureAuthProfile(client, session.user);
-            if (profileResult && profileResult.ok && profileResult.needsOnboarding && !wasOnboardingRedirectedThisSession(userId)) {
-              redirectToOnboarding(window.location.pathname + window.location.search + window.location.hash, userId);
-              return true;
-            }
-          }
         }
 
         applyShellState(authenticated, pageKey, {
@@ -1985,6 +2042,27 @@
           source: 'live',
           ms: Date.now() - startedAt
         });
+
+        // Profile bootstrap is decoupled from verification: never block auth on
+        // the user_profiles query, which can hang on slow/iOS connections.
+        if (authenticated && !AUTH_ENTRY_PAGES.has(pageKey) && pageKey !== 'onboarding') {
+          var userId = String(session.user.id || '').trim();
+          var onboardingParam = false;
+          try {
+            onboardingParam = new URLSearchParams(window.location.search || '').get('onboarding') === '1';
+          } catch (_errSearch) {}
+          if (userId && !onboardingParam) {
+            void (async function () {
+              try {
+                var profileResult = await ensureAuthProfile(client, session.user);
+                if (profileResult && profileResult.ok && profileResult.needsOnboarding && !wasOnboardingRedirectedThisSession(userId)) {
+                  redirectToOnboarding(window.location.pathname + window.location.search + window.location.hash, userId);
+                }
+              } catch (_profileErr) {}
+            })();
+          }
+        }
+
         return authenticated;
       } catch (error) {
         pushAuthDebugEvent('verify:error', {
@@ -2022,7 +2100,7 @@
 
   async function persistLiveClientSession() {
     var session = lastKnownSessionSnapshot || getStoredSessionSnapshot();
-    if (!session || !session.access_token || !session.refresh_token) return false;
+    if (!isValidSessionSnapshot(session)) return false;
     return persistSessionSnapshot(session);
   }
 
