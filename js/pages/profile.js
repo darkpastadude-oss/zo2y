@@ -48,22 +48,6 @@
             let journalFilter = 'all';
             let currentActiveList = null;
             let selectedAvatarIcon = null;
-
-            function forceScrollToTop() {
-                window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-                document.documentElement.scrollTop = 0;
-                document.body.scrollTop = 0;
-                requestAnimationFrame(() => {
-                    window.scrollTo(0, 0);
-                    document.documentElement.scrollTop = 0;
-                    document.body.scrollTop = 0;
-                });
-                setTimeout(() => {
-                    window.scrollTo(0, 0);
-                    document.documentElement.scrollTop = 0;
-                    document.body.scrollTop = 0;
-                }, 50);
-            }
             let currentEditingJournalEntry = null;
             let loadedUserIds = new Set();
             let communitySystem = null;
@@ -3882,7 +3866,6 @@
             }
 
             async function openCollectionPage(listId, contentType, listType = null) {
-                forceScrollToTop();
                 const normalizedType = String(contentType || '').toLowerCase();
                 if (!VALID_COLLECTION_TYPES.has(normalizedType)) return;
                 const tabName = getTabForCollectionType(normalizedType);
@@ -3930,7 +3913,12 @@
                 const hasDetailRoute = !!(routeCollection && routeListId && VALID_COLLECTION_TYPES.has(routeCollection));
                 const hasCategoryRoute = !hasDetailRoute && isMediaTab && requestedTab !== 'sports' && requestedTab !== 'overview';
 
-            const resetScrollTop = forceScrollToTop;
+                const resetScrollTop = () => {
+                    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                    document.documentElement.scrollTop = 0;
+                    document.body.scrollTop = 0;
+                    requestAnimationFrame(() => { window.scrollTo(0, 0); });
+                };
 
                 // State 1: Main Profile Page (Overview)
                 if (!hasDetailRoute && !hasCategoryRoute && (requestedTab === 'overview' || !requestedTab)) {
@@ -7994,7 +7982,6 @@ const alreadyActive = isMobile
             }
 
             function hideProfileHeaderForDetail() {
-                forceScrollToTop();
                 document.body.classList.add('in-collection-detail');
                 const profileHeader = document.querySelector('.profile-header');
                 if (profileHeader) profileHeader.style.display = 'none';
@@ -8011,17 +7998,13 @@ const alreadyActive = isMobile
             }
 
             async function backToCollections(contentType) {
-                forceScrollToTop();
                 const safeType = String(contentType || (currentMediaDetail && currentMediaDetail.mediaType) || 'movie').toLowerCase();
                 const parentTab = getTabForCollectionType(safeType);
                 currentMediaDetail = null;
 
-                resetDetailPanels();
-                const safeTab = normalizeProfileTab(parentTab);
-                await showTab(safeTab, { skipUrlSync: true });
-
-                const nextUrl = buildProfileUrl({ tab: safeTab });
+                const nextUrl = buildProfileUrl({ tab: parentTab });
                 history.replaceState({}, '', nextUrl);
+                await hydrateInitialRoute();
             }
 
             function filterCollectionItems(mediaType, query) {
@@ -8147,7 +8130,6 @@ const alreadyActive = isMobile
             }
 
             async function showMovieDetail(listId, listType, isMobile) {
-                forceScrollToTop();
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileMoviesSection');
                     const detailSection = document.getElementById('mobileMovieDetailSection');
@@ -8353,7 +8335,6 @@ const alreadyActive = isMobile
             }
 
             async function showTvDetail(listId, listType, isMobile) {
-                forceScrollToTop();
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileTvSection');
                     const detailSection = document.getElementById('mobileTvDetailSection');
@@ -8554,7 +8535,6 @@ const alreadyActive = isMobile
             }
 
             async function showAnimeDetail(listId, listType, isMobile) {
-                forceScrollToTop();
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileAnimeSection');
                     const detailSection = document.getElementById('mobileAnimeDetailSection');
@@ -8755,7 +8735,6 @@ const alreadyActive = isMobile
             }
 
             async function showGameDetail(listId, listType, isMobile) {
-                forceScrollToTop();
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileGamesSection');
                     const detailSection = document.getElementById('mobileGameDetailSection');
@@ -8971,7 +8950,6 @@ const alreadyActive = isMobile
             }
 
             async function showBookDetail(listId, listType, isMobile) {
-                forceScrollToTop();
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileBooksSection');
                     const detailSection = document.getElementById('mobileBookDetailSection');
@@ -9204,7 +9182,6 @@ const alreadyActive = isMobile
             }
 
             async function showSportsDetail(listId, listType, isMobile) {
-                forceScrollToTop();
                 hideProfileHeaderForDetail();
                 const categoryView = document.getElementById('pv2CategoryView');
                 if (categoryView) categoryView.style.display = 'none';
@@ -9255,7 +9232,6 @@ const alreadyActive = isMobile
             }
 
             async function showMusicDetail(listId, listType, isMobile) {
-                forceScrollToTop();
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileMusicSection');
                     const detailSection = document.getElementById('mobileMusicDetailSection');
@@ -9452,7 +9428,6 @@ const alreadyActive = isMobile
             }
 
             async function showTravelDetail(listId, listType, isMobile) {
-                forceScrollToTop();
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileTravelSection');
                     const detailSection = document.getElementById('mobileTravelDetailSection');
@@ -9651,7 +9626,6 @@ const alreadyActive = isMobile
             }
 
             async function showFashionDetail(listId, listType, isMobile) {
-                forceScrollToTop();
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileFashionSection');
                     const detailSection = document.getElementById('mobileFashionDetailSection');
@@ -9845,7 +9819,6 @@ const alreadyActive = isMobile
             }
 
             async function showCarDetail(listId, listType, isMobile) {
-                forceScrollToTop();
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileCarsSection');
                     const detailSection = document.getElementById('mobileCarsDetailSection');
@@ -10026,7 +9999,6 @@ const alreadyActive = isMobile
             }
 
             async function showFoodDetail(listId, listType, isMobile) {
-                forceScrollToTop();
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileFoodSection');
                     const detailSection = document.getElementById('mobileFoodDetailSection');
@@ -10325,24 +10297,10 @@ const alreadyActive = isMobile
             function hideGameDetail() { hideDetailByType('game'); }
 
             function backToProfile() {
-                forceScrollToTop();
                 currentMediaDetail = null;
-
-                restoreProfileHeader();
-                const categoryView = document.getElementById('pv2CategoryView');
-                if (categoryView) categoryView.style.display = 'none';
-                resetDetailPanels();
-
-                const desktopView = document.querySelector('.desktop-only');
-                const mobileView = document.querySelector('.mobile-only');
-                if (desktopView) desktopView.style.display = '';
-                if (mobileView) mobileView.style.display = '';
-
-                const overview = document.getElementById('pv2Overview');
-                if (overview) overview.style.display = '';
-
                 const nextUrl = buildProfileUrl({});
                 history.replaceState({}, '', nextUrl);
+                hydrateInitialRoute().catch(err => console.error(err));
             }
 
             function showShowcaseDetail(type) {
