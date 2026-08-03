@@ -248,14 +248,7 @@
             const COLLECTION_VIEW_STORAGE_KEY = 'zo2y_profile_collection_view_modes_v2';
             let collectionViewModes = loadCollectionViewModes();
 
-            // Avatar/icon palette (unicode escapes to avoid encoding issues)
-            const avatarIcons = [
-                "\u{1F464}", "\u{1F3AC}", "\u{1F3A5}", "\u{1F4FA}", "\u{1F409}",
-                "\u{1F3AE}", "\u{1F4DA}", "\u{1F3B5}", "\u{1F3A7}", "\u{1F3A4}",
-                "\u{1F3B8}", "\u{1F3B9}", "\u{1F3BB}", "\u{1F4F7}", "\u{1F3AD}",
-                "\u{1F39F}\uFE0F", "\u{1F3AB}", "\u{1F3AA}", "\u{1F4FD}", "\u{1F31F}",
-                "\u{2B50}", "\u{1F680}", "\u{1F3AF}", "\u{1F3C6}", "\u{2728}"
-            ];
+            let pendingAvatarUrl = null;
 
             async function resolveAuthenticatedProfileUser(client) {
                 if (!client?.auth) return null;
@@ -1393,6 +1386,11 @@
                 }
 
                 userProfile = profile || {};
+                if (userProfile && !userProfile.avatar_url) {
+                    userProfile.avatar_url = currentUser?.user_metadata?.avatar_url || currentUser?.user_metadata?.avatar || (function() {
+                        try { return localStorage.getItem('zo2y_user_avatar_url'); } catch(e) { return null; }
+                    })() || null;
+                }
                 window.userProfile = userProfile;
                 if (profile) return;
 
@@ -1564,6 +1562,24 @@
                 container.innerHTML = items.join('');
             }
 
+            function renderAvatarElement(containerEl, profile = userProfile) {
+                if (!containerEl) return;
+                const avatarUrl = String(profile?.avatar_url || '').trim();
+                
+                if (avatarUrl && (/^https?:\/\//i.test(avatarUrl) || /^data:image\//i.test(avatarUrl))) {
+                    containerEl.innerHTML = '';
+                    const img = document.createElement('img');
+                    img.src = avatarUrl;
+                    img.alt = 'Profile Avatar';
+                    img.onerror = () => {
+                        containerEl.innerHTML = '<i class="fa-solid fa-user avatar-silhouette-icon"></i>';
+                    };
+                    containerEl.appendChild(img);
+                } else {
+                    containerEl.innerHTML = '<i class="fa-solid fa-user avatar-silhouette-icon"></i>';
+                }
+            }
+
             function updateProfileUI(profile = userProfile) {
                 const isMobile = window.innerWidth <= 768;
                 const resolvedTheme = applyProfileTheme(profile?.profile_theme || 'navy');
@@ -1584,7 +1600,7 @@
                     document.getElementById('mobileProfileName').textContent = primaryIdentity;
                     document.getElementById('mobileProfileUsername').textContent = secondaryIdentity;
                     document.getElementById('mobileProfileBio').textContent = profile?.bio || "No bio yet. Tap edit to add one!";
-                    document.getElementById('mobileAvatar').textContent = profile?.avatar_icon || iconGlyphText('user');
+                    renderAvatarElement(document.getElementById('mobileAvatar'), profile);
                     const mobileAboutBio = document.getElementById('mobileAboutBio');
                     const mobileAboutLocation = document.getElementById('mobileAboutLocation');
                     const mobileAboutMember = document.getElementById('mobileAboutMemberSince');
@@ -1597,7 +1613,7 @@
                     document.getElementById('profileBio').textContent = profile?.bio || "No bio yet. Click edit to add one!";
                     document.getElementById('profileLocation').textContent = profile?.location || "Location not set";
                     document.getElementById('memberSince').textContent = `Member since ${new Date(currentUser.created_at).getFullYear()}`;
-                    document.getElementById('profileAvatar').textContent = profile?.avatar_icon || iconGlyphText('user');
+                    renderAvatarElement(document.getElementById('profileAvatar'), profile);
                     const aboutBio = document.getElementById('aboutBio');
                     const aboutLocation = document.getElementById('aboutLocation');
                     const aboutMember = document.getElementById('aboutMemberSince');
@@ -10581,29 +10597,11 @@ const alreadyActive = isMobile
                         if (newEmail) newEmail.value = currentUser.email || '';
                     }
                     
-                    // 4. FIX: Update avatar system to use avatar_icon column
+                    // 4. FIX: Update avatar system to use avatar_url column
                     if (modalId === 'avatarModal') {
-                        const avatarIconGrid = document.getElementById('avatarIconGrid');
-                        if (avatarIconGrid) {
-                            avatarIconGrid.innerHTML = '';
-                            avatarIcons.forEach(icon => {
-                                const iconOption = document.createElement('div');
-                                iconOption.className = 'avatar-icon-option';
-                                iconOption.textContent = icon;
-                                iconOption.onclick = () => {
-                                    document.querySelectorAll('.avatar-icon-option').forEach(opt => {
-                                        opt.classList.remove('selected');
-                                    });
-                                    iconOption.classList.add('selected');
-                                    selectedAvatarIcon = icon;
-                                };
-                                if (icon === (userProfile?.avatar_icon || iconGlyphText('user'))) {
-                                    iconOption.classList.add('selected');
-                                    selectedAvatarIcon = icon;
-                                }
-                                avatarIconGrid.appendChild(iconOption);
-                            });
-                        }
+                        pendingAvatarUrl = null;
+                        updateAvatarModalPreview();
+                        setupAvatarDropZone();
                     }
                     
                     if (modalId === 'createListModal') {
@@ -10696,103 +10694,230 @@ const alreadyActive = isMobile
             }
 
             // ===== AVATAR FUNCTIONS =====
+            function setupAvatarDropZone() {
+                const dropZone = document.getElementById('avatarDropZone');
+                if (!dropZone || dropZone.__dropZoneInitialized) return;
+                dropZone.__dropZoneInitialized = true;
+
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        dropZone.classList.add('drag-over');
+                    }, false);
+                });
+
+                ['dragleave', 'drop'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        dropZone.classList.remove('drag-over');
+                    }, false);
+                });
+
+                dropZone.addEventListener('drop', (e) => {
+                    const dt = e.dataTransfer;
+                    const files = dt?.files;
+                    if (files && files.length > 0) {
+                        handleAvatarFileSelect({ target: { files: files } });
+                    }
+                });
+            }
+
+            function updateAvatarModalPreview() {
+                const previewEl = document.getElementById('avatarPreviewBubble');
+                const captionEl = document.getElementById('avatarPreviewCaption');
+                if (!previewEl) return;
+
+                const currentUrl = pendingAvatarUrl || userProfile?.avatar_url;
+
+                if (currentUrl) {
+                    previewEl.innerHTML = '';
+                    const img = document.createElement('img');
+                    img.src = currentUrl;
+                    img.alt = 'Avatar Preview';
+                    img.onerror = () => {
+                        previewEl.innerHTML = '<i class="fa-solid fa-user avatar-silhouette-icon"></i>';
+                        if (captionEl) captionEl.textContent = 'silhouette photo';
+                    };
+                    img.onload = () => {
+                        if (captionEl) captionEl.textContent = pendingAvatarUrl ? 'uploaded photo' : 'current photo';
+                    };
+                    previewEl.appendChild(img);
+                } else {
+                    previewEl.innerHTML = '<i class="fa-solid fa-user avatar-silhouette-icon"></i>';
+                    if (captionEl) captionEl.textContent = 'silhouette photo';
+                }
+            }
+
+            function handleAvatarFileSelect(event) {
+                const file = event?.target?.files?.[0];
+                if (!file) return;
+                if (!file.type.startsWith('image/')) {
+                    showToast('Please select a valid image file', 'error');
+                    return;
+                }
+                if (file.size > 10 * 1024 * 1024) {
+                    showToast('File size is too large (max 10MB)', 'error');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    resizeAvatarImage(e.target.result, 220, 220, (resizedDataUrl) => {
+                        pendingAvatarUrl = resizedDataUrl;
+                        updateAvatarModalPreview();
+                        showToast('Photo selected! Click Save Changes to update.', 'success');
+                    });
+                };
+                reader.onerror = function() {
+                    showToast('Error reading image file', 'error');
+                };
+                reader.readAsDataURL(file);
+            }
+
+            function resizeAvatarImage(dataUrl, maxWidth, maxHeight, callback) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const minDim = Math.min(img.width, img.height);
+                    const sx = (img.width - minDim) / 2;
+                    const sy = (img.height - minDim) / 2;
+                    
+                    canvas.width = maxWidth;
+                    canvas.height = maxHeight;
+                    const ctx = canvas.getContext('2d', { alpha: false });
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'medium';
+                    ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, maxWidth, maxHeight);
+                    callback(canvas.toDataURL('image/jpeg', 0.80));
+                };
+                img.onerror = function() {
+                    callback(dataUrl);
+                };
+                img.src = dataUrl;
+            }
+
+            function resetAvatarToSilhouette() {
+                pendingAvatarUrl = null;
+                if (userProfile) userProfile.avatar_url = null;
+                updateAvatarModalPreview();
+                showToast('Reset to empty silhouette', 'info');
+            }
+
             function showAvatarModal() {
                 if (!isViewingOwnProfile) return;
-                
                 showModal('avatarModal');
             }
 
             async function saveAvatar() {
-                if (!selectedAvatarIcon || !isViewingOwnProfile) {
-                    showToast('Please select an avatar', 'error');
+                if (!isViewingOwnProfile) {
+                    showToast('Please sign in to change your profile picture', 'error');
                     return;
                 }
 
+                const finalAvatarUrl = pendingAvatarUrl || (userProfile?.avatar_url || null);
+
+                // 1. INSTANT OPTIMISTIC UI UPDATE & LOCAL SYNC
+                userProfile = {
+                    ...(userProfile || {}),
+                    avatar_url: finalAvatarUrl
+                };
+                updateProfileUI(userProfile);
+                closeModal('avatarModal');
+                showToast('Profile picture updated!', 'success');
+
                 try {
-                    const nowIso = new Date().toISOString();
-                    const payload = {
-                        avatar_icon: selectedAvatarIcon,
-                        updated_at: nowIso
-                    };
-                    let saved = false;
-
-                    const byIdResult = await supabase
-                        .from('user_profiles')
-                        .update(payload)
-                        .eq('id', currentUser.id)
-                        .select('*')
-                        .limit(1);
-                    if (byIdResult.error && !isColumnMissingError(byIdResult.error, 'id')) {
-                        throw byIdResult.error;
+                    if (finalAvatarUrl) {
+                        localStorage.setItem('zo2y_user_avatar_url', finalAvatarUrl);
+                    } else {
+                        localStorage.removeItem('zo2y_user_avatar_url');
                     }
-                    saved = Array.isArray(byIdResult.data) && byIdResult.data.length > 0;
+                    if ('BroadcastChannel' in window) {
+                        const bc = new BroadcastChannel('zo2y_profile_sync');
+                        bc.postMessage({ type: 'AVATAR_UPDATED', avatar_url: finalAvatarUrl });
+                        bc.close();
+                    }
+                } catch (e) {}
 
-                    if (!saved) {
-                        const byUserIdResult = await supabase
-                            .from('user_profiles')
-                            .update(payload)
-                            .eq('user_id', currentUser.id)
-                            .select('*')
-                            .limit(1);
-                        if (byUserIdResult.error && !isColumnMissingError(byUserIdResult.error, 'user_id')) {
-                            throw byUserIdResult.error;
+                // 2. ASYNC BACKGROUND PERSISTENCE ACROSS DEVICES (Supabase Auth Metadata & DB)
+                const nowIso = new Date().toISOString();
+
+                (async () => {
+                    try {
+                        // A. Sync to Supabase Auth user_metadata so login on any device restores avatar_url
+                        if (currentUser && supabase?.auth?.updateUser) {
+                            await supabase.auth.updateUser({
+                                data: { avatar_url: finalAvatarUrl, avatar: finalAvatarUrl }
+                            }).catch(err => console.warn('Could not sync auth metadata avatar:', err));
                         }
-                        saved = Array.isArray(byUserIdResult.data) && byUserIdResult.data.length > 0;
-                    }
 
-                    if (!saved) {
-                        const idSuffix = String(currentUser?.id || '').replace(/-/g, '').slice(0, 6) || 'user';
-                        const usernameSeed = String(
-                            userProfile?.username ||
-                            `user_${idSuffix}`
-                        ).trim();
-                        const usernameCandidates = buildProfileUsernameCandidates(usernameSeed, currentUser?.id);
-                        const fullNameSeed = String(
-                            userProfile?.full_name ||
-                            usernameCandidates[0] ||
-                            'User'
-                        ).trim();
-                        const upsertPayload = {
-                            id: currentUser.id,
-                            user_id: currentUser.id,
-                            username: usernameCandidates[0] || 'user',
-                            full_name: fullNameSeed,
-                            bio: String(userProfile?.bio || ''),
-                            location: String(userProfile?.location || ''),
-                            is_private: !!userProfile?.is_private,
-                            avatar_icon: selectedAvatarIcon,
-                            created_at: userProfile?.created_at || nowIso,
+                        // B. UPDATE ONLY avatar_url on existing user_profiles row (NEVER overwrite username)
+                        const updatePayload = {
+                            avatar_url: finalAvatarUrl,
                             updated_at: nowIso
                         };
 
-                        let upsertError = null;
-                        {
-                            const result = await supabase
-                                .from('user_profiles')
-                                .upsert(upsertPayload, { onConflict: 'id' });
-                            upsertError = result.error || null;
-                        }
-                        if (upsertError && isColumnMissingError(upsertError, 'user_id')) {
-                            const { user_id, ...fallbackPayload } = upsertPayload;
-                            const retry = await supabase
-                                .from('user_profiles')
-                                .upsert(fallbackPayload, { onConflict: 'id' });
-                            upsertError = retry.error || null;
-                        }
-                        if (upsertError) throw upsertError;
-                    }
+                        let { data, error } = await supabase
+                            .from('user_profiles')
+                            .update(updatePayload)
+                            .eq('id', currentUser.id)
+                            .select('*');
 
-                    await loadUserProfile();
-                    if (userProfile) {
-                        userProfile.avatar_icon = selectedAvatarIcon;
+                        let savedRow = Array.isArray(data) && data[0] ? data[0] : null;
+
+                        if (!savedRow) {
+                            let byUserIdResult = await supabase
+                                .from('user_profiles')
+                                .update(updatePayload)
+                                .eq('user_id', currentUser.id)
+                                .select('*');
+                            savedRow = Array.isArray(byUserIdResult.data) && byUserIdResult.data[0] ? byUserIdResult.data[0] : null;
+                        }
+
+                        // C. Fallback: If row doesn't exist yet, insert a new record keeping existing username intact
+                        if (!savedRow) {
+                            const { data: existingProfiles } = await supabase
+                                .from('user_profiles')
+                                .select('username, full_name, bio, location, is_private')
+                                .or(`id.eq.${currentUser.id},user_id.eq.${currentUser.id}`)
+                                .limit(1);
+
+                            const existing = Array.isArray(existingProfiles) && existingProfiles[0] ? existingProfiles[0] : null;
+                            const existingUsername = existing?.username || userProfile?.username;
+
+                            if (existingUsername) {
+                                const upsertPayload = {
+                                    id: currentUser.id,
+                                    user_id: currentUser.id,
+                                    username: existingUsername,
+                                    full_name: existing?.full_name || userProfile?.full_name || 'User',
+                                    bio: existing?.bio || userProfile?.bio || '',
+                                    location: existing?.location || userProfile?.location || '',
+                                    is_private: existing?.is_private ?? userProfile?.is_private ?? false,
+                                    avatar_url: finalAvatarUrl,
+                                    created_at: userProfile?.created_at || nowIso,
+                                    updated_at: nowIso
+                                };
+
+                                let result = await supabase.from('user_profiles').upsert(upsertPayload, { onConflict: 'id' }).select('*');
+                                if (result.error && isColumnMissingError(result.error, 'user_id')) {
+                                    const { user_id, ...fallbackPayload } = upsertPayload;
+                                    result = await supabase.from('user_profiles').upsert(fallbackPayload, { onConflict: 'id' }).select('*');
+                                }
+                                savedRow = Array.isArray(result.data) && result.data[0] ? result.data[0] : null;
+                            }
+                        }
+
+                        if (savedRow) {
+                            userProfile = { ...userProfile, ...savedRow };
+                            window.userProfile = userProfile;
+                            updateProfileUI(userProfile);
+                        }
+                    } catch (err) {
+                        console.error('Background avatar save failed:', err);
                     }
-                    updateProfileUI(userProfile);
-                    showToast('Avatar updated successfully!', 'success');
-                    closeModal('avatarModal');
-                } catch (error) {
-                    console.error('Error saving avatar:', error);
-                    showToast('Error saving avatar', 'error');
-                }
+                })();
             }
 
             // ===== RATING FUNCTIONS =====
@@ -11680,6 +11805,8 @@ const alreadyActive = isMobile
                 deleteCollection,
                 togglePinnedCollection,
                 saveAvatar,
+                handleAvatarFileSelect,
+                resetAvatarToSilhouette,
                 setRating,
                 toggleFollow,
                 showMobileMenu,
@@ -11713,6 +11840,25 @@ const alreadyActive = isMobile
         function bootProfileManager() {
             if (window.__profileManagerBooted) return;
             window.__profileManagerBooted = true;
+
+            if ('BroadcastChannel' in window) {
+                try {
+                    const syncChannel = new BroadcastChannel('zo2y_profile_sync');
+                    syncChannel.onmessage = (event) => {
+                        if (event.data && event.data.type === 'AVATAR_UPDATED' && isViewingOwnProfile && userProfile) {
+                            userProfile.avatar_url = event.data.avatar_url;
+                            updateProfileUI(userProfile);
+                        }
+                    };
+                } catch(e) {}
+            }
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'zo2y_user_avatar_url' && isViewingOwnProfile && userProfile) {
+                    userProfile.avatar_url = e.newValue;
+                    updateProfileUI(userProfile);
+                }
+            });
+
             ProfileManager.initialize();
         }
 
