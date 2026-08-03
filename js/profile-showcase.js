@@ -12,6 +12,32 @@
 const ProfileShowcase = (function () {
     let sb = null;
 
+    function withTimeout(promise, ms) {
+        const limit = Number(ms || 4000) || 4000;
+        return new Promise((resolve) => {
+            let settled = false;
+            const timer = window.setTimeout(() => {
+                if (settled) return;
+                settled = true;
+                resolve({ __timedOut: true });
+            }, limit);
+            Promise.resolve(promise).then(
+                (value) => {
+                    if (settled) return;
+                    settled = true;
+                    window.clearTimeout(timer);
+                    resolve(value);
+                },
+                () => {
+                    if (settled) return;
+                    settled = true;
+                    window.clearTimeout(timer);
+                    resolve(null);
+                }
+            );
+        });
+    }
+
     const CUSTOM_LIST_TABLES = {
         movie: 'user_lists', tv: 'user_lists', anime: 'user_lists',
         game: 'user_lists', book: 'user_lists', music: 'user_lists',
@@ -45,11 +71,20 @@ const ProfileShowcase = (function () {
 
     async function getProfileShowcase(userId) {
         if (!sb || !userId) return [];
-        const { data, error } = await sb
-            .from('profile_showcase')
-            .select('*')
-            .eq('user_id', userId)
-            .order('display_order', { ascending: true });
+        const result = await withTimeout(
+            sb
+                .from('profile_showcase')
+                .select('*')
+                .eq('user_id', userId)
+                .order('display_order', { ascending: true }),
+            4000
+        );
+        if (result && result.__timedOut) {
+            console.warn('ProfileShowcase query timed out; proceeding with empty showcase');
+            return [];
+        }
+        const error = result && result.error ? result.error : null;
+        const data = result && result.data ? result.data : null;
         if (error) {
             console.error('getProfileShowcase error:', error);
             return [];

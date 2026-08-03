@@ -6,7 +6,6 @@
   var saveButton = document.getElementById('saveBtn');
   var skipButton = document.getElementById('skipBtn');
   var signOutButton = document.getElementById('signOutBtn');
-  var toTeamsButton = document.getElementById('toTeamsBtn');
   var auth = window.ZO2Y_AUTH;
   var client = null;
   var activeUser = null;
@@ -34,7 +33,7 @@
     var username = String(
       user &&
       user.user_metadata &&
-      (user.user_metadata.zo2y_username || user.user_metadata.username || user.user_metadata.preferred_username) ||
+      (user.user_metadata.username || user.user_metadata.zo2y_username || user.user_metadata.preferred_username) ||
       ''
     ).trim();
     if (!username) return '';
@@ -93,8 +92,24 @@
       return;
     }
     if (!client || !activeUser || !activeUser.id) {
-      setStatus('Your session expired. Please log in again.', 'error');
-      return;
+      // The page may have (re)loaded before session restore completed, or the
+      // auth-gate bootstrap may have been interrupted. Re-resolve the session
+      // before declaring it expired - a valid live session must never be shown
+      // the "session expired" message.
+      try {
+        var retriedSession = await auth.getActiveSession(client || auth.ensureClient(), {
+          refreshIfNeeded: false,
+          restore: true
+        });
+        if (retriedSession && retriedSession.user && retriedSession.user.id) {
+          activeUser = retriedSession.user;
+          if (!client) client = auth.ensureClient();
+        }
+      } catch (_retryErr) {}
+      if (!client || !activeUser || !activeUser.id) {
+        setStatus('Your session expired. Please log in again.', 'error');
+        return;
+      }
     }
 
     saveButton.disabled = true;
@@ -141,7 +156,7 @@
   usernameInput.addEventListener('keydown', function (event) {
     if (event.key === 'Enter') {
       event.preventDefault();
-      if (toTeamsButton) toTeamsButton.click();
+      if (saveButton) saveButton.click();
     }
     if (event.key === ' ') {
       event.preventDefault();
