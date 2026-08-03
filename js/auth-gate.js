@@ -738,9 +738,9 @@
     var userId = String(user && user.id || '').trim();
     var fallback = userId || 'user';
     var base = normalizeProfileUsername(
-      userData.preferred_username ||
-      userData.zo2y_username ||
       userData.username ||
+      userData.zo2y_username ||
+      userData.preferred_username ||
       userData.full_name ||
       userData.name ||
       fallback,
@@ -827,7 +827,7 @@
       return '@' + rowUsername;
     }
     var authUsername = normalizeProfileUsername(
-      user && user.user_metadata && (user.user_metadata.zo2y_username || user.user_metadata.username) || ''
+      user && user.user_metadata && (user.user_metadata.username || user.user_metadata.zo2y_username) || ''
     );
     if (authUsername && !isPlaceholderProfileUsername(authUsername, user)) {
       return '@' + authUsername;
@@ -895,7 +895,7 @@
           }
         } else {
           var authUsername = normalizeProfileUsername(
-            user && user.user_metadata && (user.user_metadata.zo2y_username || user.user_metadata.username) || ''
+            user && user.user_metadata && (user.user_metadata.username || user.user_metadata.zo2y_username) || ''
           );
           if (authUsername && !isPlaceholderProfileUsername(authUsername, user)) {
             profile.username = authUsername;

@@ -61,6 +61,7 @@
             // Global state
             let currentUser = null;
             let userProfile = null;
+            let profileLookupTimedOut = false;
             let targetUser = null;
             let targetUserId = null;
             let isViewingOwnProfile = true;
@@ -539,6 +540,11 @@
             function maybeRedirectUsernameOnboarding() {
                 const auth = window.ZO2Y_AUTH;
                 if (!auth || !currentUser || !currentUser.id) return false;
+                // If the profile lookup timed out, we cannot confirm the user lacks a
+                // concrete username. Never redirect an existing user to onboarding on
+                // a lookup failure alone - the session metadata may still carry a real
+                // username (see buildSessionDerivedProfile).
+                if (profileLookupTimedOut) return false;
                 const profileUsername = (userProfile && userProfile.username) || '';
                 if (!profileUsername || isPlaceholderUsername(profileUsername)) {
                     try {
@@ -1383,7 +1389,28 @@
                 await updateStats(targetUserId);
             }
 
+            function buildSessionDerivedProfile() {
+                const meta = (currentUser && currentUser.user_metadata) || {};
+                const sessionUsername = String(
+                    meta.username || meta.zo2y_username || meta.preferred_username || ''
+                ).trim();
+                const sessionAvatar = meta.avatar_url || meta.avatar || (function() {
+                    try { return localStorage.getItem('zo2y_user_avatar_url'); } catch(e) { return null; }
+                })() || null;
+                return {
+                    id: currentUser ? currentUser.id : null,
+                    user_id: currentUser ? currentUser.id : null,
+                    username: sessionUsername || '',
+                    full_name: String(meta.full_name || meta.name || '').trim() || 'User',
+                    avatar_url: sessionAvatar,
+                    bio: '',
+                    location: '',
+                    is_private: false
+                };
+            }
+
             async function loadUserProfile() {
+                profileLookupTimedOut = false;
                 let profile = null;
                 let profileError = null;
 
@@ -1398,7 +1425,8 @@
                     );
                     if (result && result.__timedOut) {
                         console.warn('Profile query timed out; proceeding with session data');
-                        userProfile = {};
+                        profileLookupTimedOut = true;
+                        userProfile = buildSessionDerivedProfile();
                         window.userProfile = userProfile;
                         return;
                     }
@@ -1417,7 +1445,8 @@
                     );
                     if (fallbackResult && fallbackResult.__timedOut) {
                         console.warn('Profile fallback query timed out; proceeding with session data');
-                        userProfile = {};
+                        profileLookupTimedOut = true;
+                        userProfile = buildSessionDerivedProfile();
                         window.userProfile = userProfile;
                         return;
                     }
