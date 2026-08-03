@@ -45,6 +45,105 @@
   var PROTECTED_PAGE_RESUME_VERIFY_THROTTLE_MS = 1000 * 60 * 3;
   var EXPLICIT_SIGNOUT_TTL_MS = 1000 * 60 * 10;
 
+  // Severe cache bust: whenever CACHE_BUST_TAG changes, clear all stored auth
+  // sessions (localStorage + sessionStorage) once so devices running the old
+  // hanging auth code boot into a clean auth state. Bump the tag on purpose to
+  // force a full re-auth rollout.
+  var CACHE_BUST_TAG = '20260803B';
+  var CACHE_BUST_MARKER_KEY = 'zo2y-auth-cache-bust-tag';
+
+  function isOAuthCallbackInFlight() {
+    try {
+      var search = window.location.search || '';
+      var hash = window.location.hash || '';
+      return (
+        search.indexOf('code=') !== -1 ||
+        hash.indexOf('access_token=') !== -1
+      );
+    } catch (_err) {
+      return false;
+    }
+  }
+
+  function purgeStaleAuthStorage() {
+    try {
+      if (isOAuthCallbackInFlight()) {
+        // Mid-OAuth: never clear. Stamp the marker so the just-created session
+        // isn't wiped on the follow-up page load.
+        try {
+          if (window.localStorage) window.localStorage.setItem(CACHE_BUST_MARKER_KEY, CACHE_BUST_TAG);
+        } catch (_errMarkerInFlight) {}
+        return;
+      }
+      var marked = null;
+      try {
+        marked = window.localStorage ? window.localStorage.getItem(CACHE_BUST_MARKER_KEY) : null;
+      } catch (_errMarker) {}
+      if (marked === CACHE_BUST_TAG) return;
+
+      var purgeKeys = [
+        STORAGE_KEY,
+        LEGACY_STORAGE_KEY,
+        SUPABASE_SDK_STORAGE_KEY,
+        PERSIST_STORAGE_KEY,
+        OLD_PERSIST_STORAGE_KEY,
+        DURABLE_STORAGE_KEY,
+        OLD_DURABLE_STORAGE_KEY,
+        EXPLICIT_SIGNOUT_KEY,
+        OLD_EXPLICIT_SIGNOUT_KEY,
+        POST_AUTH_REDIRECT_KEY,
+        OLD_POST_AUTH_REDIRECT_KEY,
+        OAUTH_FLOW_KEY,
+        OLD_OAUTH_FLOW_KEY,
+        POST_AUTH_BOOTSTRAP_KEY,
+        OLD_POST_AUTH_BOOTSTRAP_KEY
+      ];
+      var purgePrefixes = [ONBOARDING_PENDING_PREFIX, ONBOARDING_SESSION_PREFIX];
+
+      function clearKey(key) {
+        if (!key) return;
+        try {
+          if (window.localStorage) window.localStorage.removeItem(key);
+        } catch (_errLs) {}
+        try {
+          if (window.sessionStorage) window.sessionStorage.removeItem(key);
+        } catch (_errSs) {}
+      }
+
+      function purgeStorage(storage) {
+        if (!storage) return;
+        try {
+          var doomed = [];
+          for (var i = 0; i < purgeKeys.length; i++) doomed.push(purgeKeys[i]);
+          for (var j = 0; j < storage.length; j++) {
+            var key = storage.key(j);
+            if (!key) continue;
+            for (var p = 0; p < purgePrefixes.length; p++) {
+              if (key.indexOf(purgePrefixes[p]) === 0) {
+                doomed.push(key);
+                break;
+              }
+            }
+          }
+          doomed.forEach(function (key) {
+            try { storage.removeItem(key); } catch (_errRemove) {}
+          });
+        } catch (_errPurge) {}
+      }
+
+      purgeStorage(window.localStorage);
+      purgeStorage(window.sessionStorage);
+      clearKey('zo2y-intentional-logout');
+
+      try {
+        if (window.localStorage) window.localStorage.setItem(CACHE_BUST_MARKER_KEY, CACHE_BUST_TAG);
+      } catch (_errSet) {}
+      pushAuthDebugEvent('auth:storage:purged', {
+        tag: CACHE_BUST_TAG
+      });
+    } catch (_err) {}
+  }
+
   var PUBLIC_PAGE_KEYS = new Set([
     'index',
     'login',
@@ -103,6 +202,8 @@
   var lastKnownSessionSnapshot = null;
   var authDebugEvents = [];
 
+  purgeStaleAuthStorage();
+
   try {
     if (!window.__ZO2Y_SUPABASE_CONFIG) {
       window.__ZO2Y_SUPABASE_CONFIG = {
@@ -121,6 +222,30 @@
   function wait(ms) {
     return new Promise(function (resolve) {
       window.setTimeout(resolve, ms);
+    });
+  }
+
+  // Bounded timeout for unbounded Supabase auth network calls.
+  // iOS WebKit (including Chrome-on-iPhone) has no default fetch timeout,
+  // so a stalled request can hang auth forever. On timeout, resolve with
+  // AUTH_TIMEOUT_SENTINEL so callers can fail fast into storage fallbacks.
+  var AUTH_TIMEOUT_SENTINEL = {};
+  function withTimeout(task, ms) {
+    return new Promise(function (resolve, reject) {
+      var timedOut = false;
+      var timer = window.setTimeout(function () {
+        timedOut = true;
+        resolve(AUTH_TIMEOUT_SENTINEL);
+      }, ms);
+      Promise.resolve().then(task).then(function (value) {
+        if (timedOut) return;
+        window.clearTimeout(timer);
+        resolve(value);
+      }, function (err) {
+        if (timedOut) return;
+        window.clearTimeout(timer);
+        reject(err);
+      });
     });
   }
 
@@ -1099,10 +1224,18 @@
         return { session: null, error: null };
       }
       try {
-        var result = await activeClient.auth.setSession({
-          access_token: storedSession.access_token,
-          refresh_token: storedSession.refresh_token
-        });
+        var result = await withTimeout(function () {
+          return activeClient.auth.setSession({
+            access_token: storedSession.access_token,
+            refresh_token: storedSession.refresh_token
+          });
+        }, 8000);
+        if (result === AUTH_TIMEOUT_SENTINEL) {
+          pushAuthDebugEvent('session:restore:timeout', {
+            ms: 8000
+          });
+          return { session: null, error: { message: 'setSession timed out' } };
+        }
         var session = result && result.data ? result.data.session : null;
         if (session && session.access_token && session.refresh_token) {
           persistSessionSnapshot(session);
@@ -1160,7 +1293,12 @@
       }
 
       try {
-        var liveSessionResult = await activeClient.auth.getSession();
+        var liveSessionResult = await withTimeout(function () {
+          return activeClient.auth.getSession();
+        }, 8000);
+        if (liveSessionResult === AUTH_TIMEOUT_SENTINEL) {
+          liveSessionResult = null;
+        }
         var liveSession = liveSessionResult && liveSessionResult.data ? liveSessionResult.data.session : null;
         if (liveSession && liveSession.access_token && liveSession.refresh_token) {
           persistSessionSnapshot(liveSession);
@@ -1200,7 +1338,12 @@
           if (!client || !client.auth || typeof client.auth.getSession !== 'function') {
             return null;
           }
-          var res = await client.auth.getSession();
+          var res = await withTimeout(function () {
+            return client.auth.getSession();
+          }, 8000);
+          if (res === AUTH_TIMEOUT_SENTINEL) {
+            return null;
+          }
           var session = res && res.data ? res.data.session : null;
           if (session && session.access_token && session.refresh_token) {
             persistSessionSnapshot(session);
@@ -1229,7 +1372,16 @@
       var startedAt = Date.now();
       var initialSessionError = null;
       try {
-        var sessionResult = await activeClient.auth.getSession();
+        var sessionResult = await withTimeout(function () {
+          return activeClient.auth.getSession();
+        }, 8000);
+        if (sessionResult === AUTH_TIMEOUT_SENTINEL) {
+          sessionResult = null;
+          pushAuthDebugEvent('session:get:timeout', {
+            source: 'getSession',
+            ms: 8000
+          });
+        }
         var session = sessionResult && sessionResult.data ? sessionResult.data.session : null;
         if (session && session.access_token && session.refresh_token) {
           persistSessionSnapshot(session);
@@ -1269,7 +1421,16 @@
 
       if (opts.refreshIfNeeded !== false && typeof activeClient.auth.refreshSession === 'function' && hasStoredSupabaseSession() && !hasRecentExplicitSignout()) {
         try {
-          var refreshResult = await activeClient.auth.refreshSession();
+          var refreshResult = await withTimeout(function () {
+            return activeClient.auth.refreshSession();
+          }, 8000);
+          if (refreshResult === AUTH_TIMEOUT_SENTINEL) {
+            refreshResult = null;
+            pushAuthDebugEvent('session:get:timeout', {
+              source: 'refreshSession',
+              ms: 8000
+            });
+          }
           var refreshed = refreshResult && refreshResult.data ? refreshResult.data.session : null;
           if (refreshed && refreshed.access_token && refreshed.refresh_token) {
             persistSessionSnapshot(refreshed);
@@ -1674,7 +1835,12 @@
 
     if (code && typeof client.auth.exchangeCodeForSession === 'function') {
       try {
-        var exchangeResult = await client.auth.exchangeCodeForSession(code);
+        var exchangeResult = await withTimeout(function () {
+          return client.auth.exchangeCodeForSession(code);
+        }, 10000);
+        if (exchangeResult === AUTH_TIMEOUT_SENTINEL) {
+          throw new Error('Sign-in timed out. Please check your connection and try again.');
+        }
         if (exchangeResult && exchangeResult.error) throw exchangeResult.error;
         session = exchangeResult && exchangeResult.data ? exchangeResult.data.session : null;
       } catch (exchangeError) {
@@ -1692,10 +1858,15 @@
         }
       }
     } else if (accessToken && refreshToken && typeof client.auth.setSession === 'function') {
-      var setResult = await client.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken
-      });
+      var setResult = await withTimeout(function () {
+        return client.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken
+        });
+      }, 10000);
+      if (setResult === AUTH_TIMEOUT_SENTINEL) {
+        throw new Error('Sign-in timed out. Please check your connection and try again.');
+      }
       if (setResult && setResult.error) throw setResult.error;
       session = setResult && setResult.data ? setResult.data.session : null;
     }
@@ -1728,14 +1899,20 @@
 
     if (code && typeof activeClient.auth.exchangeCodeForSession === 'function') {
       try {
-        await activeClient.auth.exchangeCodeForSession(code);
+        var recoveryResult = await withTimeout(function () {
+          return activeClient.auth.exchangeCodeForSession(code);
+        }, 8000);
+        if (recoveryResult !== AUTH_TIMEOUT_SENTINEL && recoveryResult && recoveryResult.error) throw recoveryResult.error;
       } catch (_err) {}
     } else if (accessToken && refreshToken && typeof activeClient.auth.setSession === 'function') {
       try {
-        await activeClient.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken
-        });
+        var recoverySetResult = await withTimeout(function () {
+          return activeClient.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
+          });
+        }, 8000);
+        if (recoverySetResult !== AUTH_TIMEOUT_SENTINEL && recoverySetResult && recoverySetResult.error) throw recoverySetResult.error;
       } catch (_err2) {}
     }
 

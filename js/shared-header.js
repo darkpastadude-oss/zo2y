@@ -669,15 +669,38 @@ const HEADER_HTML = `
     return null;
   }
 
+  const HEADER_AUTH_TIMEOUT_SENTINEL = {};
+  function headerWithTimeout(task, ms) {
+    return new Promise((resolve, reject) => {
+      let timedOut = false;
+      const timer = window.setTimeout(() => {
+        timedOut = true;
+        resolve(HEADER_AUTH_TIMEOUT_SENTINEL);
+      }, ms);
+      Promise.resolve().then(task).then((value) => {
+        if (timedOut) return;
+        window.clearTimeout(timer);
+        resolve(value);
+      }, (err) => {
+        if (timedOut) return;
+        window.clearTimeout(timer);
+        reject(err);
+      });
+    });
+  }
+
   async function bootstrapHeaderSessionFromStorage(client) {
     if (!client?.auth || typeof client.auth.setSession !== 'function') return false;
     const storedSession = readStoredHeaderSession();
     if (!storedSession?.access_token || !storedSession?.refresh_token) return false;
     try {
-      const result = await client.auth.setSession({
+      const result = await headerWithTimeout(() => client.auth.setSession({
         access_token: storedSession.access_token,
         refresh_token: storedSession.refresh_token
-      });
+      }), 8000);
+      if (result === HEADER_AUTH_TIMEOUT_SENTINEL) {
+        return false;
+      }
       const session = result?.data?.session || null;
       rememberHeaderSessionSnapshot(session);
       return !!session?.user;
