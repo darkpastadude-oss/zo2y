@@ -255,6 +255,47 @@
     } catch (_err) {}
   }
 
+  function hookFetch() {
+    try {
+      if (window.__ZO2Y_TRACE_FETCH_HOOKED) return;
+      window.__ZO2Y_TRACE_FETCH_HOOKED = true;
+      var originalFetch = window.fetch;
+      if (typeof originalFetch !== 'function') return;
+      window.fetch = function (input, init) {
+        var url = '';
+        try {
+          url = typeof input === 'string' ? input : (input && input.url) ? String(input.url) : String(input || '');
+        } catch (_e) { url = String(input || ''); }
+        var isSupabaseRest = /supabase\.co\/rest\/v1\//i.test(url);
+        var isSupabaseAuth = /supabase\.co\/auth\/v1\//i.test(url);
+        var startedAt = performance.now();
+        if (isSupabaseRest || isSupabaseAuth) {
+          var clean = url.replace(/^https:\/\/[^/]+/, '');
+          try {
+            var u = new URL(url);
+            var table = (u.pathname.match(/\/rest\/v1\/([^/?]+)/) || [])[1] || u.pathname;
+            var action = String((init && init.method) || (input && input.method) || 'GET').toUpperCase();
+            push('NET:' + (isSupabaseAuth ? 'AUTH' : 'DB'), action + ' ' + table);
+          } catch (_e2) {
+            push('NET:' + (isSupabaseAuth ? 'AUTH' : 'DB'), clean);
+          }
+        }
+        var p = originalFetch.apply(this, arguments);
+        if (isSupabaseRest || isSupabaseAuth) {
+          var timed = false;
+          var done = function (status) {
+            if (timed) return;
+            timed = true;
+            var ms = Math.round((performance.now() - startedAt) * 10) / 10;
+            push('NET:DONE:' + (isSupabaseAuth ? 'AUTH' : 'DB'), (status || '?') + ' in ' + ms + 'ms');
+          };
+          p.then(function (res) { done(res && res.status); }).catch(function () { done('ERR'); });
+        }
+        return p;
+      };
+    } catch (_err) {}
+  }
+
   function pollState() {
     var startedAt = Date.now();
     var interval = window.setInterval(function () {
@@ -280,6 +321,7 @@
 
   push('TRACE START', 'debug-trace.js loaded, wall=' + new Date(startWall).toISOString());
 
+  hookFetch();
   hookEvents();
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', buildPanel);
