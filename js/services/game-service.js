@@ -148,11 +148,8 @@
       if (!ENABLE_SUPABASE_GAMES_TABLE) return null;
       const client = await this.getClient();
       if (!client || !id) return null;
-      const cleanId = String(id).replace(/^rawg_/i, '').trim();
-      const numId = Number(cleanId);
-      if (!cleanId || !Number.isFinite(numId) || isNaN(numId)) return null;
       try {
-        const { data } = await client.from('games').select('*').eq('id', numId).maybeSingle();
+        const { data } = await client.from('games').select('*').eq('id', id).maybeSingle();
         return data || null;
       } catch (_e) {
         return null;

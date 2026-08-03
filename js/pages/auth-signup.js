@@ -23,22 +23,6 @@
   var loginLink = document.getElementById('altLoginLink');
 
   if (!form || !emailInput || !passwordInput || !submitButton || !googleButton) return;
-
-  var togglePasswordBtn = document.getElementById('togglePasswordBtn');
-  var togglePasswordIcon = document.getElementById('togglePasswordIcon');
-
-  if (togglePasswordBtn && passwordInput) {
-    togglePasswordBtn.addEventListener('click', function (e) {
-      e.preventDefault();
-      var isPassword = passwordInput.type === 'password';
-      passwordInput.type = isPassword ? 'text' : 'password';
-      if (togglePasswordIcon) {
-        togglePasswordIcon.className = isPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
-      }
-      togglePasswordBtn.setAttribute('title', isPassword ? 'Hide password' : 'Show password');
-      togglePasswordBtn.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
-    });
-  }
   if (consentInput) {
     var updateSubmitEnabled = function () {
       if (!consentInput.checked) {
@@ -261,14 +245,9 @@
       return;
     }
 
-    var classes = 0;
-    if (/[a-z]/.test(password)) classes += 1;
-    if (/[A-Z]/.test(password)) classes += 1;
-    if (/[0-9]/.test(password)) classes += 1;
-    if (/[^A-Za-z0-9]/.test(password)) classes += 1;
-    if (password.length < 12 || classes < 3) {
-      showError('Password must be at least 12 characters and include a mix of uppercase, lowercase, numbers, or symbols.');
-      track('signup_validation_error', { reason: 'password_weak', path: window.location.pathname });
+    if (password.length < 12) {
+      showError('Password must be at least 12 characters.');
+      track('signup_validation_error', { reason: 'password_short', path: window.location.pathname });
       return;
     }
 

@@ -225,7 +225,7 @@
     return supabaseClient;
   }
 
-  const LOGO_CACHE_BUST = '20260731brands';
+  const LOGO_CACHE_BUST = '20260712d';
 
   function resolveLogo(value, domain, name) {
     const direct = String(value || '').trim();
@@ -240,22 +240,31 @@
         if (url.indexOf('?') === -1) url += '?v=' + LOGO_CACHE_BUST;
         return url;
       }
-    }
-    const title = String(name || '').trim();
-    const dRaw = String(domain || '').trim();
-    if (title || dRaw) {
+      const title = String(name || '').trim();
+      const dRaw = String(domain || '').trim();
       const params = new URLSearchParams();
       if (title) params.set('title', title);
       if (dRaw) params.set('domain', dRaw);
       params.set('mode', 'logo');
       return '/api/logo?' + params.toString();
     }
-    if (!dRaw) return '';
-    if (/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(dRaw)) {
-      return '/api/logo?domain=' + encodeURIComponent(dRaw) + '&size=128&mode=logo';
+    const title = String(name || '').trim();
+    if (title) {
+      const params = new URLSearchParams();
+      params.set('title', title);
+      const dRaw = String(domain || '').trim();
+      if (dRaw) params.set('domain', dRaw);
+      params.set('mode', 'logo');
+      return '/api/logo?' + params.toString();
     }
-    if (/^https?:\/\//i.test(dRaw)) {
-      const match = dRaw.match(/\/\/([^\/\?]+)/i);
+    const domainRaw = String(domain || '').trim();
+    const candidate = domainRaw;
+    if (!candidate) return '';
+    if (/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(candidate)) {
+      return '/api/logo?domain=' + encodeURIComponent(candidate) + '&size=128&mode=logo';
+    }
+    if (/^https?:\/\//i.test(candidate)) {
+      const match = candidate.match(/\/\/([^\/\?]+)/i);
       if (match && match[1]) return '/api/logo?domain=' + encodeURIComponent(match[1]) + '&size=128&mode=logo';
       return candidate;
     }

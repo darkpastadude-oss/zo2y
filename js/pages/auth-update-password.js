@@ -80,13 +80,8 @@
 
     var password = String(passwordInput.value || '');
     var confirm = String(confirmInput.value || '');
-    var classes = 0;
-    if (/[a-z]/.test(password)) classes += 1;
-    if (/[A-Z]/.test(password)) classes += 1;
-    if (/[0-9]/.test(password)) classes += 1;
-    if (/[^A-Za-z0-9]/.test(password)) classes += 1;
-    if (password.length < 12 || classes < 3) {
-      showError('Password must be at least 12 characters and include a mix of uppercase, lowercase, numbers, or symbols.');
+    if (password.length < 12) {
+      showError('Password must be at least 12 characters.');
       return;
     }
     if (password !== confirm) {

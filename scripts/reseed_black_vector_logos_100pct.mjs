@@ -31,6 +31,7 @@ const SIMPLE_ICONS = {
   "Pandora": "pandora",
   "McDonald's": "mcdonalds",
   "Starbucks": "starbucks",
+  "Burger King": "burgerking",
   "KFC": "kfc",
   "Taco Bell": "tacobell",
   "Gymshark": "gymshark",

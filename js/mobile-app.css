@@ -152,14 +152,6 @@ body.app-ready #appLoadLine {
     width: calc(100% - 20px);
   }
 
-  body[data-brand-type] .container,
-  body[data-nav-page="food"] .container,
-  body[data-nav-page="fashion"] .container,
-  body[data-nav-page="cars"] .container,
-  body[data-nav-page="brands"] .container {
-    margin-top: 12px !important;
-  }
-
   body[data-zo2y-page="index"] .header-inner {
     min-height: 64px;
     padding-top: 10px;

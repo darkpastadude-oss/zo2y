@@ -401,7 +401,7 @@
   }
 
   function getStoredSessionSnapshot() {
-    var keys = [STORAGE_KEY, LEGACY_STORAGE_KEY, PERSIST_STORAGE_KEY, SUPABASE_SDK_STORAGE_KEY];
+    var keys = [STORAGE_KEY, LEGACY_STORAGE_KEY, PERSIST_STORAGE_KEY];
     for (var i = 0; i < keys.length; i += 1) {
       var raw = safeGetStorageItem(keys[i]);
       if (!raw) continue;
@@ -411,21 +411,6 @@
         if (session && session.access_token && session.refresh_token) return session;
       } catch (_err) {}
     }
-    try {
-      if (typeof localStorage !== 'undefined') {
-        for (var k = 0; k < localStorage.length; k += 1) {
-          var keyName = localStorage.key(k);
-          if (keyName && /^sb-[a-z0-9]+-auth-token$/i.test(keyName)) {
-            var sbRaw = localStorage.getItem(keyName);
-            if (sbRaw) {
-              var sbParsed = JSON.parse(sbRaw);
-              var sbSession = extractSessionFromPayload(sbParsed);
-              if (sbSession && sbSession.access_token && sbSession.refresh_token) return sbSession;
-            }
-          }
-        }
-      }
-    } catch (_eSb) {}
     var durableRaw = safeGetLocalStorage(DURABLE_STORAGE_KEY);
     if (!durableRaw) return null;
     try {
@@ -679,23 +664,15 @@
 
   function clearOnboardingPending(userId) {
     safeRemoveLocalStorage(getOnboardingPendingKey(userId));
-    markOnboardingRedirectedThisSession(userId);
+    safeRemoveLocalStorage(ONBOARDING_SESSION_PREFIX + String(userId || '').trim());
   }
 
   function wasOnboardingRedirectedThisSession(userId) {
-    var key = ONBOARDING_SESSION_PREFIX + String(userId || '').trim();
-    try {
-      if (sessionStorage.getItem(key) === '1') return true;
-    } catch (_e) {}
-    return safeGetLocalStorage(key) === '1';
+    return safeGetLocalStorage(ONBOARDING_SESSION_PREFIX + String(userId || '').trim()) === '1';
   }
 
   function markOnboardingRedirectedThisSession(userId) {
-    var key = ONBOARDING_SESSION_PREFIX + String(userId || '').trim();
-    safeSetLocalStorage(key, '1');
-    try {
-      sessionStorage.setItem(key, '1');
-    } catch (_e) {}
+    safeSetLocalStorage(ONBOARDING_SESSION_PREFIX + String(userId || '').trim(), '1');
   }
 
   function normalizeProfileUsername(value, fallbackValue) {
@@ -771,7 +748,7 @@
     if (!normalizedProfile) return true;
     if (!isValidProfileUsername(normalizedProfile)) return true;
     if (normalizedProfile === 'user') return true;
-    return false;
+    return normalizedProfile === getGeneratedPlaceholderProfileUsername(user);
   }
 
   function getAuthProfileSnapshot(user) {
@@ -1943,7 +1920,7 @@
           persistSessionSnapshot(session);
         }
 
-        if (authenticated && !AUTH_ENTRY_PAGES.has(pageKey) && pageKey !== 'onboarding' && pageKey !== 'profile') {
+        if (authenticated && !AUTH_ENTRY_PAGES.has(pageKey) && pageKey !== 'onboarding') {
           var userId = String(session.user.id || '').trim();
           var onboardingParam = false;
           try {

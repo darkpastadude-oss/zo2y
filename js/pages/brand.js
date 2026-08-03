@@ -117,7 +117,7 @@
     }, 2400);
   }
 
-  const LOGO_CACHE_BUST = "20260731brands";
+  const LOGO_CACHE_BUST = "20260713h";
 
   function resolveLogo(value, domain, name) {
     const direct = String(value || "").trim();
@@ -891,6 +891,79 @@
     "zippys": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=1974&auto=format&fit=crop",
     "zoeskitchen": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=1974&auto=format&fit=crop",
 
+    // CARS
+    "bmw": "https://images.unsplash.com/photo-1555099962-4199c345e5dd?q=80&w=2070&auto=format&fit=crop",
+    "mercedes-benz": "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?q=80&w=2070&auto=format&fit=crop",
+    "audi": "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?q=80&w=2069&auto=format&fit=crop",
+    "porsche": "https://images.unsplash.com/photo-1503376760388-12e3e566ce00?q=80&w=2070&auto=format&fit=crop",
+    "tesla": "https://images.unsplash.com/photo-1560958089-b8a1929cea89?q=80&w=2071&auto=format&fit=crop",
+    "lamborghini": "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?q=80&w=2070&auto=format&fit=crop",
+    "ferrari": "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?q=80&w=2070&auto=format&fit=crop",
+    "bugatti": "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?q=80&w=2070&auto=format&fit=crop",
+    "mclaren": "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?q=80&w=2070&auto=format&fit=crop",
+    "maserati": "https://images.unsplash.com/photo-1555099962-4199c345e5dd?q=80&w=2070&auto=format&fit=crop",
+    "rolls-roycemotorcars": "https://images.unsplash.com/photo-1555099962-4199c345e5dd?q=80&w=2070&auto=format&fit=crop",
+    
+    "lucidmotors": "https://images.unsplash.com/photo-1560958089-b8a1929cea89?q=80&w=2071&auto=format&fit=crop",
+    "nio": "https://images.unsplash.com/photo-1560958089-b8a1929cea89?q=80&w=2071&auto=format&fit=crop",
+    "polestar": "https://images.unsplash.com/photo-1560958089-b8a1929cea89?q=80&w=2071&auto=format&fit=crop",
+    "rimac-automobili": "https://images.unsplash.com/photo-1560958089-b8a1929cea89?q=80&w=2071&auto=format&fit=crop",
+    "rivian": "https://images.unsplash.com/photo-1560958089-b8a1929cea89?q=80&w=2071&auto=format&fit=crop",
+    "xiaopeng": "https://images.unsplash.com/photo-1560958089-b8a1929cea89?q=80&w=2071&auto=format&fit=crop",
+    "zeekrlife": "https://images.unsplash.com/photo-1560958089-b8a1929cea89?q=80&w=2071&auto=format&fit=crop",
+    "vinfast": "https://images.unsplash.com/photo-1560958089-b8a1929cea89?q=80&w=2071&auto=format&fit=crop",
+
+    "ford": "https://images.unsplash.com/photo-1551830116-d86927d3b0d2?q=80&w=2070&auto=format&fit=crop",
+    "chevrolet": "https://images.unsplash.com/photo-1551830116-d86927d3b0d2?q=80&w=2070&auto=format&fit=crop",
+    "dodge": "https://images.unsplash.com/photo-1551830116-d86927d3b0d2?q=80&w=2070&auto=format&fit=crop",
+    
+    "ramtrucks": "https://images.unsplash.com/photo-1559416523-140ddc3d238c?q=80&w=2069&auto=format&fit=crop",
+    "westernstartrucks": "https://images.unsplash.com/photo-1559416523-140ddc3d238c?q=80&w=2069&auto=format&fit=crop",
+    "scania": "https://images.unsplash.com/photo-1559416523-140ddc3d238c?q=80&w=2069&auto=format&fit=crop",
+
+    "jeep": "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop",
+    "mahindra": "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop",
+    
+    "honda": "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop",
+    "toyota": "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop",
+    "hyundai": "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop",
+    "kia": "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop",
+    "mazda": "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop",
+    "nissan": "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop",
+    "subaru": "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop",
+    "volkswagen": "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop",
+    "fiat": "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop",
+    "peugeot": "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop",
+    "renault": "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop",
+    "citroen": "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop",
+    "opel": "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop",
+    "skoda-auto": "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop",
+    "seat": "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop",
+    "dacia": "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop",
+    "chrysler": "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop",
+    "buick": "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop",
+    "cadillac": "https://images.unsplash.com/photo-1555099962-4199c345e5dd?q=80&w=2070&auto=format&fit=crop",
+    "lincoln": "https://images.unsplash.com/photo-1555099962-4199c345e5dd?q=80&w=2070&auto=format&fit=crop",
+    "lexus": "https://images.unsplash.com/photo-1555099962-4199c345e5dd?q=80&w=2070&auto=format&fit=crop",
+    "acura": "https://images.unsplash.com/photo-1555099962-4199c345e5dd?q=80&w=2070&auto=format&fit=crop",
+    "genesis": "https://images.unsplash.com/photo-1555099962-4199c345e5dd?q=80&w=2070&auto=format&fit=crop",
+    "jaguar": "https://images.unsplash.com/photo-1555099962-4199c345e5dd?q=80&w=2070&auto=format&fit=crop",
+    "volvocars": "https://images.unsplash.com/photo-1555099962-4199c345e5dd?q=80&w=2070&auto=format&fit=crop",
+    "abarth": "https://images.unsplash.com/photo-1551830116-d86927d3b0d2?q=80&w=2070&auto=format&fit=crop",
+    "changan": "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop",
+    "geely": "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop",
+    "saicmotor": "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop",
+    "tatamotors": "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop",
+    "proton": "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop",
+    "daihatsu": "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop",
+    "isuzu": "https://images.unsplash.com/photo-1559416523-140ddc3d238c?q=80&w=2069&auto=format&fit=crop",
+    "lancia": "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop",
+    "mini": "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop",
+    "smart": "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop",
+    "saab": "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop",
+    "vauxhall": "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop"
+  };
+
   let brandCoversCache = null;
   async function getBrandCovers() {
     if (brandCoversCache !== null) return brandCoversCache;
@@ -919,86 +992,42 @@
   }
 
   async function fetchWikiHeroBackdrop(brand) {
-    // 1. Prioritize official Brandfetch banner artwork FIRST
+    const covers = await getBrandCovers();
+    if (brand.id && covers[brand.id]) {
+      return covers[brand.id];
+    }
+
     const bfBanner = await fetchBrandfetchBanner(brand);
     if (bfBanner) return bfBanner;
 
-    // 2. Check pre-curated brand_covers.json database (314+ unique high-res URLs)
-    const covers = await getBrandCovers();
-    const keyId = String(brand.id || '').trim();
-    const keySlug = String(brand.slug || '').trim().toLowerCase();
-    const keyDomain = String(brand.domain || '').trim().toLowerCase();
-    const keyName = String(brand.name || '').trim().toLowerCase();
-
-    if (keyId && covers[keyId]) return covers[keyId];
-    if (keySlug && covers[keySlug]) return covers[keySlug];
-    if (keyDomain && covers[keyDomain]) return covers[keyDomain];
-    if (keyName && covers[keyName]) return covers[keyName];
-
-    // 3. Wikipedia Media Query
     const wikiTitle = brand.wiki?.title || brand.name;
-    if (wikiTitle) {
-      const url = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(wikiTitle)}&generator=images&gimlimit=50&prop=imageinfo&iiprop=url|size&iiurlwidth=1200&format=json&origin=*`;
-      try {
-        const res = await fetch(url);
-        if (res.ok) {
-          const data = await res.json();
-          if (data?.query?.pages) {
-            const candidates = [];
-            Object.values(data.query.pages).forEach((p) => {
-              const info = p.imageinfo && p.imageinfo[0];
-              if (info && (info.thumburl || info.url)) {
-                candidates.push({
-                  title: p.title,
-                  url: info.thumburl || info.url,
-                  width: info.thumbwidth || info.width || 0,
-                  height: info.thumbheight || info.height || 0,
-                });
-              }
-            });
+    if (!wikiTitle) return "";
 
-            const best = selectBestHeroImage(candidates, brandType);
-            if (best && best.url) return best.url;
-          }
+    const url = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(wikiTitle)}&generator=images&gimlimit=50&prop=imageinfo&iiprop=url|size&iiurlwidth=1200&format=json&origin=*`;
+    try {
+      const res = await fetch(url);
+      if (!res.ok) return "";
+      const data = await res.json();
+      if (!data?.query?.pages) return "";
+
+      const candidates = [];
+      Object.values(data.query.pages).forEach((p) => {
+        const info = p.imageinfo && p.imageinfo[0];
+        if (info && (info.thumburl || info.url)) {
+          candidates.push({
+            title: p.title,
+            url: info.thumburl || info.url,
+            width: info.thumbwidth || info.width || 0,
+            height: info.thumbheight || info.height || 0,
+          });
         }
-      } catch (_e) {}
-    }
+      });
 
-    // 4. Deterministic unique category photo fallback (ensures NO TWO brands share the same background)
-    const CATEGORY_PHOTO_POOLS = {
-      food: [
-        "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=2074&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2070&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?q=80&w=2070&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=2074&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1559339352-11d035aa65de?q=80&w=2070&auto=format&fit=crop"
-      ],
-      car: [
-        "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=2070&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?q=80&w=2070&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?q=80&w=2070&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=2070&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1583121274602-3e2820c69888?q=80&w=2070&auto=format&fit=crop"
-      ],
-      fashion: [
-        "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=2070&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=2071&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1469334031218-e382a71b716b?q=80&w=2070&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=2070&auto=format&fit=crop"
-      ]
-    };
-
-    const bType = String(brandType || 'food').toLowerCase();
-    const pool = CATEGORY_PHOTO_POOLS[bType] || CATEGORY_PHOTO_POOLS.food;
-    const seed = String(brand.id || brand.slug || brand.name || 'zo2y').toLowerCase();
-    let hash = 0;
-    for (let i = 0; i < seed.length; i++) {
-      hash = (hash << 5) - hash + seed.charCodeAt(i);
-      hash |= 0;
+      const best = selectBestHeroImage(candidates, brandType);
+      return best ? best.url : "";
+    } catch (_e) {
+      return "";
     }
-    const basePhoto = pool[Math.abs(hash) % pool.length];
-    return `${basePhoto}&brand_sig=${encodeURIComponent(seed)}`;
   }
 
   let brandHeroConfig = null;

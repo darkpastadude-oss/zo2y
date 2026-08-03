@@ -348,16 +348,13 @@ main.container {
 }
 
 @media (max-width: 900px) {
-  main.container {
-    margin: 16px auto 36px !important;
-    width: calc(100% - 24px);
-  }
-
   .controls {
     grid-template-columns: minmax(0, 1fr) 52px 52px;
     gap: 10px;
   }
+}
 
+@media (max-width: 900px) {
   .brand-spotlight {
     grid-template-columns: minmax(0, 1.2fr) minmax(110px, 0.62fr);
     min-height: 190px;
@@ -390,18 +387,11 @@ main.container {
   }
 
   main.container {
-    margin: 12px auto 30px !important;
-    width: calc(100% - 20px);
-  }
-
-  .brand-hero {
-    border-radius: 18px !important;
-    padding: 16px 18px !important;
-    margin-bottom: 14px !important;
+    margin: 80px auto 50px;
   }
 
   .page-header {
-    padding: 14px 16px;
+    padding: 16px;
   }
 
   .brand-grid {
