@@ -13,6 +13,32 @@
             const FALLBACK_MEDIA_IMAGE = "/newlogo.webp";
             const BOOKS_CACHE_BUSTER = "20260323-api-only-profile";
 
+            function withTimeout(promise, ms) {
+                const limit = Number(ms || 4000) || 4000;
+                return new Promise((resolve) => {
+                    let settled = false;
+                    const timer = window.setTimeout(() => {
+                        if (settled) return;
+                        settled = true;
+                        resolve({ __timedOut: true });
+                    }, limit);
+                    Promise.resolve(promise).then(
+                        (value) => {
+                            if (settled) return;
+                            settled = true;
+                            window.clearTimeout(timer);
+                            resolve(value);
+                        },
+                        () => {
+                            if (settled) return;
+                            settled = true;
+                            window.clearTimeout(timer);
+                            resolve(null);
+                        }
+                    );
+                });
+            }
+
             async function igdbFetch(path, params = {}, signal = null) {
                 if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === "function") {
                     return window.ZO2Y_IGDB.request(path, params, signal ? { signal } : undefined);
@@ -1241,12 +1267,16 @@
                 // 1. Check profile_showcase (latest row and prune duplicates)
                 if (supabase && isUuid(userId)) {
                     try {
-                        const { data: rows } = await supabase
-                            .from('profile_showcase')
-                            .select('*')
-                            .eq('user_id', userId)
-                            .eq('media_type', 'banner')
-                            .order('created_at', { ascending: false });
+                        const bannerRows = await withTimeout(
+                            supabase
+                                .from('profile_showcase')
+                                .select('*')
+                                .eq('user_id', userId)
+                                .eq('media_type', 'banner')
+                                .order('created_at', { ascending: false }),
+                            4000
+                        );
+                        const rows = bannerRows && !bannerRows.__timedOut ? (bannerRows.data || []) : null;
 
                         if (Array.isArray(rows) && rows.length > 0) {
                             const bannerRow = rows[0];
@@ -1358,23 +1388,41 @@
                 let profileError = null;
 
                 {
-                    const result = await supabase
-                        .from("user_profiles")
-                        .select("*")
-                        .eq("id", currentUser.id)
-                        .maybeSingle();
-                    profile = result.data || null;
-                    profileError = result.error || null;
+                    const result = await withTimeout(
+                        supabase
+                            .from("user_profiles")
+                            .select("*")
+                            .eq("id", currentUser.id)
+                            .maybeSingle(),
+                        4000
+                    );
+                    if (result && result.__timedOut) {
+                        console.warn('Profile query timed out; proceeding with session data');
+                        userProfile = {};
+                        window.userProfile = userProfile;
+                        return;
+                    }
+                    profile = result && result.data ? result.data : null;
+                    profileError = result && result.error ? result.error : null;
                 }
 
                 if (!profile) {
-                    const fallbackResult = await supabase
-                        .from("user_profiles")
-                        .select("*")
-                        .eq("user_id", currentUser.id)
-                        .maybeSingle();
-                    if (!fallbackResult.error && fallbackResult.data) {
-                        profile = fallbackResult.data;
+                    const fallbackResult = await withTimeout(
+                        supabase
+                            .from("user_profiles")
+                            .select("*")
+                            .eq("user_id", currentUser.id)
+                            .maybeSingle(),
+                        4000
+                    );
+                    if (fallbackResult && fallbackResult.__timedOut) {
+                        console.warn('Profile fallback query timed out; proceeding with session data');
+                        userProfile = {};
+                        window.userProfile = userProfile;
+                        return;
+                    }
+                    if (!fallbackResult || !fallbackResult.error) {
+                        profile = fallbackResult && fallbackResult.data ? fallbackResult.data : null;
                         profileError = null;
                     } else if (fallbackResult.error && !isColumnMissingError(fallbackResult.error, 'user_id')) {
                         profileError = fallbackResult.error;
@@ -1415,19 +1463,37 @@
 
                 let insertError = null;
                 {
-                    const result = await supabase
-                        .from("user_profiles")
-                        .insert({
-                            ...basePayload,
-                            user_id: currentUser.id
-                        });
-                    insertError = result.error || null;
+                    const result = await withTimeout(
+                        supabase
+                            .from("user_profiles")
+                            .insert({
+                                ...basePayload,
+                                user_id: currentUser.id
+                            }),
+                        4000
+                    );
+                    if (result && result.__timedOut) {
+                        console.warn('Profile insert timed out; proceeding with bootstrap data');
+                        userProfile = { ...basePayload, user_id: currentUser.id };
+                        window.userProfile = userProfile;
+                        return;
+                    }
+                    insertError = result && result.error ? result.error : null;
                 }
                 if (insertError && isColumnMissingError(insertError, 'user_id')) {
-                    const retryResult = await supabase
-                        .from("user_profiles")
-                        .insert(basePayload);
-                    insertError = retryResult.error || null;
+                    const retryResult = await withTimeout(
+                        supabase
+                            .from("user_profiles")
+                            .insert(basePayload),
+                        4000
+                    );
+                    if (retryResult && retryResult.__timedOut) {
+                        console.warn('Profile insert retry timed out; proceeding with bootstrap data');
+                        userProfile = { ...basePayload, user_id: currentUser.id };
+                        window.userProfile = userProfile;
+                        return;
+                    }
+                    insertError = retryResult && retryResult.error ? retryResult.error : null;
                 }
 
                 if (insertError) {
@@ -1435,11 +1501,16 @@
                     return;
                 }
 
-                const { data: newProfile, error: newProfileError } = await supabase
-                    .from("user_profiles")
-                    .select("*")
-                    .eq("id", currentUser.id)
-                    .maybeSingle();
+                const reSelect = await withTimeout(
+                    supabase
+                        .from("user_profiles")
+                        .select("*")
+                        .eq("id", currentUser.id)
+                        .maybeSingle(),
+                    4000
+                );
+                const newProfile = reSelect && !reSelect.__timedOut ? (reSelect.data || null) : null;
+                const newProfileError = reSelect && !reSelect.__timedOut ? (reSelect.error || null) : null;
                 if (newProfileError && newProfileError.code !== 'PGRST116') {
                     console.error('Error reloading profile:', newProfileError);
                 }
@@ -3705,11 +3776,21 @@
                 pinnedListsMap = new Map();
                 pinnedListsOwnerId = '';
                 try {
-                    const { data, error } = await supabase
-                        .from(PROFILE_PIN_TABLE)
-                        .select('media_type, list_id, list_type, sort_order')
-                        .eq('user_id', safeOwnerId)
-                        .order('sort_order', { ascending: true });
+                    const result = await withTimeout(
+                        supabase
+                            .from(PROFILE_PIN_TABLE)
+                            .select('media_type, list_id, list_type, sort_order')
+                            .eq('user_id', safeOwnerId)
+                            .order('sort_order', { ascending: true }),
+                        4000
+                    );
+                    if (result && result.__timedOut) {
+                        console.warn('Pinned collections query timed out; proceeding without pins');
+                        pinnedListsOwnerId = safeOwnerId;
+                        return;
+                    }
+                    const error = result && result.error ? result.error : null;
+                    const data = result && result.data ? result.data : null;
                     if (error) throw error;
                     (data || []).forEach((row) => {
                         const key = getPinnedCollectionKey(row.media_type, row.list_id, row.list_type);
