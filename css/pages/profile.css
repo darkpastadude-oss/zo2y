@@ -7329,8 +7329,10 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 /* === Topbar (menu + edit pill) === */
 .mph2-topbar {
   position: absolute;
-  top: 230px;
+  top: 14px;
+  top: max(14px, env(safe-area-inset-top));
   right: 14px;
+  right: max(14px, env(safe-area-inset-right));
   z-index: 10;
   display: flex;
   align-items: center;
@@ -7362,7 +7364,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 .mph2-topbar-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   margin-left: auto;
 }
 
@@ -8087,22 +8089,28 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 }
 
 .pv2-banner-action-btn {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: 50%;
-  background: rgba(11, 22, 51, 0.7);
+  background: rgba(11, 22, 51, 0.75);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: #ffffff;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   font-size: 1.15rem;
   cursor: pointer;
-  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.25s ease, border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.2s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
   position: relative;
   outline: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  box-sizing: border-box;
 }
 
 .pv2-globe-btn {
@@ -8600,24 +8608,42 @@ body.in-collection-detail .mobile-section {
   max-width: 100%;
 }
 
-.collection-back-arrow-v2 {
-  background: transparent !important;
-  border: none !important;
+.collection-back-arrow-v2,
+.pv2-category-back,
+.btn-back-v2 {
+  background: rgba(245, 158, 11, 0.12) !important;
+  border: 1px solid rgba(245, 158, 11, 0.28) !important;
   color: #f59e0b !important;
-  font-size: 1.35rem !important;
+  font-size: 1.25rem !important;
   cursor: pointer;
-  padding: 0 !important;
-  margin-bottom: 22px !important;
+  padding: 10px 16px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  border-radius: 12px !important;
+  margin-bottom: 18px !important;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s ease, color 0.2s ease;
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
   outline: none;
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: transparent !important;
+  user-select: none !important;
 }
 
-.collection-back-arrow-v2:hover {
-  transform: translateX(-5px);
+.collection-back-arrow-v2:hover,
+.pv2-category-back:hover,
+.btn-back-v2:hover {
+  background: rgba(245, 158, 11, 0.2) !important;
+  border-color: rgba(245, 158, 11, 0.45) !important;
   color: #fbbf24 !important;
+}
+
+.collection-back-arrow-v2:active,
+.pv2-category-back:active,
+.btn-back-v2:active {
+  transform: scale(0.95) !important;
+  background: rgba(245, 158, 11, 0.28) !important;
 }
 
 .collection-title-block {
