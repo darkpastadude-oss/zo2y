@@ -93,6 +93,10 @@
   function dumpDiagnostics() {
     var out = {};
     try {
+      out.traceVersion = 'D';
+      out.fetchHook = window.__ZO2Y_TRACE_FETCH_HOOKED === true ? 'installed' : 'MISSING';
+    } catch (_err) { out.traceVersion = '?'; }
+    try {
       out.hasStoredSession = typeof window.__ZO2Y_HAS_STORED_AUTH_SESSION === 'function'
         ? window.__ZO2Y_HAS_STORED_AUTH_SESSION()
         : null;
