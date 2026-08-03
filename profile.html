@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
 
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src https://archive.org https://*.archive.org 'self' https://www.omdbapi.com https://*.apple.com https://*.dzcdn.net https://*.googleapis.com https://*.igdb.com https://*.mzstatic.com https://*.supabase.co https://*.twitch.tv https://*.wikidata.org https://*.wikimedia.org https://*.youtube.com https://api.igdb.com https://api.rawg.io https://api.themoviedb.org https://api.thesportsdb.com https://audio-ssl.itunes.apple.com https://books.google.com https://books.googleusercontent.com https://cdn-images.dzcdn.net https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://commons.wikimedia.org https://covers.openlibrary.org https://en.wikipedia.org https://flagcdn.com https://fonts.googleapis.com https://fonts.gstatic.com https://i.scdn.co https://id.twitch.tv https://image.tmdb.org https://images.unsplash.com https://is1-ssl.mzstatic.com https://itunes.apple.com https://logo.clearbit.com https://media.rawg.io https://openlibrary.org https://player.vimeo.com https://restcountries.com https://rss.applemarketingtools.com https://static.cloudflareinsights.com https://wikimedia.org https://www.thesportsdb.com https://www.youtube-nocookie.com https://www.youtube.com https://images.pexels.com wss://*.supabase.co; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://www.omdbapi.com https://*.apple.com https://*.dzcdn.net https://*.googleapis.com https://*.igdb.com https://*.mzstatic.com https://*.supabase.co https://*.twitch.tv https://*.wikidata.org https://*.wikimedia.org https://*.youtube.com https://api.igdb.com https://api.rawg.io https://api.themoviedb.org https://api.thesportsdb.com https://audio-ssl.itunes.apple.com https://books.google.com https://books.googleusercontent.com https://cdn-images.dzcdn.net https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://commons.wikimedia.org https://covers.openlibrary.org https://en.wikipedia.org https://flagcdn.com https://fonts.googleapis.com https://fonts.gstatic.com https://i.scdn.co https://id.twitch.tv https://image.tmdb.org https://images.unsplash.com https://is1-ssl.mzstatic.com https://itunes.apple.com https://logo.clearbit.com https://media.rawg.io https://openlibrary.org https://player.vimeo.com https://restcountries.com https://rss.applemarketingtools.com https://static.cloudflareinsights.com https://wikimedia.org https://www.thesportsdb.com https://www.youtube-nocookie.com https://www.youtube.com https://images.pexels.com wss://*.supabase.co; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260708a" integrity="sha256-xS2zCnmQbdfvibZhfnqeZdQZq821LRYJlAfLw6FZpF0=" crossorigin="anonymous" defer></script>
   <script src="js/providers/index.js?v=20260709M" defer></script>
@@ -129,8 +129,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="pv2-identity">
                         <div class="pv2-name" id="profileName">Loading...</div>
                         <div class="pv2-username" id="profileUsername">@username</div>
-                        <!-- Bio -->
                         <div class="pv2-bio" id="profileBio">No bio yet. Click edit to add one!</div>
+
+                        <!-- Featured Showcase Strip (Visual Cover Badges) -->
+                        <div class="pv2-featured-showcase" id="profileFeaturedShowcase"></div>
 
                         <div class="pv2-meta">
                             <span class="pv2-meta-item"><i class="fas fa-map-marker-alt"></i> <span id="profileLocation">—</span></span>
@@ -1884,31 +1886,86 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             
             <form id="editProfileForm" onsubmit="event.preventDefault(); ProfileManager.saveProfileChanges();">
                 <div class="modal-body">
-                    <div class="form-group">
-                        <label class="form-label">Username</label>
-                        <input type="text" class="form-input" id="editUsername" maxlength="30" placeholder="username" autocomplete="username" autocapitalize="off" spellcheck="false" required>
-                        <small class="text-muted d-block mt-4">3-30 letters, numbers, or underscores. No spaces.</small>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Bio</label>
-                        <textarea class="form-textarea" id="editBio" rows="3" placeholder="Tell us what media you love..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Location</label>
-                        <input type="text" class="form-input" id="editLocation" placeholder="Your city or region">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Custom Badges</label>
-                        <input type="text" class="form-input" id="editCustomBadges" placeholder="Comma separated badges (e.g., Collector, Top Critic)">
-                        <small class="text-muted d-block mt-4">Automatic milestone badges are added based on activity.</small>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Privacy</label>
-                        <div class="mt-8">
-                            <label class="d-flex align-items-center gap-8">
-                                <input type="checkbox" id="editIsPrivate"> Private Account
-                            </label>
-                            <small class="text-muted d-block mt-4">Private accounts require approval for followers to see your profile details.</small>
+                    <div class="edit-profile-modal-wrap">
+                        <!-- Navigation Tabs -->
+                        <div class="edit-profile-tabs" role="tablist">
+                            <button type="button" class="edit-profile-tab active" data-tab="profile" onclick="ProfileManager.switchEditTab('profile')">
+                                <i class="fas fa-user"></i> Profile
+                            </button>
+                            <button type="button" class="edit-profile-tab" data-tab="showcase" onclick="ProfileManager.switchEditTab('showcase')">
+                                <i class="fas fa-star"></i> Showcase
+                            </button>
+                            <button type="button" class="edit-profile-tab" data-tab="privacy" onclick="ProfileManager.switchEditTab('privacy')">
+                                <i class="fas fa-shield-alt"></i> Privacy
+                            </button>
+                        </div>
+
+                        <!-- Tab Contents -->
+                        <div class="edit-profile-tab-content">
+                            <!-- Tab 1: Profile -->
+                            <div class="edit-tab-pane active" id="editTabProfile">
+                                <div class="form-group">
+                                    <label class="form-label">Username</label>
+                                    <input type="text" class="form-input" id="editUsername" maxlength="30" placeholder="username" autocomplete="username" autocapitalize="off" spellcheck="false" required>
+                                    <small class="text-muted d-block mt-4">3-30 letters, numbers, or underscores. No spaces.</small>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Bio</label>
+                                    <textarea class="form-textarea" id="editBio" rows="3" placeholder="Tell us what media you love..."></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Location</label>
+                                    <input type="text" class="form-input" id="editLocation" placeholder="Your city or region">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Custom Badges</label>
+                                    <input type="text" class="form-input" id="editCustomBadges" placeholder="Comma separated badges (e.g., Collector, Top Critic)">
+                                    <small class="text-muted d-block mt-4">Automatic milestone badges are added based on activity.</small>
+                                </div>
+                            </div>
+
+<!-- Tab 3: Showcase -->
+<div class="edit-tab-pane" id="editTabShowcase">
+                                <p class="text-muted small mb-16">Pick your absolute top favorite titles to display as visual cover badges directly below your bio.</p>
+                                
+                                <div class="form-group">
+                                    <label class="form-label"><i class="fas fa-film text-accent"></i> Favorite Movie</label>
+                                    <select class="form-input" id="editShowcaseMovie" onchange="ProfileManager.updateShowcasePreview('movie', this.value)">
+                                        <option value="">None Selected</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label"><i class="fas fa-gamepad text-accent"></i> Favorite Game</label>
+                                    <select class="form-input" id="editShowcaseGame" onchange="ProfileManager.updateShowcasePreview('game', this.value)">
+                                        <option value="">None Selected</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label"><i class="fas fa-book text-accent"></i> Favorite Book</label>
+                                    <select class="form-input" id="editShowcaseBook" onchange="ProfileManager.updateShowcasePreview('book', this.value)">
+                                        <option value="">None Selected</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label"><i class="fas fa-music text-accent"></i> Favorite Album</label>
+                                    <select class="form-input" id="editShowcaseMusic" onchange="ProfileManager.updateShowcasePreview('music', this.value)">
+                                        <option value="">None Selected</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Tab 4: Privacy -->
+                            <div class="edit-tab-pane" id="editTabPrivacy">
+                                <div class="form-group">
+                                    <label class="form-label">Account Visibility</label>
+                                    <div class="mt-8">
+                                        <label class="d-flex align-items-center gap-8">
+                                            <input type="checkbox" id="editIsPrivate"> Private Account
+                                        </label>
+                                        <small class="text-muted d-block mt-4">Private accounts require approval for followers to see your profile details.</small>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -2040,48 +2097,20 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
     <!-- Avatar Modal -->
     <div class="modal" id="avatarModal">
-        <div class="modal-content avatar-modal-content">
+        <div class="modal-content">
             <div class="modal-header">
-                <div>
-                    <h3 class="modal-title">choose profile photo</h3>
-                    <div class="modal-subtitle">personalize your profile</div>
-                </div>
+                <h3 class="modal-title">Choose Avatar</h3>
                 <button class="modal-close" onclick="ProfileManager.closeModal('avatarModal')">&times;</button>
             </div>
             
             <div class="modal-body">
-                <!-- Top Avatar Preview -->
-                <div class="avatar-modal-preview-wrap text-center">
-                    <div class="avatar-modal-preview" id="avatarPreviewBubble" title="Profile Picture Preview">
-                        <i class="fa-solid fa-user avatar-silhouette-icon"></i>
-                    </div>
-                    <div class="avatar-current-badge mt-10">
-                        <span class="badge-dot"></span>
-                        <span id="avatarPreviewCaption">current photo</span>
-                    </div>
-                    <div class="avatar-helper-text mt-6">your profile photo will represent you across zo2y.</div>
-                </div>
-
-                <!-- Drag & Drop Upload Zone -->
-                <div class="avatar-dropzone mt-20" id="avatarDropZone" onclick="document.getElementById('avatarFileInput').click()">
-                    <input type="file" id="avatarFileInput" accept="image/*" style="display: none;" onchange="ProfileManager.handleAvatarFileSelect(event)" />
-                    <div class="dropzone-icon mb-8">
-                        <i class="fa-solid fa-upload"></i>
-                    </div>
-                    <div class="dropzone-title">drag and drop an image here</div>
-                    <div class="dropzone-subtitle mt-2">or <span class="text-orange">click to browse</span></div>
-                    <div class="dropzone-hint mt-6">recommended: square image, at least 512x512</div>
+                <div class="avatar-icon-grid" id="avatarIconGrid">
+                    <!-- Icons will be populated here -->
                 </div>
                 
-                <!-- Modal Action Footer -->
-                <div class="avatar-modal-actions mt-24">
-                    <button type="button" class="btn btn-remove-photo" onclick="ProfileManager.resetAvatarToSilhouette()">
-                        <i class="fa-solid fa-trash-can mr-6"></i> remove photo
-                    </button>
-                    <div class="avatar-modal-actions-right">
-                        <button type="button" class="btn btn-modal-cancel" onclick="ProfileManager.closeModal('avatarModal')">cancel</button>
-                        <button type="button" class="btn btn-modal-save" onclick="ProfileManager.saveAvatar()">save changes</button>
-                    </div>
+                <div class="form-actions mt-20">
+                    <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('avatarModal')">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="ProfileManager.saveAvatar()">Save Avatar</button>
                 </div>
             </div>
         </div>
@@ -2140,11 +2169,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <form id="accountPasswordForm" class="mb-18">
                     <div class="form-group">
                         <label class="form-label" for="settingsNewPassword">Change password</label>
-                        <input type="password" class="form-input" id="settingsNewPassword" minlength="12" placeholder="New password (min 12 chars)" autocomplete="new-password" required>
+                        <input type="password" class="form-input" id="settingsNewPassword" minlength="8" placeholder="New password (min 8 chars)" autocomplete="new-password" required>
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="settingsConfirmPassword">Confirm new password</label>
-                        <input type="password" class="form-input" id="settingsConfirmPassword" minlength="12" placeholder="Confirm new password" autocomplete="new-password" required>
+                        <input type="password" class="form-input" id="settingsConfirmPassword" minlength="8" placeholder="Confirm new password" autocomplete="new-password" required>
                     </div>
                     <button type="submit" class="btn btn-primary w-100">
                         <i class="fas fa-lock"></i> Update Password
