@@ -1414,20 +1414,39 @@
                 let profile = null;
                 let profileError = null;
 
+                // Keep the real query promise alive even when we render the
+                // session-derived fallback first, so a late-arriving profile
+                // re-renders the page instead of being discarded.
+                function rehydrateWhenResolved(queryPromise) {
+                    if (!queryPromise || typeof queryPromise.then !== 'function') return;
+                    queryPromise.then((result) => {
+                        try {
+                            const arrived = result && !result.__timedOut ? (result.data || null) : null;
+                            if (!arrived) return;
+                            userProfile = arrived;
+                            window.userProfile = userProfile;
+                            profileLookupTimedOut = false;
+                            updateProfileUI(userProfile);
+                            if (currentUser && currentUser.id) {
+                                loadProfileBannerConfig(currentUser.id);
+                            }
+                        } catch (_err) {}
+                    }).catch(() => {});
+                }
+
                 {
-                    const result = await withTimeout(
-                        supabase
-                            .from("user_profiles")
-                            .select("*")
-                            .eq("id", currentUser.id)
-                            .maybeSingle(),
-                        4000
-                    );
+                    const realQuery = supabase
+                        .from("user_profiles")
+                        .select("*")
+                        .eq("id", currentUser.id)
+                        .maybeSingle();
+                    const result = await withTimeout(realQuery, 4000);
                     if (result && result.__timedOut) {
-                        console.warn('Profile query timed out; proceeding with session data');
+                        console.warn('Profile query timed out; rendering session data, will rehydrate on arrival');
                         profileLookupTimedOut = true;
                         userProfile = buildSessionDerivedProfile();
                         window.userProfile = userProfile;
+                        rehydrateWhenResolved(realQuery);
                         return;
                     }
                     profile = result && result.data ? result.data : null;
@@ -1435,19 +1454,18 @@
                 }
 
                 if (!profile) {
-                    const fallbackResult = await withTimeout(
-                        supabase
-                            .from("user_profiles")
-                            .select("*")
-                            .eq("user_id", currentUser.id)
-                            .maybeSingle(),
-                        4000
-                    );
+                    const realFallback = supabase
+                        .from("user_profiles")
+                        .select("*")
+                        .eq("user_id", currentUser.id)
+                        .maybeSingle();
+                    const fallbackResult = await withTimeout(realFallback, 4000);
                     if (fallbackResult && fallbackResult.__timedOut) {
-                        console.warn('Profile fallback query timed out; proceeding with session data');
+                        console.warn('Profile fallback query timed out; rendering session data, will rehydrate on arrival');
                         profileLookupTimedOut = true;
                         userProfile = buildSessionDerivedProfile();
                         window.userProfile = userProfile;
+                        rehydrateWhenResolved(realFallback);
                         return;
                     }
                     if (!fallbackResult || !fallbackResult.error) {
