@@ -1250,12 +1250,24 @@
                 document.body.classList.remove('mobile-viewing-other');
 
                 // Load profile - use cached if available
+                // Instant first paint: render session-derived data now, then let
+                // loadUserProfile() overwrite it with the real profile as soon as
+                // the query resolves (no waiting on a 4s timeout before showing UI).
+                let userProfileLoadPromise;
                 if (!userProfile) {
-                    await loadUserProfile();
+                    userProfile = buildSessionDerivedProfile();
+                    window.userProfile = userProfile;
+                    updateProfileUI();
+                    userProfileLoadPromise = loadUserProfile();
+                } else {
+                    updateProfileUI();
+                    userProfileLoadPromise = Promise.resolve();
                 }
                 
-                updateProfileUI();
+                // Banner + stats load in parallel with the profile query so they
+                // don't stack behind it (each has its own 4s timeout).
                 await loadProfileBannerConfig(currentUser?.id);
+                await userProfileLoadPromise;
 
                 // Enforce the dedicated onboarding username flow (no email-derived fallbacks).
                 if (maybeRedirectUsernameOnboarding()) return;
@@ -1409,25 +1421,51 @@
                 };
             }
 
+            // Keeps the real profile query alive when it exceeds the UI timeout.
+            // Renders session-derived data instantly, then re-renders the full
+            // profile when the query finally resolves — so a cold/slow start does
+            // not require a manual refresh to show banner, bio, and stats.
+            function rehydrateProfileFromQuery(queryPromise) {
+                if (!queryPromise || typeof queryPromise.then !== 'function') return;
+                queryPromise.then((result) => {
+                    try {
+                        const arrived = result && !result.__timedOut ? (result.data || null) : null;
+                        if (!arrived) return;
+                        profileLookupTimedOut = false;
+                        userProfile = arrived;
+                        if (userProfile && !userProfile.avatar_url) {
+                            userProfile.avatar_url = currentUser?.user_metadata?.avatar_url || currentUser?.user_metadata?.avatar || (function() {
+                                try { return localStorage.getItem('zo2y_user_avatar_url'); } catch(e) { return null; }
+                            })() || null;
+                        }
+                        window.userProfile = userProfile;
+                        updateProfileUI(userProfile);
+                        if (currentUser && currentUser.id) {
+                            loadProfileBannerConfig(currentUser.id);
+                        }
+                        updateStats().catch(() => {});
+                    } catch (_err) {}
+                }).catch(() => {});
+            }
+
             async function loadUserProfile() {
                 profileLookupTimedOut = false;
                 let profile = null;
                 let profileError = null;
 
                 {
-                    const result = await withTimeout(
-                        supabase
-                            .from("user_profiles")
-                            .select("*")
-                            .eq("id", currentUser.id)
-                            .maybeSingle(),
-                        4000
-                    );
+                    const realQuery = supabase
+                        .from("user_profiles")
+                        .select("*")
+                        .eq("id", currentUser.id)
+                        .maybeSingle();
+                    const result = await withTimeout(realQuery, 4000);
                     if (result && result.__timedOut) {
-                        console.warn('Profile query timed out; proceeding with session data');
+                        console.warn('Profile query timed out; rendering session data, will rehydrate on arrival');
                         profileLookupTimedOut = true;
                         userProfile = buildSessionDerivedProfile();
                         window.userProfile = userProfile;
+                        rehydrateProfileFromQuery(realQuery);
                         return;
                     }
                     profile = result && result.data ? result.data : null;
@@ -1435,19 +1473,18 @@
                 }
 
                 if (!profile) {
-                    const fallbackResult = await withTimeout(
-                        supabase
-                            .from("user_profiles")
-                            .select("*")
-                            .eq("user_id", currentUser.id)
-                            .maybeSingle(),
-                        4000
-                    );
+                    const realFallback = supabase
+                        .from("user_profiles")
+                        .select("*")
+                        .eq("user_id", currentUser.id)
+                        .maybeSingle();
+                    const fallbackResult = await withTimeout(realFallback, 4000);
                     if (fallbackResult && fallbackResult.__timedOut) {
-                        console.warn('Profile fallback query timed out; proceeding with session data');
+                        console.warn('Profile fallback query timed out; rendering session data, will rehydrate on arrival');
                         profileLookupTimedOut = true;
                         userProfile = buildSessionDerivedProfile();
                         window.userProfile = userProfile;
+                        rehydrateProfileFromQuery(realFallback);
                         return;
                     }
                     if (!fallbackResult || !fallbackResult.error) {
@@ -1469,7 +1506,10 @@
                     })() || null;
                 }
                 window.userProfile = userProfile;
-                if (profile) return;
+                if (profile) {
+                    updateProfileUI(userProfile);
+                    return;
+                }
 
                 const idSuffix = String(currentUser?.id || '').replace(/-/g, '').slice(0, 6) || 'user';
                 const bootstrapUsername = profileUsernameWithSuffix('user', idSuffix);
@@ -1552,6 +1592,8 @@
                 try {
                     localStorage.setItem(getOnboardingPendingKey(currentUser.id), '1');
                 } catch (_err) {}
+                window.userProfile = userProfile;
+                updateProfileUI(userProfile);
             }
 
             function normalizeProfileTheme(themeValue) {
