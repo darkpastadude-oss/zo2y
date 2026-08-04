@@ -1414,39 +1414,20 @@
                 let profile = null;
                 let profileError = null;
 
-                // Keep the real query promise alive even when we render the
-                // session-derived fallback first, so a late-arriving profile
-                // re-renders the page instead of being discarded.
-                function rehydrateWhenResolved(queryPromise) {
-                    if (!queryPromise || typeof queryPromise.then !== 'function') return;
-                    queryPromise.then((result) => {
-                        try {
-                            const arrived = result && !result.__timedOut ? (result.data || null) : null;
-                            if (!arrived) return;
-                            userProfile = arrived;
-                            window.userProfile = userProfile;
-                            profileLookupTimedOut = false;
-                            updateProfileUI(userProfile);
-                            if (currentUser && currentUser.id) {
-                                loadProfileBannerConfig(currentUser.id);
-                            }
-                        } catch (_err) {}
-                    }).catch(() => {});
-                }
-
                 {
-                    const realQuery = supabase
-                        .from("user_profiles")
-                        .select("*")
-                        .eq("id", currentUser.id)
-                        .maybeSingle();
-                    const result = await withTimeout(realQuery, 4000);
+                    const result = await withTimeout(
+                        supabase
+                            .from("user_profiles")
+                            .select("*")
+                            .eq("id", currentUser.id)
+                            .maybeSingle(),
+                        4000
+                    );
                     if (result && result.__timedOut) {
-                        console.warn('Profile query timed out; rendering session data, will rehydrate on arrival');
+                        console.warn('Profile query timed out; proceeding with session data');
                         profileLookupTimedOut = true;
                         userProfile = buildSessionDerivedProfile();
                         window.userProfile = userProfile;
-                        rehydrateWhenResolved(realQuery);
                         return;
                     }
                     profile = result && result.data ? result.data : null;
@@ -1454,18 +1435,19 @@
                 }
 
                 if (!profile) {
-                    const realFallback = supabase
-                        .from("user_profiles")
-                        .select("*")
-                        .eq("user_id", currentUser.id)
-                        .maybeSingle();
-                    const fallbackResult = await withTimeout(realFallback, 4000);
+                    const fallbackResult = await withTimeout(
+                        supabase
+                            .from("user_profiles")
+                            .select("*")
+                            .eq("user_id", currentUser.id)
+                            .maybeSingle(),
+                        4000
+                    );
                     if (fallbackResult && fallbackResult.__timedOut) {
-                        console.warn('Profile fallback query timed out; rendering session data, will rehydrate on arrival');
+                        console.warn('Profile fallback query timed out; proceeding with session data');
                         profileLookupTimedOut = true;
                         userProfile = buildSessionDerivedProfile();
                         window.userProfile = userProfile;
-                        rehydrateWhenResolved(realFallback);
                         return;
                     }
                     if (!fallbackResult || !fallbackResult.error) {
@@ -2157,7 +2139,7 @@
                 try {
                     let query = supabase
                         .from(tableName)
-                        .select('*', { count: 'estimated', head: true })
+                        .select('*', { count: 'exact', head: true })
                         .eq(userColumn, userId);
                     if (extraFilter) query = extraFilter(query);
                     const { count, error } = await query;
@@ -2175,14 +2157,64 @@
 
             async function getUserStats(userId) {
                 const targetId = userId;
-                const SAVED_MEDIA = ['movie','tv','anime','game','book','music','travel','fashion','food','car','sports'];
-                const LIST_MEDIA = ['movie','tv','anime','game','book','music'];
-
+                
                 try {
-                    const [savedItemsCount, listsCount] = await Promise.all([
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.in('media_type', SAVED_MEDIA) }),
-                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.in('media_type', LIST_MEDIA) })
+                    const [
+                        movieSavedCount,
+                        tvSavedCount,
+                        animeSavedCount,
+                        gameSavedCount,
+                        bookSavedCount,
+                        musicSavedCount,
+                        travelSavedCount,
+                        fashionSavedCount,
+                        foodSavedCount,
+                        carSavedCount,
+                        sportsSavedCount,
+                        movieListsCount,
+                        tvListsCount,
+                        animeListsCount,
+                        gameListsCount,
+                        bookListsCount,
+                        musicListsCount
+                    ] = await Promise.all([
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'movie') }),
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'tv') }),
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'anime') }),
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'game') }),
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'book') }),
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'music') }),
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'travel') }),
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'fashion') }),
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'food') }),
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'car') }),
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'sports') }),
+                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('media_type', 'movie') }),
+                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('media_type', 'tv') }),
+                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('media_type', 'anime') }),
+                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('media_type', 'game') }),
+                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('media_type', 'book') }),
+                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('media_type', 'music') })
                     ]);
+
+                    const savedItemsCount = Number(movieSavedCount || 0)
+                        + Number(tvSavedCount || 0)
+                        + Number(animeSavedCount || 0)
+                        + Number(gameSavedCount || 0)
+                        + Number(bookSavedCount || 0)
+                        + Number(musicSavedCount || 0)
+                        + Number(travelSavedCount || 0)
+                        + Number(fashionSavedCount || 0)
+                        + Number(foodSavedCount || 0)
+                        + Number(carSavedCount || 0)
+                        + Number(sportsSavedCount || 0);
+                    const listsCount = Number(movieListsCount || 0)
+                        + Number(tvListsCount || 0)
+                        + Number(animeListsCount || 0)
+                        + Number(gameListsCount || 0)
+                        + Number(bookListsCount || 0)
+                        + Number(musicListsCount || 0);
+
                     return { savedItemsCount, listsCount };
                 } catch (error) {
                     console.error('Error getting user stats:', error);
@@ -2192,31 +2224,68 @@
 
             async function updateStats(userId = null) {
                 const targetId = userId || currentUser.id;
-                const SAVED_MEDIA = ['movie','tv','anime','game','book','music','travel','fashion','food','car','sports'];
-                const LIST_MEDIA = ['movie','tv','anime','game','book','music'];
-                const REVIEW_MEDIA = ['movie','tv','anime','game','book','music'];
-
+                
                 try {
                     const [
                         followersResult,
                         followingResult,
-                        savedItemsCount,
-                        listsCount,
+                        movieSavedCount,
+                        tvSavedCount,
+                        animeSavedCount,
+                        gameSavedCount,
+                        bookSavedCount,
+                        musicSavedCount,
+                        travelSavedCount,
+                        fashionSavedCount,
+                        foodSavedCount,
+                        carSavedCount,
+                        sportsSavedCount,
+                        movieListsCount,
+                        tvListsCount,
+                        animeListsCount,
+                        gameListsCount,
+                        bookListsCount,
+                        musicListsCount,
                         journalReviewsCount,
-                        reviewsCount
+                        movieReviewsCount,
+                        tvReviewsCount,
+                        animeReviewsCount,
+                        gameReviewsCount,
+                        bookReviewsCount,
+                        musicReviewsCount
                     ] = await Promise.all([
                         supabase
                             .from('follows')
-                            .select('*', { count: 'estimated', head: true })
+                            .select('*', { count: 'exact', head: true })
                             .eq('followed_id', targetId),
                         supabase
                             .from('follows')
-                            .select('*', { count: 'estimated', head: true })
+                            .select('*', { count: 'exact', head: true })
                             .eq('follower_id', targetId),
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.in('media_type', SAVED_MEDIA) }),
-                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.in('media_type', LIST_MEDIA) }),
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'movie') }),
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'tv') }),
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'anime') }),
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'game') }),
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'book') }),
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'music') }),
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'travel') }),
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'fashion') }),
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'food') }),
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'car') }),
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'sports') }),
+                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('media_type', 'movie') }),
+                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('media_type', 'tv') }),
+                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('media_type', 'anime') }),
+                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('media_type', 'game') }),
+                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('media_type', 'book') }),
+                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('media_type', 'music') }),
                         safeCountByUser('journal_entries', targetId),
-                        safeCountByUser('reviews', targetId, { extraFilter: q => q.in('media_type', REVIEW_MEDIA) })
+                        safeCountByUser('reviews', targetId, { extraFilter: q => q.eq('media_type', 'movie') }),
+                        safeCountByUser('reviews', targetId, { extraFilter: q => q.eq('media_type', 'tv') }),
+                        safeCountByUser('reviews', targetId, { extraFilter: q => q.eq('media_type', 'anime') }),
+                        safeCountByUser('reviews', targetId, { extraFilter: q => q.eq('media_type', 'game') }),
+                        safeCountByUser('reviews', targetId, { extraFilter: q => q.eq('media_type', 'book') }),
+                        safeCountByUser('reviews', targetId, { extraFilter: q => q.eq('media_type', 'music') })
                     ]);
 
                     if (followersResult?.error && !isIgnorableStatsError(followersResult.error)) {
@@ -2228,16 +2297,37 @@
 
                     const followersCount = Number(followersResult?.count || 0) || 0;
                     const followingCount = Number(followingResult?.count || 0) || 0;
-                    const savedItemsCountFinal = Number(savedItemsCount || 0);
-                    const listsCountFinal = Number(listsCount || 0);
-                    const reviewsCountFinal = Number(journalReviewsCount || 0) + Number(reviewsCount || 0);
+                    const savedItemsCount = Number(movieSavedCount || 0)
+                        + Number(tvSavedCount || 0)
+                        + Number(animeSavedCount || 0)
+                        + Number(gameSavedCount || 0)
+                        + Number(bookSavedCount || 0)
+                        + Number(musicSavedCount || 0)
+                        + Number(travelSavedCount || 0)
+                        + Number(fashionSavedCount || 0)
+                        + Number(foodSavedCount || 0)
+                        + Number(carSavedCount || 0)
+                        + Number(sportsSavedCount || 0);
+                    const listsCount = Number(movieListsCount || 0)
+                        + Number(tvListsCount || 0)
+                        + Number(animeListsCount || 0)
+                        + Number(gameListsCount || 0)
+                        + Number(bookListsCount || 0)
+                        + Number(musicListsCount || 0);
+                    const reviewsCount = Number(journalReviewsCount || 0)
+                        + Number(movieReviewsCount || 0)
+                        + Number(tvReviewsCount || 0)
+                        + Number(animeReviewsCount || 0)
+                        + Number(gameReviewsCount || 0)
+                        + Number(bookReviewsCount || 0)
+                        + Number(musicReviewsCount || 0);
 
                     // Update UI
                     updateStatsUI(
-                        savedItemsCountFinal,
+                        savedItemsCount,
                         followersCount,
-                        listsCountFinal,
-                        reviewsCountFinal,
+                        listsCount,
+                        reviewsCount,
                         followingCount
                     );
                     

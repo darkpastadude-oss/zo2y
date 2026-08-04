@@ -131,6 +131,7 @@
       var timer = window.setTimeout(function () {
         if (settled) return;
         settled = true;
+        authDebug('profile-query-timeout', { ms: limit });
         resolve(null);
       }, limit);
       Promise.resolve(promise).then(
@@ -451,33 +452,21 @@
 
   function normalizeSessionFromJwt(session) {
     if (!session || !session.access_token || !session.refresh_token) return session;
+    if (session.user && session.user.id) return session;
     var claims = decodeJwtPayload(session.access_token);
     if (!claims || !claims.sub) return session;
-    if (!session.user || !session.user.id) {
-      var email = String(claims.email || '').trim();
-      var user = {
-        id: String(claims.sub || ''),
-        email: email || undefined,
-        aud: claims.aud || undefined,
-        role: claims.role || undefined
-      };
-      var appMetadata = claims['app_metadata'];
-      if (appMetadata && typeof appMetadata === 'object') user.app_metadata = appMetadata;
-      var userMetadata = claims['user_metadata'];
-      if (userMetadata && typeof userMetadata === 'object') user.user_metadata = userMetadata;
-      session.user = user;
-    }
-    // Reconstruct expires_at from the JWT exp claim so supabase-js treats the
-    // session as valid instead of firing a revalidation GET /auth/v1/user.
-    if (!session.expires_at && claims.exp && Number(claims.exp) > 0) {
-      session.expires_at = Number(claims.exp);
-    }
-    if (!session.expires_in && claims.exp && claims.iat) {
-      var exp = Number(claims.exp);
-      var iat = Number(claims.iat);
-      if (exp > iat) session.expires_in = exp - iat;
-    }
-    if (!session.token_type) session.token_type = 'bearer';
+    var email = String(claims.email || '').trim();
+    var user = {
+      id: String(claims.sub || ''),
+      email: email || undefined,
+      aud: claims.aud || undefined,
+      role: claims.role || undefined
+    };
+    var appMetadata = claims['app_metadata'];
+    if (appMetadata && typeof appMetadata === 'object') user.app_metadata = appMetadata;
+    var userMetadata = claims['user_metadata'];
+    if (userMetadata && typeof userMetadata === 'object') user.user_metadata = userMetadata;
+    session.user = user;
     return session;
   }
 
@@ -1391,6 +1380,7 @@
           if (!refreshResult) {
             var timedSnapshot = getStoredSessionSnapshot();
             if (timedSnapshot && timedSnapshot.access_token) {
+              pushAuthDebugEvent('session:get:refresh-timeout-fallback', { ms: Date.now() - startedAt });
               return timedSnapshot;
             }
           }
