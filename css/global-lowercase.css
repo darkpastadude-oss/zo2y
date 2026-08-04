@@ -1,4 +1,10 @@
 /* Global lowercase enforcement - visible UI text */
-* {
+*:not(input[type="password"]):not(input[type="email"]):not(.no-lowercase):not(script):not(style) {
   text-transform: lowercase !important;
+}
+
+input[type="password"],
+input[type="email"],
+.no-lowercase {
+  text-transform: none !important;
 }
