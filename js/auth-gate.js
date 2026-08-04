@@ -131,7 +131,6 @@
       var timer = window.setTimeout(function () {
         if (settled) return;
         settled = true;
-        authDebug('profile-query-timeout', { ms: limit });
         resolve(null);
       }, limit);
       Promise.resolve(promise).then(
@@ -1392,7 +1391,6 @@
           if (!refreshResult) {
             var timedSnapshot = getStoredSessionSnapshot();
             if (timedSnapshot && timedSnapshot.access_token) {
-              pushAuthDebugEvent('session:get:refresh-timeout-fallback', { ms: Date.now() - startedAt });
               return timedSnapshot;
             }
           }
