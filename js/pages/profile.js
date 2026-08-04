@@ -1266,12 +1266,14 @@
 
             async function loadProfileBannerConfig(userId) {
                 if (!userId) return;
+                const traceStart = Date.now();
                 let config = null;
 
                 const isUuid = (str) => typeof str === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 
                 // 1. Check profile_showcase (latest row and prune duplicates)
                 if (supabase && isUuid(userId)) {
+                    try { window.ZO2Y_TRACE && window.ZO2Y_TRACE.push('BANNER:LOAD', 'start profile_showcase query'); } catch (_e) {}
                     try {
                         const bannerRows = await withTimeout(
                             supabase
@@ -1321,10 +1323,12 @@
                 if (config && Array.isArray(config.items) && config.items.length > 0) {
                     if (config.pos_y !== undefined && userProfile) userProfile.banner_position_y = config.pos_y;
                     if (config.pos_x !== undefined && userProfile) userProfile.banner_position_x = config.pos_x;
+                    try { window.ZO2Y_TRACE && window.ZO2Y_TRACE.push('BANNER:RESOLVED', 'config in ' + (Date.now() - traceStart) + 'ms'); } catch (_e) {}
                     await ProfileBackdropEngine.init(config.items, config.mode || 'rotate');
                     return;
                 }
 
+                try { window.ZO2Y_TRACE && window.ZO2Y_TRACE.push('BANNER:RESOLVED', 'empty/default in ' + (Date.now() - traceStart) + 'ms'); } catch (_e) {}
                 ProfileBackdropEngine.init();
             }
 
@@ -1410,6 +1414,8 @@
             }
 
             async function loadUserProfile() {
+                const traceProfileStart = Date.now();
+                try { window.ZO2Y_TRACE && window.ZO2Y_TRACE.push('PROFILE:LOAD', 'start id=' + (currentUser && currentUser.id)); } catch (_e) {}
                 profileLookupTimedOut = false;
                 let profile = null;
                 let profileError = null;
@@ -1423,6 +1429,7 @@
                         try {
                             const arrived = result && !result.__timedOut ? (result.data || null) : null;
                             if (!arrived) return;
+                            try { window.ZO2Y_TRACE && window.ZO2Y_TRACE.push('PROFILE:REHYDRATE', 'arrived in ' + (Date.now() - traceProfileStart) + 'ms'); } catch (_e) {}
                             userProfile = arrived;
                             window.userProfile = userProfile;
                             profileLookupTimedOut = false;
@@ -1443,6 +1450,7 @@
                     const result = await withTimeout(realQuery, 4000);
                     if (result && result.__timedOut) {
                         console.warn('Profile query timed out; rendering session data, will rehydrate on arrival');
+                        try { window.ZO2Y_TRACE && window.ZO2Y_TRACE.push('PROFILE:TIMEOUT', 'primary query >4s, fallback rendered'); } catch (_e) {}
                         profileLookupTimedOut = true;
                         userProfile = buildSessionDerivedProfile();
                         window.userProfile = userProfile;
@@ -1487,6 +1495,7 @@
                     })() || null;
                 }
                 window.userProfile = userProfile;
+                try { window.ZO2Y_TRACE && window.ZO2Y_TRACE.push('PROFILE:RESOLVED', (profile ? 'from db' : 'built') + ' in ' + (Date.now() - traceProfileStart) + 'ms'); } catch (_e) {}
                 if (profile) return;
 
                 const idSuffix = String(currentUser?.id || '').replace(/-/g, '').slice(0, 6) || 'user';
@@ -2157,7 +2166,7 @@
                 try {
                     let query = supabase
                         .from(tableName)
-                        .select('*', { count: 'exact', head: true })
+                        .select('*', { count: 'estimated', head: true })
                         .eq(userColumn, userId);
                     if (extraFilter) query = extraFilter(query);
                     const { count, error } = await query;
@@ -2175,64 +2184,16 @@
 
             async function getUserStats(userId) {
                 const targetId = userId;
-                
+                const traceStart = Date.now();
+                const SAVED_MEDIA = ['movie','tv','anime','game','book','music','travel','fashion','food','car','sports'];
+                const LIST_MEDIA = ['movie','tv','anime','game','book','music'];
+
                 try {
-                    const [
-                        movieSavedCount,
-                        tvSavedCount,
-                        animeSavedCount,
-                        gameSavedCount,
-                        bookSavedCount,
-                        musicSavedCount,
-                        travelSavedCount,
-                        fashionSavedCount,
-                        foodSavedCount,
-                        carSavedCount,
-                        sportsSavedCount,
-                        movieListsCount,
-                        tvListsCount,
-                        animeListsCount,
-                        gameListsCount,
-                        bookListsCount,
-                        musicListsCount
-                    ] = await Promise.all([
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'movie') }),
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'tv') }),
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'anime') }),
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'game') }),
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'book') }),
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'music') }),
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'travel') }),
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'fashion') }),
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'food') }),
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'car') }),
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'sports') }),
-                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('media_type', 'movie') }),
-                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('media_type', 'tv') }),
-                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('media_type', 'anime') }),
-                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('media_type', 'game') }),
-                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('media_type', 'book') }),
-                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('media_type', 'music') })
+                    const [savedItemsCount, listsCount] = await Promise.all([
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.in('media_type', SAVED_MEDIA) }),
+                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.in('media_type', LIST_MEDIA) })
                     ]);
-
-                    const savedItemsCount = Number(movieSavedCount || 0)
-                        + Number(tvSavedCount || 0)
-                        + Number(animeSavedCount || 0)
-                        + Number(gameSavedCount || 0)
-                        + Number(bookSavedCount || 0)
-                        + Number(musicSavedCount || 0)
-                        + Number(travelSavedCount || 0)
-                        + Number(fashionSavedCount || 0)
-                        + Number(foodSavedCount || 0)
-                        + Number(carSavedCount || 0)
-                        + Number(sportsSavedCount || 0);
-                    const listsCount = Number(movieListsCount || 0)
-                        + Number(tvListsCount || 0)
-                        + Number(animeListsCount || 0)
-                        + Number(gameListsCount || 0)
-                        + Number(bookListsCount || 0)
-                        + Number(musicListsCount || 0);
-
+                    try { window.ZO2Y_TRACE && window.ZO2Y_TRACE.push('STATS:USER', targetId.slice(0, 8) + ' 2 queries in ' + (Date.now() - traceStart) + 'ms'); } catch (_e) {}
                     return { savedItemsCount, listsCount };
                 } catch (error) {
                     console.error('Error getting user stats:', error);
@@ -2242,69 +2203,34 @@
 
             async function updateStats(userId = null) {
                 const targetId = userId || currentUser.id;
-                
+                const traceStart = Date.now();
+                const SAVED_MEDIA = ['movie','tv','anime','game','book','music','travel','fashion','food','car','sports'];
+                const LIST_MEDIA = ['movie','tv','anime','game','book','music'];
+                const REVIEW_MEDIA = ['movie','tv','anime','game','book','music'];
+
                 try {
                     const [
                         followersResult,
                         followingResult,
-                        movieSavedCount,
-                        tvSavedCount,
-                        animeSavedCount,
-                        gameSavedCount,
-                        bookSavedCount,
-                        musicSavedCount,
-                        travelSavedCount,
-                        fashionSavedCount,
-                        foodSavedCount,
-                        carSavedCount,
-                        sportsSavedCount,
-                        movieListsCount,
-                        tvListsCount,
-                        animeListsCount,
-                        gameListsCount,
-                        bookListsCount,
-                        musicListsCount,
+                        savedItemsCount,
+                        listsCount,
                         journalReviewsCount,
-                        movieReviewsCount,
-                        tvReviewsCount,
-                        animeReviewsCount,
-                        gameReviewsCount,
-                        bookReviewsCount,
-                        musicReviewsCount
+                        reviewsCount
                     ] = await Promise.all([
                         supabase
                             .from('follows')
-                            .select('*', { count: 'exact', head: true })
+                            .select('*', { count: 'estimated', head: true })
                             .eq('followed_id', targetId),
                         supabase
                             .from('follows')
-                            .select('*', { count: 'exact', head: true })
+                            .select('*', { count: 'estimated', head: true })
                             .eq('follower_id', targetId),
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'movie') }),
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'tv') }),
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'anime') }),
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'game') }),
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'book') }),
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'music') }),
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'travel') }),
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'fashion') }),
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'food') }),
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'car') }),
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('media_type', 'sports') }),
-                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('media_type', 'movie') }),
-                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('media_type', 'tv') }),
-                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('media_type', 'anime') }),
-                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('media_type', 'game') }),
-                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('media_type', 'book') }),
-                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('media_type', 'music') }),
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.in('media_type', SAVED_MEDIA) }),
+                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.in('media_type', LIST_MEDIA) }),
                         safeCountByUser('journal_entries', targetId),
-                        safeCountByUser('reviews', targetId, { extraFilter: q => q.eq('media_type', 'movie') }),
-                        safeCountByUser('reviews', targetId, { extraFilter: q => q.eq('media_type', 'tv') }),
-                        safeCountByUser('reviews', targetId, { extraFilter: q => q.eq('media_type', 'anime') }),
-                        safeCountByUser('reviews', targetId, { extraFilter: q => q.eq('media_type', 'game') }),
-                        safeCountByUser('reviews', targetId, { extraFilter: q => q.eq('media_type', 'book') }),
-                        safeCountByUser('reviews', targetId, { extraFilter: q => q.eq('media_type', 'music') })
+                        safeCountByUser('reviews', targetId, { extraFilter: q => q.in('media_type', REVIEW_MEDIA) })
                     ]);
+                    try { window.ZO2Y_TRACE && window.ZO2Y_TRACE.push('STATS:UPDATE', '6 queries in ' + (Date.now() - traceStart) + 'ms'); } catch (_e) {}
 
                     if (followersResult?.error && !isIgnorableStatsError(followersResult.error)) {
                         throw followersResult.error;
@@ -2315,37 +2241,16 @@
 
                     const followersCount = Number(followersResult?.count || 0) || 0;
                     const followingCount = Number(followingResult?.count || 0) || 0;
-                    const savedItemsCount = Number(movieSavedCount || 0)
-                        + Number(tvSavedCount || 0)
-                        + Number(animeSavedCount || 0)
-                        + Number(gameSavedCount || 0)
-                        + Number(bookSavedCount || 0)
-                        + Number(musicSavedCount || 0)
-                        + Number(travelSavedCount || 0)
-                        + Number(fashionSavedCount || 0)
-                        + Number(foodSavedCount || 0)
-                        + Number(carSavedCount || 0)
-                        + Number(sportsSavedCount || 0);
-                    const listsCount = Number(movieListsCount || 0)
-                        + Number(tvListsCount || 0)
-                        + Number(animeListsCount || 0)
-                        + Number(gameListsCount || 0)
-                        + Number(bookListsCount || 0)
-                        + Number(musicListsCount || 0);
-                    const reviewsCount = Number(journalReviewsCount || 0)
-                        + Number(movieReviewsCount || 0)
-                        + Number(tvReviewsCount || 0)
-                        + Number(animeReviewsCount || 0)
-                        + Number(gameReviewsCount || 0)
-                        + Number(bookReviewsCount || 0)
-                        + Number(musicReviewsCount || 0);
+                    const savedItemsCountFinal = Number(savedItemsCount || 0);
+                    const listsCountFinal = Number(listsCount || 0);
+                    const reviewsCountFinal = Number(journalReviewsCount || 0) + Number(reviewsCount || 0);
 
                     // Update UI
                     updateStatsUI(
-                        savedItemsCount,
+                        savedItemsCountFinal,
                         followersCount,
-                        listsCount,
-                        reviewsCount,
+                        listsCountFinal,
+                        reviewsCountFinal,
                         followingCount
                     );
                     

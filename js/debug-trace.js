@@ -325,6 +325,18 @@
 
   push('TRACE START', 'debug-trace.js loaded, wall=' + new Date(startWall).toISOString());
 
+  // Public marker API so app code (profile, list, showcase loaders) can emit
+  // phase markers into the same timeline without depending on internal state.
+  window.ZO2Y_TRACE = window.ZO2Y_TRACE || {};
+  window.ZO2Y_TRACE.push = function (label, detail) {
+    try {
+      push(String(label || 'TRACE'), detail === undefined ? '' : String(detail));
+    } catch (_err) {}
+  };
+  window.ZO2Y_TRACE.isActive = function () {
+    return true;
+  };
+
   hookFetch();
   hookEvents();
   if (document.readyState === 'loading') {
