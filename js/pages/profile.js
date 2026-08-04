@@ -133,6 +133,7 @@
             const favoriteIds = { movie: [], tv: [], anime: [], game: [] };
             const showcaseData = {};
             let showcaseConfig = [];
+            let bannerHasLoaded = false;
 
             function getShowcaseListId(mediaType) {
                 const entry = (showcaseConfig || []).find(function(s) { return s.media_type === mediaType && !s.is_hidden; });
@@ -1334,6 +1335,7 @@
                     if (config.pos_y !== undefined && userProfile) userProfile.banner_position_y = config.pos_y;
                     if (config.pos_x !== undefined && userProfile) userProfile.banner_position_x = config.pos_x;
                     await ProfileBackdropEngine.init(config.items, config.mode || 'rotate');
+                    bannerHasLoaded = true;
                     return;
                 }
 
@@ -1440,7 +1442,7 @@
                         }
                         window.userProfile = userProfile;
                         updateProfileUI(userProfile);
-                        if (currentUser && currentUser.id) {
+                        if (!bannerHasLoaded && currentUser && currentUser.id) {
                             loadProfileBannerConfig(currentUser.id);
                         }
                         updateStats().catch(() => {});

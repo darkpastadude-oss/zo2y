@@ -5480,7 +5480,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   border: 1px solid color-mix(in srgb, var(--color-accent) 28%, transparent);
   background: color-mix(in srgb, var(--color-accent) 12%, transparent);
   color: var(--text);
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
@@ -5510,7 +5510,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   border: 1px solid color-mix(in srgb, var(--color-accent) 28%, transparent);
   background: color-mix(in srgb, var(--color-accent) 12%, transparent);
   color: var(--text);
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
