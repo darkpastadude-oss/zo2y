@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Zo2y Startup Trace</title>
+  <meta name="theme-color" content="#0b1633">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="stylesheet" href="css/shared-header.css?v=20260624a">
+  <style>
+    body { background: #0a1024; margin: 0; }
+    .trace-shell {
+      padding: 16px;
+      color: #e6ecff;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 13px;
+      min-height: 80vh;
+    }
+    .trace-shell h1 { font-size: 16px; color: #ffb23f; margin: 0 0 6px; }
+    .trace-shell .sub { color: #8ea3cd; font-size: 11px; margin-bottom: 12px; line-height: 1.5; }
+    .note {
+      background: #121a38; border: 1px solid #22305c; border-radius: 8px;
+      padding: 10px 12px; font-size: 12px; color: #ffd166; margin-bottom: 12px;
+    }
+    .cards { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+    .card {
+      flex: 1 1 180px; background: #121a38; border: 1px solid #22305c;
+      border-radius: 8px; padding: 10px 12px;
+    }
+    .card .label { font-size: 10px; color: #5a6d9e; text-transform: uppercase; letter-spacing: .05em; }
+    .card .value { font-size: 14px; color: #e6ecff; margin-top: 4px; word-break: break-all; }
+    .card .value.ok { color: #5ce08a; }
+    .card .value.bad { color: #ff6b6b; }
+    .card .value.warn { color: #ffd166; }
+    a { color: #ffb23f; }
+  </style>
+</head>
+<body>
+  <div class="trace-shell" style="display:none" data-trace-shell>
+    <h1>Zo2y Startup Trace</h1>
+    <div class="sub">Real auth-gate.js + bootstrap-auth.js + shared-header.js on this page. Watch the trace panel at the bottom; it records every auth lifecycle event with timing.</div>
+    <div class="note" id="redirectNote" style="display:none">
+      This page is treated as a logged-in (protected) page. If you were NOT signed in, you got redirected to login — that is the expected guard behavior. Sign in and come back.
+    </div>
+    <div class="cards" id="statusCards">
+      <div class="card"><div class="label">authShell</div><div class="value" id="cardShell">—</div></div>
+      <div class="card"><div class="label">authenticated</div><div class="value" id="cardAuthed">—</div></div>
+      <div class="card"><div class="label">authVerified</div><div class="value" id="cardVerified">—</div></div>
+      <div class="card"><div class="label">__AUTH_READY</div><div class="value" id="cardReady">—</div></div>
+      <div class="card"><div class="label">header mounted</div><div class="value" id="cardHeader">—</div></div>
+    </div>
+    <div class="sub">Open the real pages too: <a href="index.html">index.html</a> · <a href="profile.html">profile.html</a> — the same trace panel is injected there.</div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260708a" integrity="sha256-xS2zCnmQbdfvibZhfnqeZdQZq821LRYJlAfLw6FZpF0=" crossorigin="anonymous" defer></script>
+  <script src="js/debug-trace.js?v=20260803D" defer></script>
+  <script src="js/auth-gate.js?v=20260804A" defer></script>
+  <script src="js/bootstrap-auth.js?v=20260803C" defer></script>
+  <script src="js/shared-header.js?v=20260721B" defer></script>
+  <script>
+  (function () {
+    'use strict';
+    function poll() {
+      var shell = document.documentElement.getAttribute('data-auth-shell');
+      var authed = document.documentElement.getAttribute('data-authenticated');
+      var verified = document.documentElement.getAttribute('data-auth-verified');
+      var el = document.querySelector('[data-trace-shell]');
+      if (el) el.style.display = '';
+      var set = function (id, val, cls) {
+        var node = document.getElementById(id);
+        if (!node) return;
+        node.textContent = String(val === null || val === undefined ? '—' : val);
+        node.className = 'value ' + (cls || '');
+      };
+      set('cardShell', shell);
+      set('cardAuthed', authed === '1' ? 'YES' : (authed === '0' ? 'no' : '—'), authed === '1' ? 'ok' : (authed === '0' ? 'bad' : ''));
+      set('cardVerified', verified === '1' ? 'YES' : (verified === '0' ? 'no' : '—'), verified === '1' ? 'ok' : '');
+      set('cardReady', window.__AUTH_READY === true ? 'YES' : (window.__AUTH_READY === false ? 'no' : '—'), window.__AUTH_READY === true ? 'ok' : '');
+      set('cardHeader', !!document.querySelector('[data-shared-header="1"]') ? 'mounted' : 'not yet', !!document.querySelector('[data-shared-header="1"]') ? 'ok' : '');
+      // If still on login page (redirected), show note.
+      if (window.location.pathname.indexOf('login') !== -1) {
+        var note = document.getElementById('redirectNote');
+        if (note) note.style.display = '';
+      }
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', poll);
+    } else {
+      poll();
+    }
+    window.setInterval(poll, 400);
+  })();
+  </script>
+</body>
+</html>
