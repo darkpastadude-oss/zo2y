@@ -691,6 +691,7 @@ const HEADER_HTML = `
        authHeaderSyncQueued = true;
        return authHeaderSyncPromise;
      }
+     try { window.ZO2Y_TRACE && window.ZO2Y_TRACE.log('info', 'HEADER:syncAuthHeaderState start'); } catch (_e) {}
      authHeaderSyncPromise = (async () => {
      const loginBtn = document.getElementById('loginBtn');
      const signupBtn = document.getElementById('signupBtn');
@@ -771,10 +772,11 @@ const HEADER_HTML = `
            }
          }
        }
-       if (session?.access_token && session?.refresh_token) persistHeaderSessionSnapshot(session);
-       const loggedIn = !!session;
-       const user = session && session.user ? session.user : null;
-       const hiddenDisplay = 'none';
+if (session?.access_token && session?.refresh_token) persistHeaderSessionSnapshot(session);
+        const loggedIn = !!session;
+        const user = session && session.user ? session.user : null;
+        const hiddenDisplay = 'none';
+        try { window.ZO2Y_TRACE && window.ZO2Y_TRACE.render('header-auth loggedIn=' + loggedIn); } catch (_e) {}
 
       if (loginBtn) loginBtn.style.display = loggedIn ? hiddenDisplay : 'inline-flex';
       if (signupBtn) signupBtn.style.display = loggedIn ? hiddenDisplay : 'inline-flex';
@@ -802,7 +804,9 @@ const HEADER_HTML = `
           if (cachedFresh) {
             label = authHeaderProfileLabelValue;
           } else {
+            try { window.ZO2Y_TRACE && window.ZO2Y_TRACE.log('info', 'HEADER:resolveHeaderProfileLabel start'); } catch (_e) {}
             label = await resolveHeaderProfileLabel(client, user);
+            try { window.ZO2Y_TRACE && window.ZO2Y_TRACE.log('info', 'HEADER:resolveHeaderProfileLabel end'); } catch (_e) {}
             if (label && label !== 'Profile') {
               authHeaderProfileLabelUserId = userId;
               authHeaderProfileLabelValue = label;

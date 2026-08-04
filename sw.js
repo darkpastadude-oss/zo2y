@@ -1,9 +1,9 @@
 // Bump these versions any time you change precached asset URLs to ensure old cached
 // variants don't keep serving stale JS (especially the home heavy loaders).
-const APP_SHELL_CACHE = 'zo2y-app-shell-v315';
-const PAGE_CACHE = 'zo2y-pages-v249';
-const IMAGE_CACHE = 'zo2y-images-v73';
-const API_CACHE = 'zo2y-api-v51';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v316';
+const PAGE_CACHE = 'zo2y-pages-v250';
+const IMAGE_CACHE = 'zo2y-images-v74';
+const API_CACHE = 'zo2y-api-v52';
 const MOVIES_PAGE_VERSION = '20260418a';
 const MAX_IMAGE_CACHE_ENTRIES = 1000;
 const MAX_API_CACHE_ENTRIES = 500;
@@ -36,7 +36,7 @@ const STATIC_ASSETS = [
   '/js/list-utils.js?v=20260722a',
   '/js/unified-list-menu.js?v=20260708b',
   '/js/universal-search.js?v=20260601b',
-  '/js/auth-gate.js?v=20260803C',
+  '/js/auth-gate.js?v=20260804flightB',
   '/js/books-discovery.js?v=20260614c',
   '/js/production-runtime.js?v=20260601b',
   '/js/igdb-client.js?v=20260601b',
@@ -44,6 +44,7 @@ const STATIC_ASSETS = [
   '/js/mobile-webapp.js?v=20260601b',
   '/js/mobile-app.css',
   '/js/mobile-app.css?v=20260601b',
+  '/js/trace.js?v=20260804flightB',
   '/favicon.ico',
   '/favicon.ico?v=20260601b',
   '/newlogo.webp',
@@ -62,7 +63,7 @@ const STATIC_ASSETS = [
   '/js/pages/brands.js?v=20260708b',
   '/js/pages/brand.js?v=20260708b',
   '/js/profile-showcase.js?v=20260708b',
-  '/js/pages/profile.js?v=20260803C',
+  '/js/pages/profile.js?v=20260804flightB',
   '/js/review-interactions.js?v=20260708b',
   '/team.html',
 

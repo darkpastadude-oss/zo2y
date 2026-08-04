@@ -1178,6 +1178,7 @@
             }
 
             async function loadProfile() {
+                try { window.ZO2Y_TRACE && window.ZO2Y_TRACE.log('info', 'PROFILE:loadProfile start target=' + getUserIdFromUrl() + ' own=' + (!getUserIdFromUrl() || getUserIdFromUrl() === currentUser.id)); } catch (_e) {}
                 tabRenderCache.clear();
                 pinnedListsMap = new Map();
                 pinnedListsOwnerId = '';
@@ -1205,6 +1206,7 @@
                         console.error('Failed to setup realtime stats subscriptions:', error);
                     });
                 }
+                try { window.ZO2Y_TRACE && window.ZO2Y_TRACE.log('info', 'PROFILE:loadProfile done'); } catch (_e) {}
             }
 
             // 3. FIX: Optimize loadProfile function (faster loading)
@@ -1251,11 +1253,17 @@
 
                 // Load profile - use cached if available
                 if (!userProfile) {
+                    try { window.ZO2Y_TRACE && window.ZO2Y_TRACE.log('info', 'PROFILE:loadOwnProfile -> loadUserProfile start'); } catch (_e) {}
                     await loadUserProfile();
+                    try { window.ZO2Y_TRACE && window.ZO2Y_TRACE.log('info', 'PROFILE:loadOwnProfile -> loadUserProfile end'); } catch (_e) {}
+                } else {
+                    try { window.ZO2Y_TRACE && window.ZO2Y_TRACE.log('info', 'PROFILE:loadOwnProfile cached-profile-hit'); } catch (_e) {}
                 }
                 
                 updateProfileUI();
+                try { window.ZO2Y_TRACE && window.ZO2Y_TRACE.render('profile-main done'); } catch (_e) {}
                 await loadProfileBannerConfig(currentUser?.id);
+                try { window.ZO2Y_TRACE && window.ZO2Y_TRACE.log('info', 'PROFILE:banner-config resolved'); } catch (_e) {}
 
                 // Enforce the dedicated onboarding username flow (no email-derived fallbacks).
                 if (maybeRedirectUsernameOnboarding()) return;
@@ -1425,6 +1433,7 @@
                             if (!arrived) return;
                             userProfile = arrived;
                             window.userProfile = userProfile;
+                            try { window.ZO2Y_TRACE && window.ZO2Y_TRACE.write('PROFILE', 'rehydrate late-arrival username=' + (arrived.username || '(none)')); } catch (_e) {}
                             profileLookupTimedOut = false;
                             updateProfileUI(userProfile);
                             if (currentUser && currentUser.id) {
@@ -1481,6 +1490,7 @@
                 }
 
                 userProfile = profile || {};
+                try { window.ZO2Y_TRACE && window.ZO2Y_TRACE.write('PROFILE', 'loadUserProfile resolved username=' + (profile && profile.username ? profile.username : '(none)') + ' empty=' + (profile ? 'no' : 'yes')); } catch (_e) {}
                 if (userProfile && !userProfile.avatar_url) {
                     userProfile.avatar_url = currentUser?.user_metadata?.avatar_url || currentUser?.user_metadata?.avatar || (function() {
                         try { return localStorage.getItem('zo2y_user_avatar_url'); } catch(e) { return null; }
@@ -1699,6 +1709,7 @@
             }
 
             function updateProfileUI(profile = userProfile) {
+                try { window.ZO2Y_TRACE && window.ZO2Y_TRACE.render('updateProfileUI profile=' + (profile ? 'yes' : 'NULL/empty') + ' username=' + ((profile && profile.username) || '(none)')); } catch (_e) {}
                 const isMobile = window.innerWidth <= 768;
                 const resolvedTheme = applyProfileTheme(profile?.profile_theme || 'navy');
                 manualProfileBadges = normalizeProfileBadges(profile?.profile_badges || []);
@@ -11860,6 +11871,8 @@ const alreadyActive = isMobile
         function bootProfileManager() {
             if (window.__profileManagerBooted) return;
             window.__profileManagerBooted = true;
+            try { window.ZO2Y_TRACE && window.ZO2Y_TRACE.init('profileManager'); } catch (_e) {}
+            try { window.ZO2Y_TRACE && window.ZO2Y_TRACE.render('profile-shell'); } catch (_e) {}
 
             if ('BroadcastChannel' in window) {
                 try {

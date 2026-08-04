@@ -1042,6 +1042,7 @@
       return client;
     }
     client.__zo2yAuthListenersBound = true;
+    try { window.ZO2Y_TRACE && window.ZO2Y_TRACE.authListener('auth-gate:attachClientListeners'); } catch (_e) {}
     client.auth.onAuthStateChange(function (event, session) {
       var normalizedEvent = String(event || '').trim().toUpperCase();
       session = normalizeSessionFromJwt(session);
@@ -1337,6 +1338,7 @@
     activeSessionPromise = (async function () {
       var startedAt = Date.now();
       var initialSessionError = null;
+      try { window.ZO2Y_TRACE && window.ZO2Y_TRACE.db('session.getActiveSession', 'START', {}); } catch (_e) {}
       try {
         var sessionResult = await withTimeout(activeClient.auth.getSession(), 3500);
         var session = normalizeSessionFromJwt(sessionResult && sessionResult.data ? sessionResult.data.session : null);
@@ -1430,6 +1432,7 @@
         hadInitialError: !!initialSessionError,
         ms: Date.now() - startedAt
       });
+      try { window.ZO2Y_TRACE && window.ZO2Y_TRACE.db('session.getActiveSession', 'DONE', { ms: Date.now() - startedAt }); } catch (_e) {}
       return null;
     })();
 
@@ -2001,6 +2004,7 @@
     verifyInFlight = (async function () {
       var startedAt = Date.now();
       var authenticated = false;
+      try { window.ZO2Y_TRACE && window.ZO2Y_TRACE.log('warn', 'AUTH:verify-start page=' + pageKey + ' force=' + !!(force)); } catch (_e) {}
       pushAuthDebugEvent('verify:start', {
         force: !!force,
         pageKey: pageKey
@@ -2017,6 +2021,7 @@
             return false;
           }
           dispatchGateVerified(authenticated);
+          try { window.ZO2Y_TRACE && window.ZO2Y_TRACE.log('warn', 'AUTH:verify-done storage-only authenticated=' + !!authenticated + ' ms=' + (Date.now() - startedAt)); } catch (_e) {}
           pushAuthDebugEvent('verify:done', {
             authenticated: authenticated,
             source: 'storage-only',
@@ -2047,6 +2052,7 @@
 
         dispatchGateVerified(authenticated);
         lastVerifyAt = Date.now();
+        try { window.ZO2Y_TRACE && window.ZO2Y_TRACE.log('warn', 'AUTH:verify-done live authenticated=' + !!authenticated + ' ms=' + (Date.now() - startedAt)); } catch (_e) {}
         pushAuthDebugEvent('verify:done', {
           authenticated: authenticated,
           source: 'live',
