@@ -37,7 +37,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     </script>
     <link rel="stylesheet" href="css/animations.css?v=1751700000z">
     <link rel="stylesheet" href="css/skeleton.css?v=20260705">
-    <link rel="stylesheet" href="css/pages/profile.css?v=20260803C">
+    <link rel="stylesheet" href="css/pages/profile.css?v=20260805A">
     <link rel="icon" href="/favicon.ico" sizes="any" />
 <link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
   <meta name="theme-color" content="#0b1633" />
@@ -63,10 +63,15 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     <link rel="stylesheet" href="css/global-lowercase.css?v=20260708a">
     <link rel="stylesheet" href="css/list-modal.css?v=20260710b">
     <link rel="stylesheet" href="css/pages/elevated-detail.css">
-    <link rel="stylesheet" href="css/pages/profile.css?v=20260803C">
+    <link rel="stylesheet" href="css/pages/profile.css?v=20260805A">
 </head>
 <body data-nav-page="profile">
     
+    <!-- Navy splash overlay: covers first paint while ProfileManager hydrates, then fades out -->
+    <div id="zo2yProfileSplash" aria-hidden="true">
+      <div class="zo2y-profile-splash-logo"></div>
+    </div>
+
     <!-- Category View (Collections) - Dynamically Replaces Profile Overview -->
     <div id="pv2CategoryView" class="pv2-category-view" style="display:none;">
         <div class="container">

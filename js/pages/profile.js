@@ -109,6 +109,8 @@
             let fashionBrandCache = new Map();
             let foodBrandCache = new Map();
             let carBrandCache = new Map();
+            let collectionItemIdsCache = new Map();
+            const COLLECTION_ITEM_IDS_CACHE_TTL_MS = 30000;
             let renderMoviesToken = 0;
             let renderTvToken = 0;
             let renderAnimeToken = 0;
@@ -363,6 +365,7 @@
                     timeoutHandle = setTimeout(() => {
                         if (!initCompleted) {
                             console.warn('Profile initialization timed out, proceeding with available data');
+                            fadeProfileSplash();
                         }
                     }, INIT_TIMEOUT_MS);
 
@@ -404,13 +407,28 @@
                     
                     initCompleted = true;
                     if (timeoutHandle) clearTimeout(timeoutHandle);
+                    fadeProfileSplash();
                     
                 } catch (error) {
                     console.error('Error initializing profile page:', error);
                     initCompleted = true;
                     if (timeoutHandle) clearTimeout(timeoutHandle);
+                    fadeProfileSplash();
                     showToast('Error loading profile', 'error');
                 }
+            }
+
+            // Fade out the navy first-paint splash once the profile page has
+            // rendered its primary content. Safe no-op if splash is missing.
+            function fadeProfileSplash() {
+                try {
+                    const splash = document.getElementById('zo2yProfileSplash');
+                    if (!splash) return;
+                    splash.classList.add('is-fading');
+                    window.setTimeout(() => {
+                        splash.classList.add('is-gone');
+                    }, 460);
+                } catch (_e) {}
             }
 
             // ===== MOBILE INITIALIZATION =====
@@ -2079,9 +2097,16 @@
             async function fetchMediaCollectionItemIds(contentType, ownerUserId, listId, listType = 'custom') {
                 if (window.ListService && typeof window.ListService.loadList === 'function') {
                     try {
+                        const cacheKey = `${ownerUserId}|${contentType}|${listId}`;
+                        const cachedEntry = collectionItemIdsCache.get(cacheKey);
+                        if (cachedEntry && Date.now() - cachedEntry.at < COLLECTION_ITEM_IDS_CACHE_TTL_MS) {
+                            return cachedEntry.ids;
+                        }
                         const listData = await window.ListService.loadList(supabase, ownerUserId, contentType, listId);
                         if (listData && listData.items) {
-                            return listData.items.map(i => i.item_id).filter(Boolean);
+                            const ids = listData.items.map(i => i.item_id).filter(Boolean);
+                            collectionItemIdsCache.set(cacheKey, { ids, at: Date.now() });
+                            return ids;
                         }
                     } catch (e) {
                         console.error('Error in fetchMediaCollectionItemIds via ListService:', e);
@@ -10416,6 +10441,7 @@ const alreadyActive = isMobile
                 showConfirmModal('Delete List', `Delete this ${type} list? This cannot be undone.`, async function() {
                     try {
                         const userId = currentUser.id;
+                        collectionItemIdsCache.delete(`${userId}|${type}|${listId}`);
                         await supabase.from(itemTable).delete().eq('user_id', userId).eq('list_id', listId);
                         const { error } = await supabase.from(listTable).delete().eq('id', listId).eq('user_id', userId);
                         if (error) throw error;
@@ -10666,6 +10692,8 @@ const alreadyActive = isMobile
                                 : await query.eq(itemField, itemId).eq('list_id', collectionId);
                             if (error) throw error;
                         }
+                        const cacheKey = `${String(userId || '')}|${type}|${String(collectionId || '')}`;
+                        collectionItemIdsCache.delete(cacheKey);
 
                         showToast('Removed from collection', 'success');
                         refreshCollectionViews();
@@ -11196,6 +11224,11 @@ const alreadyActive = isMobile
                 console.log('Setting up event listeners...');
                 wireProfileTabGroups();
                 bindProfileModalViewportListeners();
+                window.addEventListener('zo2y:list-mutated', function(e) {
+                    try {
+                        collectionItemIdsCache.clear();
+                    } catch (_err) {}
+                });
                 
                 const createListForm = document.getElementById('createListForm');
                 if (createListForm) {

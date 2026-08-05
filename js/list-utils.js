@@ -1524,6 +1524,9 @@
         } catch (_ensErr) {}
       }
     }
+    if (typeof window !== 'undefined' && typeof CustomEvent === 'function') {
+      window.dispatchEvent(new CustomEvent('zo2y:list-mutated', { detail: { type, listId, action: 'add' } }));
+    }
     return true;
   }
 
@@ -1553,6 +1556,9 @@
     }
     if (!error && type === 'book' && typeof window !== 'undefined' && window.ListUtils) {
       window.ListUtils.removeCachedSavedItem && window.ListUtils.removeCachedSavedItem(type, entityId);
+    }
+    if (!error && typeof window !== 'undefined' && typeof CustomEvent === 'function') {
+      window.dispatchEvent(new CustomEvent('zo2y:list-mutated', { detail: { type, listId, action: 'remove' } }));
     }
     return !error;
   }
