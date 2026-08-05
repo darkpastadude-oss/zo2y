@@ -1277,16 +1277,22 @@
                     userProfile = buildSessionDerivedProfile();
                     window.userProfile = userProfile;
                     updateProfileUI();
+                    fadeProfileSplash();
                     userProfileLoadPromise = loadUserProfile();
                 } else {
                     updateProfileUI();
+                    fadeProfileSplash();
                     userProfileLoadPromise = Promise.resolve();
                 }
                 
                 // Banner + stats load in parallel with the profile query so they
-                // don't stack behind it (each has its own 4s timeout).
-                await loadProfileBannerConfig(currentUser?.id);
+                // don't stack behind it (each has its own 4s timeout). The banner
+                // config is resolved AFTER the real profile so userProfile.banner_url
+                // fallback works on cold load; it never blocks first paint.
                 await userProfileLoadPromise;
+                if (currentUser?.id) {
+                    loadProfileBannerConfig(currentUser.id).catch(err => console.error('Banner config error:', err));
+                }
 
                 // Enforce the dedicated onboarding username flow (no email-derived fallbacks).
                 if (maybeRedirectUsernameOnboarding()) return;
@@ -6558,13 +6564,16 @@
                     return;
                 }
                 
-                for (const list of allLists) {
+                const rails = await Promise.all(allLists.map((list) =>
+                    createCollectionCard(list, mediaType, isMobile, userId)
+                ));
+                allLists.forEach((list, i) => {
                     if (!list.is_default) {
                         addDivider();
                     }
-                    const rail = await createCollectionCard(list, mediaType, isMobile, userId);
+                    const rail = rails[i];
                     if (rail) container.appendChild(rail);
-                }
+                });
                 
                 if (isViewingOwnProfile && !hasAddedDivider) {
                     addDivider();
@@ -6955,13 +6964,16 @@
                                     return;
                                 }
                                 
-                                for (const list of allLists) {
+                                const rails = await Promise.all(allLists.map((list) =>
+                                    createCollectionCard(list, mappedTab, isMobile, userId)
+                                ));
+                                allLists.forEach((list, i) => {
                                     if (!list.is_default) {
                                         addDivider();
                                     }
-                                    const rail = await createCollectionCard(list, mappedTab, isMobile, userId);
+                                    const rail = rails[i];
                                     if (rail) container.appendChild(rail);
-                                }
+                                });
                                 
                                 if (isViewingOwnProfile && !hasAddedDivider) {
                                     addDivider();
