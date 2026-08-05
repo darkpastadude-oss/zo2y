@@ -1,5 +1,26 @@
 // ===== GLOBAL PROFILE MANAGER =====
         const ProfileManager = (function() {
+            // ---- DEBUG TRACKER (preview) ----
+            const debugEnabled = !/[?&]debug=0/.test(window.location.search) || (() => { try { return window.sessionStorage.getItem('zo2y_profile_debug') === '1'; } catch(_) { return false; } })();
+            const __debug = [];
+            function pd(label, detail) {
+                if (!debugEnabled) return;
+                const entry = { t: Date.now(), label: String(label || ''), detail: detail || '' };
+                __debug.push(entry);
+                try { console.log('[zo2y-debug]', entry.t, entry.label, entry.detail); } catch(_) {}
+            }
+            function pdDump() {
+                if (!debugEnabled) return '';
+                const lines = __debug.map(e => `${e.t} ${e.label} ${e.detail}`);
+                const body = lines.join('\n');
+                try { console.log('[zo2y-debug] ===== PROFILE DEBUG DUMP =====\n' + body); } catch(_) {}
+                return body;
+            }
+            window.__zo2yProfileDebug = pdDump;
+            window.__zo2yProfileDebugEnabled = debugEnabled;
+            pd('module:load', 'debugEnabled=' + debugEnabled + ' url=' + window.location.href);
+            // ---- /DEBUG TRACKER ----
+
             // Supabase configuration
             const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
             const SUPABASE_URL = String(supabaseConfig.url || '').trim() || "__SUPABASE_URL__";
@@ -301,7 +322,8 @@
                 const INIT_TIMEOUT_MS = 15000;
                 let timeoutHandle = null;
                 let initCompleted = false;
-                
+                pd('init:start', 'ts=' + Date.now());
+
                 try {
                     clearLegacyProfileBookCaches();
 
@@ -359,7 +381,9 @@
 
                     communitySystem = createCommunitySystem();
 
-                    const loadProfilePromise = loadProfile();
+                    const loadProfilePromise = loadProfile().catch((err) => {
+                        console.error('Profile load error:', err);
+                    });
 
                     if (timeoutHandle) clearTimeout(timeoutHandle);
                     timeoutHandle = setTimeout(() => {
@@ -369,8 +393,10 @@
                         }
                     }, INIT_TIMEOUT_MS);
 
-                    await loadProfilePromise;
-
+                    // Do NOT gate rendering on the slow profile load. Paint the
+                    // overview + all collection rails immediately from session
+                    // data; loadProfile() fills in real profile/banner/pins as
+                    // its queries resolve (no manual refresh needed on cold loads).
                     setupEventListeners();
                     showPrimaryTab('overview', { force: true, skipTabSync: true });
                     bindRouteListeners();
@@ -395,6 +421,35 @@
                             }
                         });
                     }
+
+                    // The primary content (overview + rails) is already painted,
+                    // so dismissal of the first-paint splash must not wait on the
+                    // slow profile query chain. Let the all-important content show
+                    // now; banner/pins/rails rehydrate as their data resolves.
+                    initCompleted = true;
+                    if (timeoutHandle) clearTimeout(timeoutHandle);
+                    fadeProfileSplash();
+
+                    // Let the profile/banner/pins resolve and apply.
+                    await loadProfilePromise;
+                    pd('init:profileLoaded', 'avatarFinal=' + String((userProfile||{}).avatar_url || 'NONE').slice(0,40) + ' banner_url=' + String((userProfile||{}).banner_url || 'NONE') + ' bannerHasLoaded=' + bannerHasLoaded);
+
+                    setTimeout(() => { pdDump(); }, 2500);
+
+                    // Rails rendered early with the 'favorites' default. If the
+                    // user has a custom showcase config, re-render just the rails
+                    // (grids show all lists and need no refresh).
+                    if (showcaseConfig && showcaseConfig.length > 0) {
+                        const railUserId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                        if (railUserId) {
+                            [
+                                'movie', 'tv', 'anime', 'game', 'book', 'music',
+                                'travel', 'fashion', 'car', 'food'
+                            ].forEach(contentType => {
+                                renderShowcaseRail(contentType, railUserId).catch(() => {});
+                            });
+                        }
+                    }
                     
                     document.addEventListener('click', (e) => {
                         if (!e.target.closest('.list-card-actions')) {
@@ -404,10 +459,6 @@
                             document.querySelectorAll('.collection-dropdown').forEach(d => d.classList.remove('show'));
                         }
                     });
-                    
-                    initCompleted = true;
-                    if (timeoutHandle) clearTimeout(timeoutHandle);
-                    fadeProfileSplash();
                     
                 } catch (error) {
                     console.error('Error initializing profile page:', error);
@@ -1276,10 +1327,12 @@
                 if (!userProfile) {
                     userProfile = buildSessionDerivedProfile();
                     window.userProfile = userProfile;
+                    pd('profile:sessionDerived', 'avatar=' + (userProfile.avatar_url || 'NONE') + ' username=' + (userProfile.username || '(empty)') + ' bio=' + (userProfile.bio || '(empty)'));
                     updateProfileUI();
                     fadeProfileSplash();
                     userProfileLoadPromise = loadUserProfile();
                 } else {
+                    pd('profile:cached-present', 'avatar=' + ((userProfile||{}).avatar_url || 'none'));
                     updateProfileUI();
                     fadeProfileSplash();
                     userProfileLoadPromise = Promise.resolve();
@@ -1291,6 +1344,7 @@
                 // fallback works on cold load; it never blocks first paint.
                 await userProfileLoadPromise;
                 if (currentUser?.id) {
+                    pd('banner:kickoff', 'after profile load, currentUser.id=' + String(currentUser.id).slice(0,8));
                     loadProfileBannerConfig(currentUser.id).catch(err => console.error('Banner config error:', err));
                 }
 
@@ -1320,6 +1374,7 @@
                             4000
                         );
                         const rows = bannerRows && !bannerRows.__timedOut ? (bannerRows.data || []) : null;
+                        pd('banner:source1-showcase', (bannerRows && bannerRows.__timedOut) ? 'TIMEOUT(4s)' : ('rows=' + (Array.isArray(rows) ? rows.length : 'none')));
 
                         if (Array.isArray(rows) && rows.length > 0) {
                             const bannerRow = rows[0];
@@ -1339,6 +1394,7 @@
 
                 // 2. Check userProfile.banner_url directly from user_profiles table
                 if ((!config || !config.items || !config.items.length) && userProfile && userProfile.banner_url) {
+                    pd('banner:source2-userprofile', 'banner_url=' + userProfile.banner_url);
                     config = {
                         items: [{ media_type: 'banner', media_id: 'custom', title: 'Banner', url: userProfile.banner_url, pos_y: userProfile.banner_position_y || 15 }],
                         mode: 'static',
@@ -1351,6 +1407,7 @@
                 if (!config || !Array.isArray(config.items) || config.items.length === 0) {
                     try {
                         const stored = localStorage.getItem('zo2y_banner_config_' + userId);
+                        pd('banner:source3-localstorage', stored ? 'HIT items=' + (config ? (config.items||{}).length : '0') : 'EMPTY');
                         if (stored) config = JSON.parse(stored);
                     } catch (_e) {}
                 }
@@ -1358,11 +1415,13 @@
                 if (config && Array.isArray(config.items) && config.items.length > 0) {
                     if (config.pos_y !== undefined && userProfile) userProfile.banner_position_y = config.pos_y;
                     if (config.pos_x !== undefined && userProfile) userProfile.banner_position_x = config.pos_x;
+                    pd('banner:resolved-config', 'items=' + config.items.length + ' mode=' + (config.mode || 'rotate') + ' firstUrl=' + String(config.items[0] && config.items[0].url ? config.items[0].url : (config.items[0].media_id || 'n/a')).slice(0, 80));
                     await ProfileBackdropEngine.init(config.items, config.mode || 'rotate');
                     bannerHasLoaded = true;
                     return;
                 }
 
+                pd('banner:NO-CONFIG', 'all sources empty; calling init() with no items');
                 ProfileBackdropEngine.init();
             }
 
@@ -1456,7 +1515,10 @@
                 queryPromise.then((result) => {
                     try {
                         const arrived = result && !result.__timedOut ? (result.data || null) : null;
-                        if (!arrived) return;
+                        if (!arrived) {
+                            pd('rehydrate:no-arrival', 'data missing');
+                            return;
+                        }
                         profileLookupTimedOut = false;
                         userProfile = arrived;
                         if (userProfile && !userProfile.avatar_url) {
@@ -1465,6 +1527,7 @@
                             })() || null;
                         }
                         window.userProfile = userProfile;
+                        pd('rehydrate:arrived', 'avatar=' + (userProfile.avatar_url || 'NONE') + ' banner_url=' + (userProfile.banner_url || 'NONE') + ' username=' + (userProfile.username || ''));
                         updateProfileUI(userProfile);
                         if (!bannerHasLoaded && currentUser && currentUser.id) {
                             loadProfileBannerConfig(currentUser.id);
@@ -1485,8 +1548,10 @@
                         .select("*")
                         .eq("id", currentUser.id)
                         .maybeSingle();
+                    pd('profile:queryByCol', 'id>user_profiles.id start');
                     const result = await withTimeout(realQuery, 4000);
                     if (result && result.__timedOut) {
+                        pd('profile:queryByCol-TIMEOUT', '4s exceeded; rehydrate armed');
                         console.warn('Profile query timed out; rendering session data, will rehydrate on arrival');
                         profileLookupTimedOut = true;
                         userProfile = buildSessionDerivedProfile();
@@ -1496,6 +1561,7 @@
                     }
                     profile = result && result.data ? result.data : null;
                     profileError = result && result.error ? result.error : null;
+                    pd('profile:queryByCol-RESOLVED', 'profile=' + (profile ? 'YES' : 'NO') + ' err=' + (profileError ? String(profileError.code || '') : 'none') + ' avatar=' + ((profile&&profile.avatar_url)||'NONE') + ' banner_url=' + ((profile&&profile.banner_url)||'NONE') + ' username=' + ((profile&&profile.username)||'') + ' bio=' + ((profile&&profile.bio)||'(empty)'));
                 }
 
                 if (!profile) {
@@ -1506,6 +1572,7 @@
                         .maybeSingle();
                     const fallbackResult = await withTimeout(realFallback, 4000);
                     if (fallbackResult && fallbackResult.__timedOut) {
+                        pd('profile:queryByColFALLBACK-TIMEOUT', '4s exceeded; rehydrate armed');
                         console.warn('Profile fallback query timed out; rendering session data, will rehydrate on arrival');
                         profileLookupTimedOut = true;
                         userProfile = buildSessionDerivedProfile();
@@ -1533,6 +1600,7 @@
                 }
                 window.userProfile = userProfile;
                 if (profile) {
+                    pd('profile:final-profile', 'avatar=' + (userProfile.avatar_url || 'NONE') + ' banner_url=' + (userProfile.banner_url || 'NONE') + ' username=' + (userProfile.username || '') + ' bio=' + (userProfile.bio || '(empty)') + ' location=' + (userProfile.location || '(empty)'));
                     updateProfileUI(userProfile);
                     return;
                 }
@@ -1733,6 +1801,7 @@
             function renderAvatarElement(containerEl, profile = userProfile) {
                 if (!containerEl) return;
                 const avatarUrl = String(profile?.avatar_url || '').trim();
+                pd('avatar:render', 'container=' + (containerEl.id || containerEl.className || '?') + ' url=' + (avatarUrl || 'NONE'));
                 
                 if (avatarUrl && (/^https?:\/\//i.test(avatarUrl) || /^data:image\//i.test(avatarUrl))) {
                     containerEl.innerHTML = '';
@@ -11742,6 +11811,8 @@ const alreadyActive = isMobile
                     if (!item) return null;
                     if (item.url) return item.url;
                     if (!item.media_type || !item.media_id) return null;
+                    const fbId = String(item.media_id || '').slice(0, 20);
+                    pd('banner:fetchBackdrop', 'type=' + item.media_type + ' id=' + fbId);
                     try {
                         const type = item.media_type;
                         const id = item.media_id;
@@ -11862,6 +11933,7 @@ const alreadyActive = isMobile
                     }
                     
                     if (!itemsToLoad || !itemsToLoad.length) {
+                        pd('banner:auto-fallback', 'no featured items; querying favorites list_items');
                         const autoList = [];
                         try {
                             const userId = viewUserId || currentUser?.id;
@@ -11885,23 +11957,35 @@ const alreadyActive = isMobile
                         itemsToLoad = autoList;
                     }
 
-                    if (!itemsToLoad || !itemsToLoad.length) return;
+                    if (!itemsToLoad || !itemsToLoad.length) {
+                        pd('banner:NO-ITEMS-EVEN-FALLBACK', 'nothing to show; banner will stay default');
+                        return;
+                    }
 
                     // If static, only use the first item
                     if (loadMode === 'static') {
                         itemsToLoad = [itemsToLoad[0]];
                     }
 
+                    pd('banner:init', 'items=' + itemsToLoad.length + ' mode=' + loadMode + ' first=' + String(itemsToLoad[0] && (itemsToLoad[0].url || itemsToLoad[0].media_id)).slice(0, 80));
                     const resolved = await Promise.all(itemsToLoad.map(fetchBackdropUrl));
                     backdropUrls = resolved.filter(Boolean);
+                    pd('banner:backdropUrls', 'requested=' + itemsToLoad.length + ' resolved=' + backdropUrls.length);
 
-                    if (!backdropUrls.length) return;
+                    if (!backdropUrls.length) {
+                        pd('banner:NO-BACKDROPS', 'all fetchBackdropUrl returned empty');
+                        return;
+                    }
 
                     const shuffled = loadMode === 'static' ? backdropUrls : backdropUrls.slice().sort(() => Math.random() - 0.5);
                     for (const url of shuffled) {
                         const ok = await preloadAndFade(url);
-                        if (ok) break;
+                        if (ok) {
+                            pd('banner:preloaded-ok', url.slice(0, 80));
+                            break;
+                        }
                     }
+                    pd('banner:init-done', 'exited loop');
                 }
 
                 function stop() {
