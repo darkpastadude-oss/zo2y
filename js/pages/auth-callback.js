@@ -56,6 +56,23 @@
     }, 2500);
   }
 
+  // Safety net: never leave the user stuck on the "Signing you in" spinner. If
+  // the whole callback has not resolved within 15s (slow connection/CDN), bounce
+  // to the destination page — the session snapshot is usually already persisted,
+  // so the landing page will treat the user as signed in.
+  var escapeTimer = window.setTimeout(function () {
+    try {
+      if (window.ZO2Y_AUTH && typeof window.ZO2Y_AUTH.hasStoredSession === 'function' && window.ZO2Y_AUTH.hasStoredSession()) {
+        log('Callback slow; bouncing to destination with persisted session', false);
+        window.location.replace(
+          flow === 'signup' ? 'onboarding.html?onboarding=1' : auth.readRequestedNextPath(window.location.search)
+        );
+        return;
+      }
+    } catch (_escErr) {}
+    fail('The sign-in is taking longer than expected. Please try again.');
+  }, 15000);
+
   (async function init() {
     try {
       if (statusText) statusText.textContent = flow === 'signup' ? 'Finishing your account...' : 'Finalizing secure sign-in...';
@@ -65,7 +82,6 @@
       if (!client) {
         throw new Error('Auth library unavailable.');
       }
-
       log('Completing OAuth callback...');
       var session = await auth.completeOAuthCallback({
         client: client
@@ -109,6 +125,7 @@
         flow: flow,
         next: auth.readRequestedNextPath(window.location.search)
       });
+      try { if (escapeTimer) window.clearTimeout(escapeTimer); } catch (_clearErr) {}
     } catch (error) {
       log('OAuth callback failed: ' + String(error && error.message || error || 'Unknown error'), true);
       fail(String(error && error.message || 'Authentication failed.'));

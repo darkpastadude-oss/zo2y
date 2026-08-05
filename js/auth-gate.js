@@ -1703,9 +1703,13 @@
       var bootstrapPayload = buildPostAuthBootstrapPayload(flow, session);
       if (bootstrapPayload) setPendingPostAuthBootstrap(bootstrapPayload);
       void triggerWelcomeEmail(session, flow);
+      void persistReferralMetadata(client, session.user);
+      // New signups always walk the onboarding flow (username/profile setup),
+      // so do NOT block the redirect on a user_profiles query that can hang
+      // on slow connections. redirectToOnboarding marks onboarding pending.
+      redirectToOnboarding(nextPath, session.user.id);
+      return true;
     }
-
-    void persistReferralMetadata(client, session.user);
 
     var profileResult = await ensureAuthProfile(client, session.user);
     if (profileResult && profileResult.ok && !profileResult.needsOnboarding && flow !== 'signup') {
@@ -1779,7 +1783,7 @@
 
     if (code && typeof client.auth.exchangeCodeForSession === 'function') {
       try {
-        var exchangeResult = await client.auth.exchangeCodeForSession(code);
+        var exchangeResult = await withTimeout(client.auth.exchangeCodeForSession(code), 8000);
         if (exchangeResult && exchangeResult.error) throw exchangeResult.error;
         session = exchangeResult && exchangeResult.data ? exchangeResult.data.session : null;
       } catch (exchangeError) {
@@ -1797,10 +1801,10 @@
         }
       }
     } else if (accessToken && refreshToken && typeof client.auth.setSession === 'function') {
-      var setResult = await client.auth.setSession({
+      var setResult = await withTimeout(client.auth.setSession({
         access_token: accessToken,
         refresh_token: refreshToken
-      });
+      }), 8000);
       if (setResult && setResult.error) throw setResult.error;
       session = setResult && setResult.data ? setResult.data.session : null;
     }

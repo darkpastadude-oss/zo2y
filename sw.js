@@ -1,6 +1,6 @@
 // Bump these versions any time you change precached asset URLs to ensure old cached
 // variants don't keep serving stale JS (especially the home heavy loaders).
-const APP_SHELL_CACHE = 'zo2y-app-shell-v315';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v316';
 const PAGE_CACHE = 'zo2y-pages-v249';
 const IMAGE_CACHE = 'zo2y-images-v73';
 const API_CACHE = 'zo2y-api-v51';
@@ -36,7 +36,7 @@ const STATIC_ASSETS = [
   '/js/list-utils.js?v=20260722a',
   '/js/unified-list-menu.js?v=20260708b',
   '/js/universal-search.js?v=20260601b',
-  '/js/auth-gate.js?v=20260803C',
+  '/js/auth-gate.js?v=20260805A',
   '/js/books-discovery.js?v=20260614c',
   '/js/production-runtime.js?v=20260601b',
   '/js/igdb-client.js?v=20260601b',
@@ -62,7 +62,8 @@ const STATIC_ASSETS = [
   '/js/pages/brands.js?v=20260708b',
   '/js/pages/brand.js?v=20260708b',
   '/js/profile-showcase.js?v=20260708b',
-  '/js/pages/profile.js?v=20260803C',
+  '/js/pages/profile.js?v=20260805A',
+  '/js/pages/auth-callback.js?v=20260805A',
   '/js/review-interactions.js?v=20260708b',
   '/team.html',
 
