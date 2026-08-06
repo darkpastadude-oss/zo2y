@@ -321,7 +321,7 @@
 }
 
 .elevated-detail-page .elevated-hero.elevated-hero-centered .elevated-poster-frame {
-  max-width: 160px;
+  max-width: 220px;
   margin: 0 auto;
   aspect-ratio: 1 / 1;
   transform: translateZ(0);
@@ -2396,7 +2396,7 @@
 
 @media (max-width: 768px) {
   .elevated-detail-page .elevated-hero {
-    min-height: auto;
+    min-height: clamp(420px, 58vh, 560px);
     overflow: hidden;
   }
   .elevated-detail-page .elevated-hero-backdrop,
@@ -2431,7 +2431,7 @@
     grid-template-rows: auto auto;
     gap: 22px;
     padding: 96px 0 36px;
-    min-height: auto;
+    min-height: clamp(400px, 55vh, 540px);
   }
   .elevated-detail-page .elevated-content {
     position: relative;
@@ -2439,11 +2439,11 @@
     background: var(--dt-bg);
   }
   .elevated-detail-page .elevated-poster-frame {
-    max-width: 160px;
+    max-width: 190px;
     margin: 0 auto;
   }
   .elevated-detail-page .elevated-hero.elevated-hero-centered .elevated-poster-frame {
-    max-width: 160px;
+    max-width: 190px;
   }
   .elevated-detail-page .elevated-info {
     align-items: center;
@@ -2502,7 +2502,7 @@
     padding: 84px 0 32px;
     gap: 16px;
   }
-  .elevated-detail-page .elevated-poster-frame { max-width: 140px; }
+  .elevated-detail-page .elevated-poster-frame { max-width: 165px; }
   .elevated-detail-page .elevated-title { font-size: clamp(1.45rem, 7.5vw, 1.85rem); }
   .elevated-detail-page .elevated-actions { flex-wrap: wrap; justify-content: center; width: 100%; }
   .elevated-detail-page .elevated-btn { flex: 1 1 auto; min-width: 0; min-height: 44px; padding: 0 14px; font-size: 0.88rem; }

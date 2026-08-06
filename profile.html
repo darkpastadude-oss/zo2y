@@ -52,18 +52,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   <script src="/js/mobile-webapp.js?v=20260722b" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260624a" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="css/shared-header.css?v=20260624a"></noscript>
-<script src="js/shared-header.js?v=20260721B" defer></script>
-
-    <script src="/js/components/list-modal.js?v=20260722b" defer></script>
-    <script src="js/pages/profile.js?v=20260806E" defer></script>
-    <noscript></noscript>
-
-  
     <link rel="stylesheet" href="css/components.css?v=20260710a">
     <link rel="stylesheet" href="css/global-lowercase.css?v=20260708a">
     <link rel="stylesheet" href="css/list-modal.css?v=20260710b">
     <link rel="stylesheet" href="css/pages/elevated-detail.css">
-    <link rel="stylesheet" href="css/pages/profile.css?v=20260805A">
 </head>
 <body data-nav-page="profile">
     
@@ -134,15 +126,18 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="pv2-identity">
                         <div class="pv2-name" id="profileName">Loading...</div>
                         <div class="pv2-username" id="profileUsername">@username</div>
-                        <div class="pv2-bio" id="profileBio">No bio yet. Click edit to add one!</div>
+                        <div class="pv2-bio-wrap">
+                            <div class="pv2-bio" id="profileBio">No bio yet. Click edit to add one!</div>
+                            <button class="bio-edit-btn" onclick="window.ProfileManager&&ProfileManager.showEditProfileModal('profile')" title="Edit bio" aria-label="Edit bio">
+                                <i class="fas fa-pen"></i>
+                            </button>
+                        </div>
 
                         <!-- Featured Showcase Strip (Visual Cover Badges) -->
                         <div class="pv2-featured-showcase" id="profileFeaturedShowcase"></div>
 
                         <div class="pv2-meta">
-                            <span class="pv2-meta-item"><i class="fas fa-map-marker-alt"></i> <span id="profileLocation">—</span></span>
-                            <span class="pv2-meta-sep">·</span>
-                            <span class="pv2-meta-item"><i class="fas fa-calendar-alt"></i> <span id="memberSince">Member since 2023</span></span>
+                            <span class="pv2-meta-item"><i class="fas fa-calendar-alt"></i> <span id="memberSince">Member since 2024</span></span>
                             <!-- Hidden legacy meta for JS compatibility -->
                             <span id="visitedCountMeta" style="display:none"></span>
                         </div>
@@ -204,8 +199,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
         </div>
 
         <div class="container">
-
-
             <!-- === OVERVIEW SHOWCASE (new primary view) === -->
             <div class="pv2-overview" id="pv2Overview">
 
@@ -218,7 +211,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                         <button class="pv2-mode-btn" id="pv2ModeLifestyle" role="tab" aria-selected="false" onclick="window.ProfileManager.setOverviewMode('lifestyle')">
                             <i class="fas fa-compass"></i> lifestyle
                         </button>
-                        </div>
+                    </div>
                 </div>
 
                 <!-- Media Mode Showcase -->
@@ -241,16 +234,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="pv2-rail" id="pv2RailTv">
                         <div class="pv2-rail-header">
                             <div class="pv2-rail-title">
-                            <i class="fas fa-tv"></i> 
-                            <span class="pv2-rail-title-base">tv shows</span>
-                            <span class="pv2-rail-title-showcase hidden"></span>
-                        </div>
-                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('tv'); return false;">collections <i class="fas fa-chevron-right"></i></a>
-                        </div>
-                        <div class="pv2-rail-track" id="pv2TvTrack"></div>
-                    </div>
-
-                    <!-- Anime Rail -->
                     <div class="pv2-rail" id="pv2RailAnime">
                         <div class="pv2-rail-header">
                             <div class="pv2-rail-title">
@@ -1061,9 +1044,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <div class="mph2-identity">
                     <div class="mph2-name" id="mobileProfileName">Loading...</div>
                     <div class="mph2-username" id="mobileProfileUsername">@username</div>
-                    <div class="mph2-bio" id="mobileProfileBio">No bio yet. Tap edit to add one!</div>
+                    <div class="mph2-bio-wrap">
+                        <div class="mph2-bio" id="mobileProfileBio">No bio yet. Tap edit to add one!</div>
+                        <button class="bio-edit-btn" onclick="window.ProfileManager&&ProfileManager.showEditProfileModal('profile')" title="Edit bio" aria-label="Edit bio">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                    </div>
                     <div class="mph2-meta" id="mobileProfileMeta">
-                        <span class="mph2-meta-item"><i class="fas fa-map-marker-alt"></i> <span id="mobileProfileLocation">—</span></span>
+                        <span class="mph2-meta-item"><i class="fas fa-calendar-alt"></i> <span id="mobileMemberSince">Member since 2024</span></span>
                     </div>
                 </div>
                 <!-- Topbar: Globe (Community) + Gear (Settings) -->
@@ -2315,7 +2303,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     <script src="js/igdb-client.js?v=20260709M" defer></script>
     <script src="js/taste_identity.js?v=20260709M" defer></script>
     <script src="js/cover-cache.js?v=20260709M" defer></script>
-    <script src="js/pages/games-shared.js?v=20260722a" defer></script>
+    <script src="js/pages/games-shared.js?v=20260806a" defer></script>
 <link rel="stylesheet" href="css/pages/legal.css?v=20260708a">
   <script src="js/legal-consent.js?v=20260709M" defer></script>
 

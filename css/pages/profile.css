@@ -6269,7 +6269,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 /* === Cinematic backdrop banner === */
 .pv2-banner {
   position: relative;
-  height: 290px;
+  height: 190px;
   overflow: visible;
   background: #0a1428;
 }
@@ -6417,19 +6417,19 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 
 /* === Avatar === */
 .pv2-avatar-wrap {
-  margin-top: -44px;
+  margin-top: -36px;
   flex-shrink: 0;
 }
 
 .pv2-avatar {
-  width: 128px;
-  height: 128px;
+  width: 108px;
+  height: 108px;
   border-radius: 50%;
   border: 4px solid #0f1e40;
   box-shadow: 0 8px 28px rgba(0,0,0,0.45);
   background: var(--color-accent);
   color: #0b1633;
-  font-size: 52px;
+  font-size: 42px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -6477,12 +6477,48 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   letter-spacing: 0.01em;
 }
 
+.pv2-bio-wrap,
+.mph2-bio-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
 .pv2-bio {
   font-size: 0.95rem;
   color: rgba(203,213,225,0.82);
   line-height: 1.5;
   max-width: 52ch;
-  margin-top: 2px;
+}
+
+.bio-edit-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-accent, #f59e0b);
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 3px 5px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, color 0.2s ease, opacity 0.2s ease, background-color 0.2s ease;
+  line-height: 1;
+  outline: none;
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+.bio-edit-btn:hover {
+  transform: scale(1.18);
+  opacity: 1;
+  color: #fbbf24;
+  background-color: rgba(245, 158, 11, 0.12);
+}
+
+.bio-edit-btn:active {
+  transform: scale(0.92);
 }
 
 .pv2-meta {
@@ -7147,17 +7183,17 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 
 @media (max-width: 1024px) {
   .pv2-banner {
-    height: 240px;
+    height: 160px;
   }
 
   .pv2-avatar {
-    width: 108px;
-    height: 108px;
-    font-size: 44px;
+    width: 92px;
+    height: 92px;
+    font-size: 36px;
   }
 
   .pv2-avatar-wrap {
-    margin-top: -40px;
+    margin-top: -30px;
   }
 
   .pv2-hero-body {
@@ -7219,7 +7255,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 /* === Cinematic backdrop banner (mobile) === */
 .mph2-banner {
   position: relative;
-  height: 220px;
+  height: 135px;
   overflow: visible;
   background: #0a1428;
 }
@@ -7368,7 +7404,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 /* === Topbar (menu + edit pill) === */
 .mph2-topbar {
   position: absolute;
-  top: 10px;
+  top: 6px;
   right: 14px;
   right: max(14px, env(safe-area-inset-right));
   z-index: 10;
@@ -7457,24 +7493,24 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   grid-template-columns: auto minmax(0, 1fr);
   gap: 12px;
   align-items: flex-start;
-  padding: 0 14px 10px;
+  padding: 0 14px 8px;
 }
 
 .mph2-avatar-wrap {
-  margin-top: -38px;
+  margin-top: -30px;
   position: relative;
   z-index: 5;
 }
 
 .mph2-avatar {
-  width: 86px;
-  height: 86px;
+  width: 74px;
+  height: 74px;
   border-radius: 50%;
   border: 3px solid #0f1e40;
   box-shadow: 0 6px 20px rgba(0,0,0,0.5);
   background: var(--color-accent);
   color: #0b1633;
-  font-size: 36px;
+  font-size: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -7498,8 +7534,8 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 
 /* === Identity text === */
 .mph2-identity {
-  padding-top: 10px;
-  padding-right: 98px;
+  padding-top: 6px;
+  padding-right: 94px;
   display: grid;
   gap: 3px;
   min-width: 0;

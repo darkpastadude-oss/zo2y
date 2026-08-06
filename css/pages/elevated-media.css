@@ -1314,7 +1314,7 @@ body.zo2y-trailer-open {
 /* Large mobile / phablet — stack poster above content */
 @media (max-width: 768px) {
   .elevated-hero {
-    min-height: auto;
+    min-height: clamp(420px, 58vh, 560px);
   }
 
   .elevated-hero-foreground {
@@ -1322,11 +1322,11 @@ body.zo2y-trailer-open {
     grid-template-rows: auto auto;
     gap: 18px;
     padding: 76px 0 28px;
-    min-height: auto;
+    min-height: clamp(400px, 55vh, 540px);
   }
 
   .elevated-poster-frame {
-    max-width: 142px;
+    max-width: 175px;
     margin: 0 auto;
     box-shadow:
       0 1px 0 rgba(255, 255, 255, 0.06) inset,
