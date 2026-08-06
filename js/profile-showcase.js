@@ -291,13 +291,41 @@ const ProfileShowcase = (function () {
 
     async function getAllListsForType(mediaType, userId) {
         const result = [];
+        const itemsTable = ITEM_TABLES[mediaType] || 'list_items';
+        const itemField = ITEM_FIELDS[mediaType] || 'item_id';
+
+        // One lean query fetches every saved item id for this user+type. We group
+        // client-side by default list_type (list_id null) vs custom list_id, which
+        // replaces per-list COUNT round-trips AND lets callers skip re-fetching ids.
+        const idsByDefault = new Map();
+        const idsByCustom = new Map();
+        if (sb && userId) {
+            try {
+                const { data } = await sb
+                    .from(itemsTable)
+                    .select(`${itemField}, list_type, list_id`)
+                    .eq('user_id', userId)
+                    .eq('media_type', mediaType);
+                (data || []).forEach((row) => {
+                    const id = row && row[itemField] != null ? String(row[itemField]).trim() : '';
+                    if (!id) return;
+                    if (row && row.list_id) {
+                        const key = String(row.list_id).trim();
+                        if (!idsByCustom.has(key)) idsByCustom.set(key, []);
+                        idsByCustom.get(key).push(id);
+                    } else {
+                        const key = String(row?.list_type || '').toLowerCase();
+                        if (!idsByDefault.has(key)) idsByDefault.set(key, []);
+                        idsByDefault.get(key).push(id);
+                    }
+                });
+            } catch (_e) {}
+        }
 
         const defaultLists = getDefaultListsForType(mediaType);
-        const counts = await Promise.all(defaultLists.map(dl =>
-            getItemCountForDefaultList(mediaType, dl.id, userId).catch(() => 0)
-        ));
-        defaultLists.forEach((dl, i) => {
-            result.push({ ...dl, count: counts[i], is_default: true });
+        defaultLists.forEach((dl) => {
+            const ids = idsByDefault.get(String(dl.id).toLowerCase()) || [];
+            result.push({ ...dl, count: ids.length, is_default: true, itemIds: ids });
         });
 
         const table = CUSTOM_LIST_TABLES[mediaType];
@@ -310,7 +338,8 @@ const ProfileShowcase = (function () {
                 .order('display_order', { ascending: true });
             if (data) {
                 for (const list of data) {
-                    result.push({ ...list, title: list.name || list.title, is_default: false });
+                    const ids = idsByCustom.get(String(list.id || '').trim()) || [];
+                    result.push({ ...list, title: list.name || list.title, is_default: false, itemIds: ids });
                 }
             }
         }

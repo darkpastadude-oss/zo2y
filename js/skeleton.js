@@ -126,6 +126,22 @@ window.Skel = (() => {
     return `<div class="skel-showcase-rail">${cards}</div>`;
   }
 
+  function collectionRail(count = 3, posters = 8) {
+    const track = Array(posters).fill(`<div class="skel-card-poster" style="flex:0 0 80px">
+      <div class="skel skel-poster" style="height:120px;aspect-ratio:auto"></div>
+      <div class="skel-meta">
+        <div class="skel skel-line skel-line-md"></div>
+      </div>
+    </div>`).join('');
+    const rails = Array(count).fill(`<div class="pv2-rail">
+      <div class="pv2-rail-header">
+        <span class="skel skel-line" style="width:160px;height:20px;margin:0"></span>
+      </div>
+      <div class="pv2-rail-track">${track}</div>
+    </div>`).join('');
+    return rails;
+  }
+
   function sportsGrid(count = 8) {
     const cards = Array(count).fill(`<div class="skel-sports-card">
       <div class="skel skel-circle" style="width:64px;height:64px"></div>
@@ -164,7 +180,7 @@ window.Skel = (() => {
   return {
     posterCard, squareCard, rail, grid, collectionItem, collectionList,
     spotlight, reviewCard, reviewList, chips, settingsList, showcaseRail,
-    sportsGrid, brandGrid, detailPage
+    collectionRail, sportsGrid, brandGrid, detailPage
   };
 
 })();

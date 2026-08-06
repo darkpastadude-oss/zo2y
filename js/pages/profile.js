@@ -2243,13 +2243,25 @@
             }
 
             async function fetchMediaCollectionItemIds(contentType, ownerUserId, listId, listType = 'custom') {
+                const cacheKey = `${ownerUserId}|${contentType}|${listId}`;
+                const cachedEntry = collectionItemIdsCache.get(cacheKey);
+                if (cachedEntry && Date.now() - cachedEntry.at < COLLECTION_ITEM_IDS_CACHE_TTL_MS) {
+                    return cachedEntry.ids;
+                }
+
+                // Lean path: pull only item_id from list_items. Avoids the full-row
+                // select('*') and the per-book repair storm that ListService.loadList
+                // triggers (repairBookListItems / repairCorruptedBookDatabase).
+                try {
+                    const leanIds = await fetchLeanListItemIds(supabase, ownerUserId, contentType, listId, listType);
+                    if (leanIds && leanIds.length) {
+                        collectionItemIdsCache.set(cacheKey, { ids: leanIds, at: Date.now() });
+                        return leanIds;
+                    }
+                } catch (_e) {}
+
                 if (window.ListService && typeof window.ListService.loadList === 'function') {
                     try {
-                        const cacheKey = `${ownerUserId}|${contentType}|${listId}`;
-                        const cachedEntry = collectionItemIdsCache.get(cacheKey);
-                        if (cachedEntry && Date.now() - cachedEntry.at < COLLECTION_ITEM_IDS_CACHE_TTL_MS) {
-                            return cachedEntry.ids;
-                        }
                         const listData = await window.ListService.loadList(supabase, ownerUserId, contentType, listId);
                         if (listData && listData.items) {
                             const ids = listData.items.map(i => i.item_id).filter(Boolean);
@@ -2261,6 +2273,28 @@
                     }
                 }
                 return [];
+            }
+
+            async function fetchLeanListItemIds(client, ownerUserId, contentType, listId, listType = 'custom') {
+                if (!client || !ownerUserId || !listId) return [];
+                const isDefault = listType !== 'custom' || ['favorites', 'watched', 'watchlist', 'played', 'wishlist', 'read', 'readlist', 'currently_reading', 'listened', 'listenlist', 'visited', 'bucketlist', 'owned', 'tried', 'want_to_try'].includes(String(listId).toLowerCase());
+                try {
+                    let query = client
+                        .from('list_items')
+                        .select('item_id')
+                        .eq('user_id', ownerUserId)
+                        .eq('media_type', contentType);
+                    if (isDefault) {
+                        query = query.eq('list_type', String(listId).toLowerCase()).is('list_id', null);
+                    } else {
+                        query = query.eq('list_id', listId);
+                    }
+                    const { data, error } = await query;
+                    if (error) return [];
+                    return (data || []).map(r => r.item_id).filter(Boolean);
+                } catch (_e) {
+                    return [];
+                }
             }
 
             function getStatsRealtimeDefinitions(targetId) {
@@ -6697,15 +6731,30 @@
                     return;
                 }
                 
-                const rails = await Promise.all(allLists.map((list) =>
-                    createCollectionCard(list, mediaType, isMobile, userId)
-                ));
+                const slots = [];
                 allLists.forEach((list, i) => {
                     if (!list.is_default) {
                         addDivider();
                     }
-                    const rail = rails[i];
-                    if (rail) container.appendChild(rail);
+                    const slot = document.createElement('div');
+                    slot.className = 'pv2-rail-slot';
+                    slot.innerHTML = (window.Skel && typeof window.Skel.collectionRail === 'function')
+                        ? Skel.collectionRail(1)
+                        : '';
+                    container.appendChild(slot);
+                    slots.push(slot);
+                });
+                allLists.forEach((list, i) => {
+                    void createCollectionCard(list, mediaType, isMobile, userId)
+                        .then((rail) => {
+                            const slot = slots[i];
+                            if (rail && slot && slot.parentNode) {
+                                slot.parentNode.replaceChild(rail, slot);
+                            }
+                        })
+                        .catch((e) => {
+                            console.error('Error creating collection rail:', e);
+                        });
                 });
                 
                 if (isViewingOwnProfile && !hasAddedDivider) {
@@ -7029,7 +7078,9 @@
                         const isCached = window.sessionProfileListsCache.has(cacheKey);
 
                         if (!isCached) {
-                            container.innerHTML = Skel.rail(6);
+                            container.innerHTML = (window.Skel && typeof window.Skel.collectionRail === 'function')
+                                ? Skel.collectionRail(3)
+                                : Skel.rail(6);
                         }
 
                         if (userId && window.ProfileShowcase) {
@@ -7097,15 +7148,32 @@
                                     return;
                                 }
                                 
-                                const rails = await Promise.all(allLists.map((list) =>
-                                    createCollectionCard(list, mappedTab, isMobile, userId)
-                                ));
+                                // Incremental render: placeholders keep dividers/order
+                                // stable, each rail replaces its placeholder as it resolves.
+                                const slots = [];
                                 allLists.forEach((list, i) => {
                                     if (!list.is_default) {
                                         addDivider();
                                     }
-                                    const rail = rails[i];
-                                    if (rail) container.appendChild(rail);
+                                    const slot = document.createElement('div');
+                                    slot.className = 'pv2-rail-slot';
+                                    slot.innerHTML = (window.Skel && typeof window.Skel.collectionRail === 'function')
+                                        ? Skel.collectionRail(1)
+                                        : '';
+                                    container.appendChild(slot);
+                                    slots.push(slot);
+                                });
+                                allLists.forEach((list, i) => {
+                                    void createCollectionCard(list, mappedTab, isMobile, userId)
+                                        .then((rail) => {
+                                            const slot = slots[i];
+                                            if (rail && slot && slot.parentNode) {
+                                                slot.parentNode.replaceChild(rail, slot);
+                                            }
+                                        })
+                                        .catch((e) => {
+                                            console.error('Error creating collection rail:', e);
+                                        });
                                 });
                                 
                                 if (isViewingOwnProfile && !hasAddedDivider) {
@@ -7482,17 +7550,23 @@ const alreadyActive = isMobile
                 const config = showcaseConfig || [];
                 const hasEntry = config.some(e => e.media_type === contentType);
 
-                if (!hasEntry) {
-                    return await ListService.loadList(supabase, userId, contentType, 'favorites');
-                }
+                const listId = hasEntry ? getShowcaseListId(contentType) : 'favorites';
+                const listType = hasEntry ? 'custom' : 'default';
+                const title = hasEntry ? getShowcaseListTitle(contentType) : 'Favorites';
 
-                const showcaseListId = getShowcaseListId(contentType);
-                return await ListService.loadList(supabase, userId, contentType, showcaseListId);
+                // Lean: fetch only item_id, skipping the full-row select and the
+                // per-book repair storm that ListService.loadList performs.
+                const itemIds = await fetchLeanListItemIds(supabase, userId, contentType, listId, listType);
+                return {
+                    title,
+                    mediaType: contentType,
+                    items: itemIds.map((item_id) => ({ item_id })),
+                    listId
+                };
             }
 
             async function renderShowcaseRail(contentType, userId) {
                 const listData = await resolveShowcaseList(userId, contentType);
-                const isMobile = window.innerWidth <= 768;
 
                 if (!listData || !listData.items || listData.items.length === 0) {
                     populateRailTrack(contentType, [], 0);
@@ -7501,9 +7575,32 @@ const alreadyActive = isMobile
 
                 const totalItemCount = listData.items.length;
                 const itemIds = listData.items.map(i => i.item_id);
-                const previewUrls = itemIds.length ? await getPreviewItems(itemIds, contentType).catch(() => []) : [];
 
-                populateRailTrack(contentType, previewUrls, totalItemCount);
+                // Instant paint: use cached preview assets (or type-appropriate
+                // fallbacks) so the rail renders on the very first frame, then
+                // upgrade to real previews async.
+                const cachedUrls = itemIds.map(id => readPreviewAssetCache(contentType, id) || getPreviewFallbackForType(contentType, id));
+                populateRailTrack(contentType, cachedUrls, totalItemCount);
+
+                if (itemIds.length) {
+                    void getPreviewItems(itemIds, contentType)
+                        .then((resolvedUrls) => {
+                            const upgradeUrls = resolvedUrls && resolvedUrls.length
+                                ? resolvedUrls
+                                : cachedUrls;
+                            populateRailTrack(contentType, upgradeUrls, totalItemCount);
+                        })
+                        .catch(() => {});
+                }
+            }
+
+            function getPreviewFallbackForType(contentType, id) {
+                if (contentType === 'book') return FALLBACK_BOOK_IMAGE;
+                if (contentType === 'music') return '/images/fallback/music.svg';
+                if (contentType === 'game') return FALLBACK_GAME_IMAGE;
+                if (contentType === 'travel') return countryFlagFromCode(normalizeCountryCode(id) || id);
+                if (contentType === 'movie' || contentType === 'tv' || contentType === 'anime') return 'images/placeholder.jpg';
+                return FALLBACK_MEDIA_IMAGE;
             }
 
             
@@ -7998,6 +8095,10 @@ const alreadyActive = isMobile
                     itemIds = list.countryCodes || [];
                 } else {
                     itemIds = list.trackIds || [];
+                }
+
+                if (!itemIds.length && Array.isArray(list.itemIds) && list.itemIds.length) {
+                    itemIds = list.itemIds;
                 }
 
                 if (!itemIds.length && ownerUserId) {
