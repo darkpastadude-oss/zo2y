@@ -60,6 +60,21 @@
                 });
             }
 
+            // Waits for bootstrap-auth to restore the persisted session before any
+            // Supabase query runs. On cold mobile first-open the session is restored
+            // asynchronously; without this gate the user_profiles query races an
+            // unsettled session, times out, and the page is stuck on username-only
+            // data until a manual refresh.
+            async function waitForAuthReady(timeoutMs) {
+                const limit = Number(timeoutMs) || 10000;
+                const startedAt = Date.now();
+                while ((Date.now() - startedAt) < limit) {
+                    if (window.__AUTH_READY === true) return true;
+                    await new Promise((r) => setTimeout(r, 40));
+                }
+                return window.__AUTH_READY === true;
+            }
+
             async function igdbFetch(path, params = {}, signal = null) {
                 if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === "function") {
                     return window.ZO2Y_IGDB.request(path, params, signal ? { signal } : undefined);
@@ -304,17 +319,26 @@
 
             async function resolveAuthenticatedProfileUser(client) {
                 if (!client?.auth) return null;
-                const authRuntime = window.ZO2Y_AUTH || null;
-                if (authRuntime && typeof authRuntime.getVerifiedUser === 'function') {
+                // On cold/slow first-open the session can be marked ready before
+                // the underlying auth user has propagated. Retry briefly before
+                // giving up so we never bounce to login (or blank) on a transient
+                // cold start.
+                const startedAt = Date.now();
+                while (true) {
+                    const authRuntime = window.ZO2Y_AUTH || null;
+                    if (authRuntime && typeof authRuntime.getVerifiedUser === 'function') {
+                        try {
+                            const verifiedUser = await authRuntime.getVerifiedUser(client);
+                            if (verifiedUser?.id) return verifiedUser;
+                        } catch (_err) {}
+                    }
                     try {
-                        const verifiedUser = await authRuntime.getVerifiedUser(client);
-                        if (verifiedUser?.id) return verifiedUser;
+                        const { data, error } = await client.auth.getUser();
+                        if (!error && data?.user) return data.user;
                     } catch (_err) {}
+                    if ((Date.now() - startedAt) >= 2500) break;
+                    await new Promise((r) => setTimeout(r, 150));
                 }
-                try {
-                    const { data, error } = await client.auth.getUser();
-                    if (!error && data?.user) return data.user;
-                } catch (_err) {}
                 return null;
             }
 
@@ -344,6 +368,11 @@
                     if (authRuntime && typeof authRuntime.waitForSupabase === 'function') {
                         await authRuntime.waitForSupabase(8000);
                     }
+
+                    // Wait for the persisted session to be restored before running
+                    // any query. bootstrap-auth restores it asynchronously; racing it
+                    // on cold mobile first-open left the page on username-only data.
+                    await waitForAuthReady(10000);
 
                     if (window.__ZO2Y_ENSURE_SUPABASE_CLIENT && typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
                         supabase = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
@@ -1512,13 +1541,30 @@
             // Renders session-derived data instantly, then re-renders the full
             // profile when the query finally resolves — so a cold/slow start does
             // not require a manual refresh to show banner, bio, and stats.
-            function rehydrateProfileFromQuery(queryPromise) {
+            function rehydrateProfileFromQuery(buildQuery, attempt) {
+                if (!buildQuery || typeof buildQuery !== 'function') return;
+                const round = Number(attempt || 0);
+                let queryPromise = null;
+                try {
+                    queryPromise = buildQuery();
+                } catch (_e) {
+                    queryPromise = null;
+                }
                 if (!queryPromise || typeof queryPromise.then !== 'function') return;
                 queryPromise.then((result) => {
                     try {
                         const arrived = result && !result.__timedOut ? (result.data || null) : null;
                         if (!arrived) {
-                            pd('rehydrate:no-arrival', 'data missing');
+                            pd('rehydrate:no-arrival', 'data missing; round=' + round);
+                            // Self-heal: the abandoned cold-start query can reject
+                            // with an auth error before the session settles. Retry
+                            // the query a bounded number of times instead of leaving
+                            // the page on session-derived (username-only) data.
+                            if (round < 3) {
+                                window.setTimeout(() => {
+                                    rehydrateProfileFromQuery(buildQuery, round + 1);
+                                }, 800);
+                            }
                             return;
                         }
                         profileLookupTimedOut = false;
@@ -1537,7 +1583,13 @@
                         }
                         updateStats().catch(() => {});
                     } catch (_err) {}
-                }).catch(() => {});
+                }).catch(() => {
+                    if (round < 3) {
+                        window.setTimeout(() => {
+                            rehydrateProfileFromQuery(buildQuery, round + 1);
+                        }, 800);
+                    }
+                });
             }
 
             async function loadUserProfile() {
@@ -1559,7 +1611,11 @@
                         profileLookupTimedOut = true;
                         userProfile = buildSessionDerivedProfile();
                         window.userProfile = userProfile;
-                        rehydrateProfileFromQuery(realQuery);
+                        rehydrateProfileFromQuery(() => supabase
+                            .from("user_profiles")
+                            .select("*")
+                            .eq("id", currentUser.id)
+                            .maybeSingle());
                         return;
                     }
                     profile = result && result.data ? result.data : null;
@@ -1580,7 +1636,11 @@
                         profileLookupTimedOut = true;
                         userProfile = buildSessionDerivedProfile();
                         window.userProfile = userProfile;
-                        rehydrateProfileFromQuery(realFallback);
+                        rehydrateProfileFromQuery(() => supabase
+                            .from("user_profiles")
+                            .select("*")
+                            .eq("user_id", currentUser.id)
+                            .maybeSingle());
                         return;
                     }
                     if (!fallbackResult || !fallbackResult.error) {
