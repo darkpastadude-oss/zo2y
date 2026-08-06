@@ -75,7 +75,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
         <div class="container">
             <div class="pv2-category-header">
                 <div class="pv2-category-header-top">
-                    <button class="pv2-category-back" onclick="ProfileManager.backToProfile()" style="background: transparent; border: none; color: var(--color-accent); padding: 0; font-size: 1.25rem; cursor: pointer;">
+                    <button class="pv2-category-back" onclick="ProfileManager.backToProfile()" title="Back to profile" aria-label="Back to profile">
                         <i class="fas fa-arrow-left"></i>
                     </button>
                 </div>
@@ -2638,11 +2638,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
         <!-- Top Header: Back | Title | Close -->
         <div class="bp-header">
-          <button class="bp-icon-btn bp-back-btn" id="bpBackBtn" aria-label="Back">
+          <button class="bp-icon-btn bp-back-btn" id="bpBackBtn" onclick="window.BannerPicker&&BannerPicker.goBack?window.BannerPicker.goBack():null" title="Back" aria-label="Back">
             <i class="fas fa-arrow-left"></i>
           </button>
           <h2 class="bp-title">Choose Banner</h2>
-          <button class="bp-icon-btn bp-close-btn" id="bpCloseBtn" aria-label="Close">
+          <button class="bp-icon-btn bp-close-btn" id="bpCloseBtn" onclick="window.BannerPicker&&BannerPicker.closePicker()" title="Close" aria-label="Close">
             <i class="fas fa-times"></i>
           </button>
         </div>
@@ -2705,140 +2705,260 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     <script src="js/banner-picker.js"></script>
 
     <!-- ================================
-         [PREVIEW] on-screen copyable debug panel (NOT for production)
-         Tap the floating right-edge tab to open, Copy to grab the log.
-         Captures profile startup + any window error / rejection.
-         Remove this block before going to the feature work.
+         [PREVIEW] VISIBLE on-screen debug panel (NOT for production)
+         Always shows a live log of the profile startup + Supabase network +
+         auth-state so the page can be triaged on a phone with no console.
+         Copy grabs the whole log (clipboard API + textarea fallback).
+         Remove this block before production.
          ================================ -->
     <script>
     (function(){
       'use strict';
+      if (window.__ZO2Y_PREVIEW_TRACE_LOADED) return;
+      window.__ZO2Y_PREVIEW_TRACE_LOADED = true;
+
+      var MAX = 900;
       var buffer = (window.__zo2yDebugBuffer || (window.__zo2yDebugBuffer = []));
       var startedAt = Date.now();
-      var container = null, panel = null, countEl = null;
-      var CLOSED = 0, OPEN = 1, state = CLOSED;
+      var startPerf = performance.now();
+      var panel = null, listEl = null, statusEl = null;
+      var lastDataset = '';
 
       function pad(n){ return (n < 10 ? '0' : '') + n; }
-      function fmt(ts){
+      function fmtTs(ts){
         var d = new Date(ts);
         return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) + '.' + ('00' + d.getMilliseconds()).slice(-3);
       }
+      function fmtMs(ms){ return (Math.round(ms * 100) / 100).toFixed(2); }
+
       function add(label, detail, ts){
-        buffer.push({ t: ts || Date.now(), label: String(label || ''), detail: (detail === undefined || detail === null ? '' : String(detail)) });
-        if (buffer.length > 2000) buffer.splice(0, buffer.length - 2000);
+        try {
+          var safe = detail === undefined || detail === null ? '' : String(detail);
+          buffer.push({ t: ts || Date.now(), label: String(label || ''), detail: safe });
+          if (buffer.length > MAX) buffer.splice(0, buffer.length - MAX);
+        } catch (_e) {}
         render();
       }
       window.__zo2yDebugAdd = add;
 
+      // ---- capture window errors + rejections ----
       window.addEventListener('error', function(e){
-        add('WINDOW-ERROR', String(e && e.message || '').slice(0, 200) + ' @ ' + String(e && e.filename || '?') + ':' + (e && e.lineno || '') );
-      });
-      if (window.__prevZo2yOnError) window.onerror = window.__prevZo2yOnError;
+        add('WINDOW-ERROR', String(e && e.message || '').slice(0, 220) + ' @ ' + String(e && e.filename || '?') + ':' + (e && e.lineno || ''));
+      }, true);
       window.addEventListener('unhandledrejection', function(e){
         var r = e && e.reason;
-        add('UNHANDLED-REJECTION', ((r && r.stack) || (r && r.message) || String(r)).slice(0, 1400));
+        add('UNHANDLED-REJECTION', ((r && r.stack) || (r && r.message) || String(r)).slice(0, 1500));
       });
 
-      function cssStr(el, s){ for (var k in s) el.style[k] = s[k]; }
-
-      function makeBtn(text, bg){
-        var b = document.createElement('button');
-        b.textContent = text;
-        cssStr(b, { border:'none', borderRadius:'6px', padding:'4px 8px', color:'#fff', fontSize:'11px', cursor:'pointer', background:bg });
-        return b;
+      // ---- Supabase network hook (AUTH + REST) with timing ----
+      function hookFetch(){
+        try {
+          if (window.__ZO2Y_PREVIEW_FETCH_HOOKED) return;
+          window.__ZO2Y_PREVIEW_FETCH_HOOKED = true;
+          var orig = window.fetch;
+          if (typeof orig !== 'function') return;
+          window.fetch = function(input, init){
+            var url = '';
+            try { url = typeof input === 'string' ? input : (input && input.url) ? String(input.url) : String(input || ''); } catch (_e) { url = String(input || ''); }
+            var rest = /supabase\.co\/rest\/v1\//i.test(url);
+            var auth = /supabase\.co\/auth\/v1\//i.test(url);
+            var started = performance.now();
+            if (rest || auth) {
+              var table = '', action = 'GET';
+              try {
+                var u = new URL(url);
+                table = (u.pathname.match(/\/rest\/v1\/([^/?]+)/) || [])[1] || u.pathname;
+                action = String((init && init.method) || (input && input.method) || 'GET').toUpperCase();
+              } catch (_e2) {}
+              add('NET:' + (auth ? 'AUTH' : 'DB'), action + ' ' + (table || url.replace(/^https:\/\/[^/]+/,'')) + ' @+' + fmtMs(started - startPerf) + 'ms');
+            }
+            var p;
+            try { p = orig.apply(this, arguments); } catch (_e3) { return Promise.reject(_e3); }
+            if (rest || auth) {
+              var done = false;
+              p.then(function(res){
+                if (done) return; done = true;
+                var ms = performance.now() - started;
+                add('NET:DONE:' + (auth ? 'AUTH' : 'DB'), String(res && res.status) + ' in ' + fmtMs(ms) + 'ms');
+              }).catch(function(){
+                if (done) return; done = true;
+                var ms = performance.now() - started;
+                add('NET:DONE:' + (auth ? 'AUTH' : 'DB'), 'ERR in ' + fmtMs(ms) + 'ms');
+              });
+            }
+            return p;
+          };
+          // Expose the wrapped fetch so clients created later (which capture
+          // their own fetch reference at creation time) can adopt the hook.
+          window.__zo2yDebugFetch = function(input, init){
+            return window.fetch(input, init);
+          };
+          add('FETCH-HOOK', 'installed');
+        } catch (_e) {}
       }
 
-      function curText(){
-        var meta = 'URL: ' + location.href + '\nUA: ' + navigator.userAgent + '\nVIEWPORT: ' + window.innerWidth + 'x' + window.innerHeight + '\nSTARTED: ' + fmt(startedAt) + '\n\n';
-        return meta + buffer.map(function(e){ return fmt(e.t) + ' ' + e.label + '  ' + (e.detail || ''); }).join('\n');
+      // ---- Diagnostics snapshot ----
+      function snapshot(){
+        var out = {
+          trace: 'preview-1',
+          fetchHook: window.__ZO2Y_PREVIEW_FETCH_HOOKED === true ? 'on' : 'off',
+          page: location.pathname || '',
+          state: String(window.__ZO2Y_AUTH_STATE),
+          authReady: (window.__AUTH_READY === true),
+          zAuth: (typeof window.ZO2Y_AUTH === 'object'),
+          ensureClient: (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function'),
+          profileManager: (typeof window.ProfileManager === 'object'),
+          supabaseGlob: (!!window.supabase)
+        };
+        try {
+          out.shell = document.documentElement.getAttribute('data-auth-shell') || '';
+          out.authenticated = document.documentElement.getAttribute('data-authenticated') || '';
+          out.verified = document.documentElement.getAttribute('data-auth-verified') || '';
+        } catch (_e) {}
+        try {
+          var raw = window.localStorage ? window.localStorage.getItem('zo2y-auth-v2') : null;
+          if (raw) {
+            var parsed = JSON.parse(raw);
+            var s = parsed && parsed.currentSession ? parsed.currentSession : (parsed && parsed.session ? parsed.session : parsed);
+            out.storedV2 = { hasToken: !!(s && s.access_token), hasRefresh: !!(s && s.refresh_token), userId: (s && s.user && s.user.id) ? String(s.user.id).slice(0, 12) : null, expiresAt: (s && s.expires_at) ? s.expires_at : null };
+          } else out.storedV2 = null;
+        } catch (_e2) { out.storedV2 = { parseError: true }; }
+        try { out.similar = navigator.connection && navigator.connection.effectiveType ? navigator.connection.effectiveType : '?'; } catch (_e3) {}
+        add('DIAGNOSTICS', JSON.stringify(out));
       }
 
-      function render(){
-        if (!container) return;
-        container.textContent = curText();
-        container.scrollTop = container.scrollHeight;
-        if (countEl) countEl.textContent = buffer.length + ' entries';
-      }
-
-      var flashEl = null;
-      function showFlash(txt){
-        if (!flashEl) {
-          flashEl = document.createElement('div');
-          cssStr(flashEl, { position:'fixed', top:'12px', left:'50%', transform:'translateX(-50%)', background:'#10b981', color:'#06281a', padding:'6px 12px', borderRadius:'8px', zIndex:'1000000', fontWeight:'700', fontSize:'12px' });
-          document.body.appendChild(flashEl);
-        }
-        flashEl.textContent = txt;
-        flashEl.style.display = 'block';
-        setTimeout(function(){ if (flashEl) flashEl.style.display = 'none'; }, 1200);
-      }
-
-      function copyAll(){
-        if (!window.isSecureContext || !navigator.clipboard) {
+      // ---- copy ----
+      function copyLog(){
+        if (!window.isSecureContext || !navigator.clipboard || !navigator.clipboard.writeText) {
           var ta = document.createElement('textarea');
-          ta.value = curText();
-          cssStr(ta, { position:'fixed', left:'-9999px', top:'0' });
-          document.body.appendChild(ta); ta.select();
-          try { document.execCommand('copy'); showFlash('copied (fallback)'); } catch(_) { showFlash('copy failed'); }
+          ta.value = logText();
+          ta.style.position = 'fixed'; ta.style.left = '-9999px'; ta.style.top = '0';
+          document.body.appendChild(ta); ta.focus(); ta.select();
+          try { document.execCommand('copy'); flash('copied (fallback)'); } catch (_e) { flash('copy failed'); }
           document.body.removeChild(ta);
           return;
         }
-        navigator.clipboard.writeText(curText()).then(function(){ showFlash('copied'); }).catch(function(){ showFlash('copy failed'); });
+        navigator.clipboard.writeText(logText()).then(function(){ flash('copied'); }).catch(function(){ flash('copy failed'); });
       }
 
-      function toggle(){ state = state === CLOSED ? OPEN : CLOSED; applyState(); }
-      function close(){ state = CLOSED; applyState(); }
-
-      function applyState(){
-        if (!panel) return;
-        panel.style.display = state === OPEN ? 'flex' : 'none';
-        if (state === OPEN) render();
+      function logText(){
+        var meta =
+          'URL: ' + location.href + '\n' +
+          'UA: ' + navigator.userAgent + '\n' +
+          'VIEWPORT: ' + window.innerWidth + 'x' + window.innerHeight + ' dpr=' + (window.devicePixelRatio || 1) + '\n' +
+          'PAGE: ' + (location.pathname || '') + ' READYSTATE: ' + document.readyState + '\n' +
+          '\n';
+        var lines = buffer.map(function(e){ return fmtTs(e.t) + ' ' + e.label + '  ' + (e.detail || ''); });
+        return meta + lines.join('\n');
       }
 
-      function styledUI(){
-        var fab = document.createElement('button');
-        fab.setAttribute('aria-label', 'Debug');
-        fab.textContent = '<=debug';
-        cssStr(fab, { position:'fixed', bottom:'14px', right:'14px', zIndex:'999999', background:'rgba(245,158,11,.95)', color:'#0b1633', border:'none', borderRadius:'999px', padding:'8px 12px', fontWeight:'700', cursor:'pointer', boxShadow:'0 2px 10px rgba(0,0,0,.4)', fontFamily:'inherit' });
-        fab.addEventListener('click', function(e){ e.stopPropagation(); toggle(); });
-        document.body.appendChild(fab);
+      var flashEl = null;
+      function flash(msg){
+        if (!flashEl) {
+          flashEl = document.createElement('div');
+          flashEl.style.cssText = 'position:fixed;top:10px;left:50%;transform:translateX(-50%);background:#10b981;color:#06281a;padding:6px 12px;border-radius:8px;z-index:2147483200;font-weight:700;font-size:13px;';
+          document.body.appendChild(flashEl);
+        }
+        flashEl.textContent = msg;
+        flashEl.style.display = 'block';
+        setTimeout(function(){ if (flashEl) flashEl.style.display = 'none'; }, 1300);
+      }
 
+      function render(){
+        if (!listEl) return;
+        var rows = [];
+        var frag = document.createDocumentFragment();
+        for (var i = 0; i < buffer.length; i++) {
+          var e = buffer[i];
+          var d = document.createElement('div');
+          d.style.cssText = 'padding:2px 0;border-bottom:1px solid #131c3a;';
+          var badge = document.createElement('span');
+          badge.style.color = '#ffb23f';
+          badge.textContent = fmtTs(e.t) + ' ' + e.label;
+          d.appendChild(badge);
+          if (e.detail) {
+            var x = document.createElement('div');
+            x.style.cssText = 'color:#8ea3cd;margin-left:10px;word-break:break-all;white-space:pre-wrap;';
+            x.textContent = e.detail;
+            d.appendChild(x);
+          }
+          frag.appendChild(d);
+        }
+        listEl.innerHTML = '';
+        listEl.appendChild(frag);
+        listEl.scrollTop = listEl.scrollHeight;
+        if (statusEl) statusEl.textContent =
+          'authReady=' + (window.__AUTH_READY === true) +
+          ' state=' + String(window.__ZO2Y_AUTH_STATE) +
+          ' authed=' + (document.documentElement.getAttribute('data-authenticated') || '') +
+          ' entries=' + buffer.length;
+      }
+
+      function buildPanel(){
+        if (panel || !document.body) return;
         panel = document.createElement('div');
-        cssStr(panel, { position:'fixed', bottom:'58px', right:'10px', zIndex:'999998', width:'min(94vw,440px)', maxHeight:'62vh', display:'none', flexDirection:'column', background:'#0b1633', border:'1px solid rgba(255,255,255,.15)', borderRadius:'10px', overflow:'hidden', boxShadow:'0 8px 32px rgba(0,0,0,.5)', color:'#e2e8f0', fontFamily:'ui-monospace,Menlo,monospace', fontSize:'12px', lineHeight:'14px', boxSizing:'border-box' });
-
-        var hdr = document.createElement('div');
-        cssStr(hdr, { display:'flex', justifyContent:'space-between', alignItems:'center', gap:'8px', padding:'8px 10px', background:'#1e293b', borderBottom:'1px solid rgba(255,255,255,.1)' });
-        var title = document.createElement('span');
-        title.style.fontWeight = '700';
-        title.textContent = 'DEBUG';
-        countEl = document.createElement('span');
-        cssStr(countEl, { fontSize:'11px', color:'#94a3b8' });
-        var hdrBtns = document.createElement('div');
-        cssStr(hdrBtns, { display:'flex', gap:'6px' });
-        var bCopy = makeBtn('copy', '#10b981');
-        var bClose = makeBtn('close', '#64748b');
-        bCopy.addEventListener('click', copyAll);
-        bClose.addEventListener('click', close);
-        hdrBtns.appendChild(bCopy);
-        hdrBtns.appendChild(bClose);
-        hdr.appendChild(title);
-        hdr.appendChild(countEl);
-        hdr.appendChild(hdrBtns);
-        panel.appendChild(hdr);
-
-        container = document.createElement('div');
-        cssStr(container, { overflow:'auto', padding:'8px 10px', flex:'1', whiteSpace:'pre-wrap', wordBreak:'break-word' });
-        panel.appendChild(container);
-
+        panel.innerHTML =
+          '<div class="pvd-head" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 10px;background:#15203f;border-bottom:1px solid #31406f;flex:0 0 auto;">' +
+            '<strong style="color:#ffb23f;font-size:12px;">ZO2Y STARTUP TRACE (PREVIEW)</strong>' +
+            '<span id="pvd-status" style="color:#9db2dc;font-size:10px;word-break:break-all;"></span>' +
+            '<span id="pvd-actions">' +
+              '<button data-a="diag">Diagnostics</button>' +
+              '<button data-a="copy">Copy log</button>' +
+              '<button data-a="collapse">Collapse</button>' +
+            '</span>' +
+          '</div>' +
+          '<div id="pvd-list" style="overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1 1 auto;padding:4px 8px 8px;"></div>';
+        panel.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:2147483000;max-height:42vh;display:flex;flex-direction:column;background:#0a1024;color:#e6ecff;font:11px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;border-top:3px solid #ffb23f;box-shadow:0 -6px 24px rgba(0,0,0,.55);';
+        panel.addEventListener('click', function(e){
+          var t = e.target && e.target.closest ? e.target.closest('[data-a]') : null;
+          if (!t) return;
+          var a = t.getAttribute('data-a');
+          if (a === 'diag') snapshot();
+          if (a === 'copy') copyLog();
+          if (a === 'collapse') collapse();
+        });
         document.body.appendChild(panel);
+        var style = document.createElement('style');
+        style.textContent =
+          '#pvd-actions button{background:#16244d;color:#dbe6ff;border:1px solid #31406f;border-radius:4px;font-size:11px;padding:3px 8px;margin-left:6px;cursor:pointer;-webkit-tap-highlight-color:transparent;}' +
+          '#pvd-actions button:active{background:#23376b;}';
+        document.head.appendChild(style);
+        listEl = panel.querySelector('#pvd-list');
+        statusEl = panel.querySelector('#pvd-status');
         render();
       }
 
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', styledUI, { once: true });
-      } else {
-        styledUI();
+      function collapse(){
+        if (listEl) listEl.style.display = listEl.style.display === 'none' ? 'block' : 'none';
       }
+
+      // ---- auth dataset poll ----
+      function poll(){
+        var t0 = Date.now();
+        var iv = setInterval(function(){
+          if (Date.now() - t0 > 20000) { clearInterval(iv); return; }
+          var cur =
+            (document.documentElement.getAttribute('data-auth-shell') || '') + '|' +
+            (document.documentElement.getAttribute('data-authenticated') || '') + '|' +
+            (document.documentElement.getAttribute('data-auth-verified') || '') + '|' +
+            String(window.__AUTH_READY === true) + '|' +
+            String(window.__ZO2Y_AUTH_STATE);
+          if (cur !== lastDataset) { lastDataset = cur; add('DATASET', cur); }
+        }, 250);
+      }
+
+      add('TRACE START', 'preview debug panel loaded action=visible-on-screen copy=copy button');
+
+      hookFetch();
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', buildPanel, { once: true });
+      } else {
+        buildPanel();
+      }
+      window.addEventListener('pageshow', function(e){ add('PAGESHOW', e.persisted ? 'persisted (bfcache)' : 'fresh'); });
+      poll();
     })();
     </script>
+    <div id="zo2yPreviewBadge" style="position:fixed;top:8px;left:8px;z-index:2147483100;background:#ffb23f;color:#0a1024;font:bold 12px/1 sans-serif;padding:5px 10px;border-radius:6px;">PREVIEW DEBUG</div>
 </body>
 </html>

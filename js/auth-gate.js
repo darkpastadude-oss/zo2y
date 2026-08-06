@@ -1023,6 +1023,13 @@
     if (auth.detectSessionInUrl === undefined) auth.detectSessionInUrl = false;
     if (auth.flowType === undefined) auth.flowType = 'implicit';
     next.auth = auth;
+    // Preview/debug only: if a fetch hook is installed on window, have every
+    // supabase client capture THAT reference instead of the original (they
+    // otherwise keep the pre-hook fetch, so the debug panel never sees traffic).
+    // Inert on production builds (no __zo2yDebugFetch defined there).
+    if (typeof window !== 'undefined' && typeof window.__zo2yDebugFetch === 'function') {
+      next.global = Object.assign({}, next.global || {}, { fetch: window.__zo2yDebugFetch });
+    }
     return next;
   }
 

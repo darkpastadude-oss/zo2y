@@ -162,6 +162,20 @@
             let renderFoodToken = 0;
             let renderCarsToken = 0;
             let renderSportsToken = 0;
+            // Single-flight: if a rail render is already running, a re-kick (e.g.
+            // from preloadCollectionTabs racing the authoritative render pass)
+            // joins the in-flight promise instead of firing a second duplicate
+            // network pass. This is what made games/books query the DB twice.
+            const railRenderInFlight = new Map();
+            function renderRailSingleFlight(key, fn) {
+                if (railRenderInFlight.has(key)) return railRenderInFlight.get(key);
+                const p = (async () => {
+                    try { return await fn(); }
+                    finally { railRenderInFlight.delete(key); }
+                })();
+                railRenderInFlight.set(key, p);
+                return p;
+            }
             let editingMediaList = null;
             let currentMediaDetail = null;
             let hasPreloadedTabs = false;
@@ -321,8 +335,39 @@
 
             let pendingAvatarUrl = null;
 
+            // A cached session is only usable offline (without a /auth/v1/user
+            // round-trip) while its access token has not yet expired. Supabase
+            // exposes expires_at in epoch-seconds; guard both unit conventions.
+            function expirySafe(session) {
+                if (!session) return false;
+                const at = session.access_token;
+                const exp = session.expires_at;
+                const now = Math.floor(Date.now() / 1000);
+                // Heuristic: if the token claims expiry and it is in the past,
+                // treat as unsafe even if we can't parse access_token's payload.
+                if (typeof exp === 'number' && exp <= now) return false;
+                if (typeof at === 'string' && at.split('.').length === 3) {
+                    try {
+                        const payload = JSON.parse(atob(at.split('.')[1]));
+                        if (typeof payload.exp === 'number' && payload.exp <= now) return false;
+                    } catch (_e) {}
+                }
+                return true;
+            }
+
             async function resolveAuthenticatedProfileUser(client) {
                 if (!client?.auth) return null;
+                // Fast path: the persisted session was already restored during
+                // bootstrap (waitForAuthReady). getSession() is storage-backed,
+                // so it needs no /auth/v1/user round-trip. Only short-circuit
+                // when the access token has not yet expired — otherwise fall
+                // through to the verifying/refresh path below.
+                try {
+                    const cached = await client.auth.getSession();
+                    const cachedSession = cached && cached.data && cached.data.session;
+                    const cachedUser = cachedSession && cachedSession.user;
+                    if (cachedUser && cachedUser.id && expirySafe(cachedSession)) return cachedUser;
+                } catch (_e) {}
                 // On cold/slow first-open the session can be marked ready before
                 // the underlying auth user has propagated. Retry briefly before
                 // giving up so we never bounce to login (or blank) on a transient
@@ -435,14 +480,22 @@
                         }
                     }, INIT_TIMEOUT_MS);
 
-                    // Do NOT gate rendering on the slow profile load. Paint the
-                    // overview + all collection rails immediately from session
-                    // data; loadProfile() fills in real profile/banner/pins as
-                    // its queries resolve (no manual refresh needed on cold loads).
+                    // Single authoritative render. Shell + tabs bind immediately
+                    // (zero network), but rails/grids are NOT painted here against
+                    // session-only/empty data — that duplicated every collection
+                    // fetch. Sections render exactly once, after profile + showcase
+                    // data resolves, in the render pass below.
                     setupEventListeners();
                     showPrimaryTab('overview', { force: true, skipTabSync: true });
                     bindRouteListeners();
                     
+                    // Early splash sign-off: the shell + tabs render above with zero
+                    // network, so the user sees the page immediately instead of a
+                    // frozen splash while the profile/showcase query runs (which can
+                    // block up to 12s on slow networks). Rails still render exactly
+                    // once, gated on showcase config below.
+                    pd('init:earlySplashFade', 'shell rendered, elapsed=' + (Date.now() - t0) + 'ms');
+                    fadeProfileSplash();
                     if (window.innerWidth <= 768) {
                         initializeMobile();
                     }
@@ -451,26 +504,12 @@
                     preloadCollectionTabs();
                     updateCollectionViewToggleButtons();
 
-                    if (!isCollectionRouteActive()) {
-                        const renderers = [
-                            renderMovies, renderTvShows, renderAnimeShows, renderGames,
-                            renderBooks, renderMusic, renderSports, renderTravel,
-                            renderFashion, renderFood, renderCars
-                        ];
-                        renderers.forEach(fn => {
-                            if (typeof fn === 'function') {
-                                fn().catch(() => {});
-                            }
-                        });
-                    }
-
-                    // The primary content (overview + rails) is already painted,
-                    // so dismissal of the first-paint splash must not wait on the
-                    // slow profile query chain. Let the all-important content show
-                    // now; banner/pins/rails rehydrate as their data resolves.
+                    // Single authoritative render. Do NOT fire the rail renderers
+                    // here against session-only/empty data: that duplicates every
+                    // collection fetch (two loads/section). Rails render exactly
+                    // once, after the profile/showcase data is ready, below.
                     initCompleted = true;
                     if (timeoutHandle) clearTimeout(timeoutHandle);
-                    fadeProfileSplash();
 
                     // Let the profile/banner/pins resolve and apply.
                     await loadProfilePromise;
@@ -478,13 +517,9 @@
 
                     setTimeout(() => { pdDump(); }, 2500);
 
-                    // Profile data is now authoritative. From here on, tab renders
-                    // are "real" and may be stamped fresh; any render that ran
-                    // before this point (against session-only/empty data) must
-                    // NOT have been cached, so we re-render every section now.
-                    // This runs unconditionally — even when the showcase config
-                    // timed out or returned empty — because the earlier paint may
-                    // have produced empty rails/grids that must be corrected.
+                    // Profile data is now authoritative. This is the only rail/
+                    // grid render that runs — paints every section from real
+                    // profile + showcase data, exactly once per load.
                     profileDataReady = true;
                     const rehydrateT0 = Date.now();
                     pd('init:rehydrateRerender', 'start showcaseLen=' + (showcaseConfig || []).length + ' elapsed=' + (rehydrateT0 - t0) + 'ms');
@@ -506,6 +541,8 @@
                             });
                         }
                     }
+                    // Rails are now painted with real data — hide the splash now.
+                    fadeProfileSplash();
                     pd('init:rehydrateRerenderDone', 'elapsed=' + (Date.now() - t0) + 'ms rerenderMs=' + (Date.now() - rehydrateT0) + 'ms');
                     
                     document.addEventListener('click', (e) => {
@@ -1418,7 +1455,20 @@
                 updateStats().catch(err => console.error('Stats error:', err));
             }
 
+            let bannerConfigLoadInFlight = null;
             async function loadProfileBannerConfig(userId) {
+                if (!userId) return;
+                // Single-flight: rehydration and profile load both kick the banner
+                // config query. Join the in-flight load instead of firing a second
+                // duplicate query (prevents concurrent gens + duplicate network).
+                if (bannerConfigLoadInFlight) return bannerConfigLoadInFlight;
+                bannerConfigLoadInFlight = loadProfileBannerConfigImpl(userId)
+                    .catch((err) => { console.error('Banner config error:', err); })
+                    .finally(() => { bannerConfigLoadInFlight = null; });
+                return bannerConfigLoadInFlight;
+            }
+
+            async function loadProfileBannerConfigImpl(userId) {
                 if (!userId) return;
                 let config = null;
                 pd('banner:kickoff-gen', 'gen=' + ProfileBackdropEngine.__genHint() + ' uid=' + String(userId).slice(0, 8));
@@ -1427,48 +1477,77 @@
 
                 // 1. Check profile_showcase (latest row and prune duplicates)
                 if (supabase && isUuid(userId)) {
-                    const MAX_SHOWCASE_ATTEMPTS = 4;
-                    const SHOWCASE_RETRY_BACKOFF = 700;
-                    for (let attempt = 1; attempt <= MAX_SHOWCASE_ATTEMPTS; attempt++) {
-                        let bannerRows = null;
-                        try {
-                            bannerRows = await withTimeout(
-                                supabase
-                                    .from('profile_showcase')
-                                    .select('*')
-                                    .eq('user_id', userId)
-                                    .eq('media_type', 'banner')
-                                    .order('created_at', { ascending: false }),
-                                4000
-                            );
-                        } catch (e) {
-                            console.warn('Notice loading banner config from profile_showcase:', e);
-                            break;
-                        }
-                        const timedOut = !!(bannerRows && bannerRows.__timedOut);
-                        const rows = bannerRows && !timedOut ? (bannerRows.data || []) : null;
-                        pd('banner:source1-showcase', timedOut ? ('TIMEOUT(4s) attempt=' + attempt) : ('rows=' + (Array.isArray(rows) ? rows.length : 'none')));
+                    // PROOF: did the banner query have a valid session attached?
+                    // Mobile showed rows=0 where desktop showed rows=1 for the same
+                    // account, which would mean RLS blanked the request (anon/partial
+                    // session at query time). Log whether a session token exists and
+                    // whether the request header is populated.
+                    let sessProbe = null;
+                    try {
+                        const got = await supabase.auth.getSession();
+                        sessProbe = (got && got.data && got.data.session && got.data.session.access_token) ? true : false;
+                    } catch (_p) { sessProbe = 'err'; }
+                    try {
+                        pd('banner:auth-probe', 'sessionToken=' + String(sessProbe) + ' clientHasAuth=' + !!(supabase && supabase.auth) + ' apikeyRace=' + (window.__ZO2Y_ENSURE_SUPABASE_CLIENT ? 'ensureFn' : 'direct'));
+                    } catch (_p) {}
 
-                        if (timedOut) {
-                            if (attempt < MAX_SHOWCASE_ATTEMPTS) {
-                                await new Promise(r => setTimeout(r, SHOWCASE_RETRY_BACKOFF * attempt));
-                                continue;
-                            }
-                            break;
+                    // COLD-START GATE: on mobile the session token attaches AFTER the
+                    // initial boot (auth restore finishes asynchronously at roughly
+                    // the same moment this banner query fires). If we query while the
+                    // token is still absent, postgrest goes anonymous and RLS masks
+                    // the row -> rows=0 -> NO-CONFIG even though the user is authed.
+                    // Wait briefly for the token; fall through gracefully if it never
+                    // arrives (anon user) so sources 2/3 still run.
+                    if (supabase && supabase.auth && !sessProbe) {
+                        let waited = 0;
+                        const WAIT_MS = 2500;
+                        while (waited < WAIT_MS) {
+                            let tok = null;
+                            try {
+                                const g2 = await supabase.auth.getSession();
+                                tok = (g2 && g2.data && g2.data.session && g2.data.session.access_token) ? true : false;
+                            } catch (_g) { break; }
+                            if (tok) { sessProbe = true; break; }
+                            await new Promise(r => setTimeout(r, 150));
+                            waited += 150;
                         }
+                        pd('banner:auth-gate', sessProbe ? ('token-attached waitMs=' + waited) : ('no-token-after ' + waited + 'ms'));
+                    }
 
-                        if (Array.isArray(rows) && rows.length > 0) {
-                            const bannerRow = rows[0];
-                            if (rows.length > 1) {
-                                const extraIds = rows.slice(1).map(r => r.id);
-                                void supabase.from('profile_showcase').delete().in('id', extraIds);
-                            }
-                            if (bannerRow && bannerRow.list_id) {
-                                showcaseData['banner'] = bannerRow;
-                                config = JSON.parse(bannerRow.list_id);
-                            }
+                    let bannerRows = null;
+                    try {
+                        bannerRows = await withTimeout(
+                            supabase
+                                .from('profile_showcase')
+                                .select('*')
+                                .eq('user_id', userId)
+                                .eq('media_type', 'banner')
+                                .order('created_at', { ascending: false }),
+                            6000
+                        );
+                    } catch (e) {
+                        console.warn('Notice loading banner config from profile_showcase:', e);
+                    }
+                    const timedOut = !!(bannerRows && bannerRows.__timedOut);
+                    const rows = bannerRows && !timedOut ? (bannerRows.data || []) : null;
+                    pd('banner:source1-showcase', timedOut ? 'TIMEOUT(6s)' : ('rows=' + (Array.isArray(rows) ? rows.length : 'none')));
+
+                    // Single query per kickoff. On timeout we do NOT re-issue a
+                    // fresh request while the original is still in flight (that
+                    // stacked 3-4 duplicate queries). If banner data arrives late,
+                    // the rehydrate path re-kicks once more after the real profile
+                    // lands — single-flight guarantees no more than one query at
+                    // a time.
+                    if (!timedOut && Array.isArray(rows) && rows.length > 0) {
+                        const bannerRow = rows[0];
+                        if (rows.length > 1) {
+                            const extraIds = rows.slice(1).map(r => r.id);
+                            void supabase.from('profile_showcase').delete().in('id', extraIds);
                         }
-                        break;
+                        if (bannerRow && bannerRow.list_id) {
+                            showcaseData['banner'] = bannerRow;
+                            config = JSON.parse(bannerRow.list_id);
+                        }
                     }
                 }
 
@@ -4779,6 +4858,66 @@
                 };
             }
 
+            // Bulk-resolve a set of game ids in ONE games-table query (mirrors
+            // the collection view's single-query load). This is the common path
+            // for the rail: saved games already live in the games table, so we
+            // avoid N per-id round-trips that stall the profile on slow networks.
+            async function fetchGameDetailsBulk(gameIds) {
+                const ids = Array.isArray(gameIds)
+                    ? gameIds.map(id => String(id || '').trim()).filter(Boolean)
+                    : [];
+                if (!ids.length) return [];
+                const cacheable = ids.map(id => id.startsWith('rawg_') ? 'rawg_' : String(Number(id))).filter(Boolean);
+                const freshIds = ids.filter((id, i) => !gameCache.has(id) && !gameCache.has(cacheable[i]));
+                const results = new Map();
+                ids.forEach((id, i) => {
+                    const rec = gameCache.get(id) || gameCache.get(cacheable[i]);
+                    if (rec) results.set(id, rec);
+                });
+
+                if (freshIds.length && supabase) {
+                    try {
+                        const numericIds = freshIds.filter(id => Number.isFinite(Number(id))).map(Number);
+                        const slugIds = freshIds.filter(id => !Number.isFinite(Number(id)));
+                        const chunks = [];
+                        for (let i = 0; i < numericIds.length; i += 50) chunks.push(numericIds.slice(i, i + 50));
+                        if (slugIds.length) chunks.push(slugIds);
+                        for (const chunk of chunks) {
+                            if (!chunk.length) continue;
+                            let query = supabase.from('games').select('*');
+                            query = Number.isFinite(Number(chunk[0]))
+                                ? query.in('id', chunk)
+                                : query.in('id', chunk);
+                            const { data, error } = await query;
+                            if (error) continue;
+                            (data || []).forEach((row) => {
+                                const rec = normalizeSupabaseGameRecord(row);
+                                if (!rec) return;
+                                const key = String(rec.id).trim();
+                                gameCache.set(key, rec);
+                                if (ids.includes(key)) results.set(key, rec);
+                            });
+                        }
+                    } catch (_err) {}
+                }
+
+                // Any ids still unresolved (not in DB) fall back to the single-id
+                // resolver, which covers IGDB/Wikipedia. Usually none.
+                const remaining = ids.filter(id => !results.has(id) && !gameCache.has(id));
+                if (remaining.length) {
+                    const singles = await Promise.all(remaining.map(async (id) => {
+                        try { return { id, rec: await fetchGameDetails(id) }; }
+                        catch (_e) { return { id, rec: null }; }
+                    }));
+                    singles.forEach(({ id, rec }) => {
+                        if (rec) results.set(id, rec);
+                        else if (!results.has(id)) results.set(id, null);
+                    });
+                }
+
+                return ids.map(id => results.get(id)).filter(Boolean);
+            }
+
             async function fetchGameDetails(gameId) {
                 const cacheKey = String(gameId || '').trim();
                 if (!cacheKey) return null;
@@ -7559,7 +7698,11 @@ const alreadyActive = isMobile
                 track.innerHTML = '';
                 const railEl = track.closest(isMobile ? '.mph2-row' : '.pv2-rail');
 
-                const filteredUrls = Array.isArray(previewUrls) ? previewUrls.filter(Boolean) : [];
+                const rawUrls = Array.isArray(previewUrls) ? previewUrls.filter(Boolean) : [];
+                // Never paint the same asset twice in one rail (guards against
+                // duplicate rows resolving to the same image). Matches the
+                // collection page, which dedupes by game.id.
+                const filteredUrls = Array.from(new Set(rawUrls));
 
                 if (!filteredUrls.length) {
                     track.className = '';
@@ -7628,7 +7771,10 @@ const alreadyActive = isMobile
 
                 // Lean: fetch only item_id, skipping the full-row select and the
                 // per-book repair storm that ListService.loadList performs.
-                const itemIds = await fetchLeanListItemIds(supabase, userId, contentType, listId, listType);
+                const rawItemIds = await fetchLeanListItemIds(supabase, userId, contentType, listId, listType);
+                // Dedupe any repeated rows (duplicate list_items) so the rail never
+                // paints the same game/book/etc twice — matching the collection page.
+                const itemIds = Array.from(new Set(rawItemIds.map(id => String(id).trim()).filter(Boolean)));
                 return {
                     title,
                     mediaType: contentType,
@@ -7700,6 +7846,10 @@ const alreadyActive = isMobile
             }
 
             async function renderMovies() {
+                return renderRailSingleFlight('movies', renderMoviesImpl);
+            }
+
+            async function renderMoviesImpl() {
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
                 const renderToken = ++renderMoviesToken;
@@ -7726,6 +7876,10 @@ const alreadyActive = isMobile
             let movieShowcaseData = {};
 
             async function renderTvShows() {
+                return renderRailSingleFlight('tv', renderTvShowsImpl);
+            }
+
+            async function renderTvShowsImpl() {
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
                 const renderToken = ++renderTvToken;
@@ -7752,6 +7906,10 @@ const alreadyActive = isMobile
             let tvShowcaseData = {};
 
             async function renderAnimeShows() {
+                return renderRailSingleFlight('anime', renderAnimeShowsImpl);
+            }
+
+            async function renderAnimeShowsImpl() {
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
                 const renderToken = ++renderAnimeToken;
@@ -7778,6 +7936,10 @@ const alreadyActive = isMobile
             let animeShowcaseData = {};
 
             async function renderGames() {
+                return renderRailSingleFlight('games', renderGamesImpl);
+            }
+
+            async function renderGamesImpl() {
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
                 const renderToken = ++renderGamesToken;
@@ -7804,6 +7966,10 @@ const alreadyActive = isMobile
             let gameShowcaseData = {};
 
             async function renderBooks() {
+                return renderRailSingleFlight('books', renderBooksImpl);
+            }
+
+            async function renderBooksImpl() {
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
                 const renderToken = ++renderBooksToken;
@@ -7830,6 +7996,10 @@ const alreadyActive = isMobile
             let bookShowcaseData = {};
 
             async function renderMusic() {
+                return renderRailSingleFlight('music', renderMusicImpl);
+            }
+
+            async function renderMusicImpl() {
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
                 const renderToken = ++renderMusicToken;
@@ -8397,16 +8567,14 @@ const alreadyActive = isMobile
                                 writePreviewAssetCache(contentType, id, countryFlagFromCode(code));
                             });
                         } else if (contentType === 'game') {
-                            await Promise.all(missingIds.map(async (id) => {
-                                try {
-                                    const game = await fetchGameDetails(id);
-                                    const imageUrl = normalizeGameImageSource(game);
-                                    writePreviewAssetCache(contentType, id, imageUrl || FALLBACK_GAME_IMAGE);
-                                } catch (err) {
-                                    console.error(`Error fetching game details for ${id} in preview:`, err);
-                                    writePreviewAssetCache(contentType, id, FALLBACK_GAME_IMAGE);
-                                }
-                            }));
+                            const recoveredIds = Array.from(new Set(missingIds.map(id => String(id || '').trim()).filter(Boolean)));
+                            const recoveredGames = await fetchGameDetailsBulk(recoveredIds);
+                            const byId = new Map(recoveredGames.map(g => [String(g && (g.id ?? g.slug)).trim(), g]));
+                            recoveredIds.forEach((id) => {
+                                const game = byId.get(String(id).trim()) || gameCache.get(String(id).trim());
+                                const imageUrl = game ? normalizeGameImageSource(game) : FALLBACK_GAME_IMAGE;
+                                writePreviewAssetCache(contentType, id, imageUrl);
+                            });
                         } else if (contentType === 'tv') {
                             await Promise.all(missingIds.map(async (id) => {
                                 try {
@@ -8835,11 +9003,6 @@ const alreadyActive = isMobile
                     itemCard.innerHTML = `
                         <div class="collection-poster-wrapper">
                             <img class="collection-item-image" src="${movie.poster_path ? TMDB_POSTER + movie.poster_path : 'images/placeholder.jpg'}" alt="${movie.title}" loading="lazy">
-                            ${canEditItems ? `
-                                <button class="collection-item-corner-trash-btn" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${movieIdValue}, '${listId}', 'movie', '${listType}')" aria-label="Remove item">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            ` : ''}
                         </div>
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${movie.title}</h3>
@@ -8847,6 +9010,11 @@ const alreadyActive = isMobile
                                 <span><i class="fas fa-calendar"></i> ${movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}</span>
                                 ${movie.vote_average ? `<span><i class="fas fa-star"></i> ${movie.vote_average.toFixed(1)}</span>` : ''}
                             </div>
+                            ${canEditItems ? `
+                                <button class="collection-item-corner-trash-btn" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${movieIdValue}, '${listId}', 'movie', '${listType}')" aria-label="Remove item" title="Remove item">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            ` : ''}
                             ${rankMarkup}
                         </div>
                     `;
@@ -9036,11 +9204,6 @@ const alreadyActive = isMobile
                     itemCard.innerHTML = `
                         <div class="collection-poster-wrapper">
                             <img class="collection-item-image" src="${show.poster_path ? TMDB_POSTER + show.poster_path : 'images/placeholder.jpg'}" alt="${showTitle}" loading="lazy">
-                            ${canEditItems ? `
-                                <button class="collection-item-corner-trash-btn" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${tvIdValue}, '${listId}', 'tv', '${listType}')" aria-label="Remove item">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            ` : ''}
                         </div>
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${showTitle}</h3>
@@ -9048,6 +9211,11 @@ const alreadyActive = isMobile
                                 <span><i class="fas fa-calendar"></i> ${show.first_air_date ? new Date(show.first_air_date).getFullYear() : 'N/A'}</span>
                                 <span><i class="fas fa-star"></i> ${show.vote_average ? show.vote_average.toFixed(1) : 'N/A'}</span>
                             </div>
+                            ${canEditItems ? `
+                                <button class="collection-item-corner-trash-btn" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${tvIdValue}, '${listId}', 'tv', '${listType}')" aria-label="Remove item" title="Remove item">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            ` : ''}
                             ${rankMarkup}
                         </div>
                     `;
@@ -9237,11 +9405,6 @@ const alreadyActive = isMobile
                     itemCard.innerHTML = `
                         <div class="collection-poster-wrapper">
                             <img class="collection-item-image" src="${show.poster_path ? TMDB_POSTER + show.poster_path : 'images/placeholder.jpg'}" alt="${showTitle}" loading="lazy">
-                            ${canEditItems ? `
-                                <button class="collection-item-corner-trash-btn" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${animeIdValue}, '${listId}', 'anime', '${listType}')" aria-label="Remove item">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            ` : ''}
                         </div>
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${showTitle}</h3>
@@ -9249,6 +9412,11 @@ const alreadyActive = isMobile
                                 <span><i class="fas fa-calendar"></i> ${show.first_air_date ? new Date(show.first_air_date).getFullYear() : 'N/A'}</span>
                                 <span><i class="fas fa-star"></i> ${show.vote_average ? show.vote_average.toFixed(1) : 'N/A'}</span>
                             </div>
+                            ${canEditItems ? `
+                                <button class="collection-item-corner-trash-btn" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${animeIdValue}, '${listId}', 'anime', '${listType}')" aria-label="Remove item" title="Remove item">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            ` : ''}
                             ${rankMarkup}
                         </div>
                     `;
@@ -12216,7 +12384,7 @@ const alreadyActive = isMobile
                                     .in('media_type', ['movie', 'tv', 'anime'])
                                     .order('created_at', { ascending: false })
                                     .limit(30);
-                                const favRes = await withTimeout(favQ, 4000);
+                                const favRes = await withTimeout(favQ, 5000);
                                 const favItems = favRes && !favRes.__timedOut ? favRes.data : null;
                                 pd('banner:auto-fallback-done', 'gen=' + gen + ' rows=' + (Array.isArray(favItems) ? favItems.length : 'timeout/empty'));
                                 if (Array.isArray(favItems) && favItems.length) {

@@ -395,24 +395,25 @@
 
 @media (max-width: 768px) {
   .umh-backdrop-wrap {
-    height: clamp(360px, 52vh, 440px);
+    height: clamp(420px, 58vh, 520px);
   }
   
   .umh-content-wrapper {
-    grid-template-columns: 145px minmax(0, 1fr);
+    grid-template-columns: 165px minmax(0, 1fr);
     grid-template-areas:
       "poster title-meta"
       "actions-desc actions-desc";
     gap: 16px;
-    margin-top: -160px;
+    margin-top: -190px;
     align-items: start;
-    width: min(1280px, 100% - 32px);
+    width: min(1280px, 100% - 24px);
   }
   
   .umh-poster-frame {
     width: 100%;
-    max-width: 155px;
+    max-width: 170px;
     margin: 0;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.12);
   }
 
   .elevated-detail-page[data-elevated-category="travel"] .umh-poster-frame {
