@@ -55,7 +55,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 <script src="js/shared-header.js?v=20260721B" defer></script>
 
     <script src="/js/components/list-modal.js?v=20260722b" defer></script>
-    <script src="js/pages/profile.js?v=20260806C" defer></script>
+    <script src="js/pages/profile.js?v=20260806E" defer></script>
     <noscript></noscript>
 
   
@@ -1053,35 +1053,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <div class="mph2-banner-vignette"></div>
             </div>
 
-            <!-- Topbar: Globe (Community) + Gear (Settings) -->
-            <div class="mph2-topbar">
-                <div class="mph2-topbar-actions">
-                    <a href="community.html" class="pv2-banner-action-btn pv2-globe-btn" title="Community" aria-label="Community">
-                        <i class="fas fa-globe"></i>
-                    </a>
-                    <div class="pv2-gear-wrap">
-                        <button class="pv2-banner-action-btn pv2-gear-btn" id="mobileGearBtn" onclick="window.ProfileManager&&ProfileManager.toggleGearMenu(event)" title="Settings" aria-label="Settings">
-                            <i class="fas fa-cog"></i>
-                        </button>
-                        <div class="pv2-gear-menu" id="mobileProfileGearMenu">
-                            <button class="pv2-gear-item" onclick="window.ProfileManager&&ProfileManager.showEditProfileModal('profile'); window.ProfileManager&&ProfileManager.closeGearMenu()">
-                                <i class="fas fa-user-edit"></i> Edit Profile
-                            </button>
-                            <button class="pv2-gear-item" onclick="BannerPicker.openPicker(); window.ProfileManager&&ProfileManager.closeGearMenu()">
-                                <i class="fas fa-image"></i> Change Banner
-                            </button>
-                            <button class="pv2-gear-item" onclick="window.ProfileManager&&ProfileManager.showModal('accountSettingsModal'); window.ProfileManager&&ProfileManager.closeGearMenu()">
-                                <i class="fas fa-sliders-h"></i> Account Settings
-                            </button>
-                            <div class="pv2-gear-divider"></div>
-                            <button class="pv2-gear-item pv2-gear-danger" onclick="window.ProfileManager&&ProfileManager.logout()">
-                                <i class="fas fa-sign-out-alt"></i> Logout
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Hero body: avatar + identity -->
             <div class="mph2-hero-body">
                 <div class="mph2-avatar-wrap">
@@ -1093,6 +1064,34 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="mph2-bio" id="mobileProfileBio">No bio yet. Tap edit to add one!</div>
                     <div class="mph2-meta" id="mobileProfileMeta">
                         <span class="mph2-meta-item"><i class="fas fa-map-marker-alt"></i> <span id="mobileProfileLocation">—</span></span>
+                    </div>
+                </div>
+                <!-- Topbar: Globe (Community) + Gear (Settings) -->
+                <div class="mph2-topbar">
+                    <div class="mph2-topbar-actions">
+                        <a href="community.html" class="pv2-banner-action-btn pv2-globe-btn" title="Community" aria-label="Community">
+                            <i class="fas fa-globe"></i>
+                        </a>
+                        <div class="pv2-gear-wrap">
+                            <button class="pv2-banner-action-btn pv2-gear-btn" id="mobileGearBtn" onclick="window.ProfileManager&&ProfileManager.toggleGearMenu(event)" title="Settings" aria-label="Settings">
+                                <i class="fas fa-cog"></i>
+                            </button>
+                            <div class="pv2-gear-menu" id="mobileProfileGearMenu">
+                                <button class="pv2-gear-item" onclick="window.ProfileManager&&ProfileManager.showEditProfileModal('profile'); window.ProfileManager&&ProfileManager.closeGearMenu()">
+                                    <i class="fas fa-user-edit"></i> Edit Profile
+                                </button>
+                                <button class="pv2-gear-item" onclick="BannerPicker.openPicker(); window.ProfileManager&&ProfileManager.closeGearMenu()">
+                                    <i class="fas fa-image"></i> Change Banner
+                                </button>
+                                <button class="pv2-gear-item" onclick="window.ProfileManager&&ProfileManager.showModal('accountSettingsModal'); window.ProfileManager&&ProfileManager.closeGearMenu()">
+                                    <i class="fas fa-sliders-h"></i> Account Settings
+                                </button>
+                                <div class="pv2-gear-divider"></div>
+                                <button class="pv2-gear-item pv2-gear-danger" onclick="window.ProfileManager&&ProfileManager.logout()">
+                                    <i class="fas fa-sign-out-alt"></i> Logout
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

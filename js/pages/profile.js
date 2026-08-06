@@ -1388,23 +1388,41 @@
             async function loadProfileBannerConfig(userId) {
                 if (!userId) return;
                 let config = null;
+                pd('banner:kickoff-gen', 'gen=' + ProfileBackdropEngine.__genHint() + ' uid=' + String(userId).slice(0, 8));
 
                 const isUuid = (str) => typeof str === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 
                 // 1. Check profile_showcase (latest row and prune duplicates)
                 if (supabase && isUuid(userId)) {
-                    try {
-                        const bannerRows = await withTimeout(
-                            supabase
-                                .from('profile_showcase')
-                                .select('*')
-                                .eq('user_id', userId)
-                                .eq('media_type', 'banner')
-                                .order('created_at', { ascending: false }),
-                            4000
-                        );
-                        const rows = bannerRows && !bannerRows.__timedOut ? (bannerRows.data || []) : null;
-                        pd('banner:source1-showcase', (bannerRows && bannerRows.__timedOut) ? 'TIMEOUT(4s)' : ('rows=' + (Array.isArray(rows) ? rows.length : 'none')));
+                    const MAX_SHOWCASE_ATTEMPTS = 4;
+                    const SHOWCASE_RETRY_BACKOFF = 700;
+                    for (let attempt = 1; attempt <= MAX_SHOWCASE_ATTEMPTS; attempt++) {
+                        let bannerRows = null;
+                        try {
+                            bannerRows = await withTimeout(
+                                supabase
+                                    .from('profile_showcase')
+                                    .select('*')
+                                    .eq('user_id', userId)
+                                    .eq('media_type', 'banner')
+                                    .order('created_at', { ascending: false }),
+                                4000
+                            );
+                        } catch (e) {
+                            console.warn('Notice loading banner config from profile_showcase:', e);
+                            break;
+                        }
+                        const timedOut = !!(bannerRows && bannerRows.__timedOut);
+                        const rows = bannerRows && !timedOut ? (bannerRows.data || []) : null;
+                        pd('banner:source1-showcase', timedOut ? ('TIMEOUT(4s) attempt=' + attempt) : ('rows=' + (Array.isArray(rows) ? rows.length : 'none')));
+
+                        if (timedOut) {
+                            if (attempt < MAX_SHOWCASE_ATTEMPTS) {
+                                await new Promise(r => setTimeout(r, SHOWCASE_RETRY_BACKOFF * attempt));
+                                continue;
+                            }
+                            break;
+                        }
 
                         if (Array.isArray(rows) && rows.length > 0) {
                             const bannerRow = rows[0];
@@ -1417,8 +1435,7 @@
                                 config = JSON.parse(bannerRow.list_id);
                             }
                         }
-                    } catch (e) {
-                        console.warn('Notice loading banner config from profile_showcase:', e);
+                        break;
                     }
                 }
 
@@ -11979,21 +11996,27 @@ const alreadyActive = isMobile
                 let backdropUrls = [];
                 let currentIndex = 0;
                 let activeLayer = 'A';
+                let initGen = 0;
 
-                async function fetchBackdropUrl(item) {
+                async function fetchBackdropUrl(item, gen) {
                     if (!item) return null;
                     if (item.url) return item.url;
                     if (!item.media_type || !item.media_id) return null;
                     const fbId = String(item.media_id || '').slice(0, 20);
-                    pd('banner:fetchBackdrop', 'type=' + item.media_type + ' id=' + fbId);
+                    pd('banner:fetchBackdrop', 'gen=' + gen + ' type=' + item.media_type + ' id=' + fbId);
                     try {
                         const type = item.media_type;
                         const id = item.media_id;
                         if (type === 'movie' || type === 'tv' || type === 'anime') {
                             const endpoint = type === 'movie' ? 'movie' : 'tv';
+                            pd('banner:tmdb-start', 'gen=' + gen + ' ' + endpoint + '/' + id);
                             const res = await fetch(`/api/tmdb/${endpoint}/${id}?language=en`);
-                            if (!res.ok) return null;
+                            if (!res.ok) {
+                                pd('banner:tmdb-done', 'gen=' + gen + ' NOT-OK status=' + res.status + ' ' + endpoint + '/' + id);
+                                return null;
+                            }
                             const data = await res.json();
+                            pd('banner:tmdb-done', 'gen=' + gen + ' ok backdrop_path=' + (data && data.backdrop_path ? 'YES' : 'NO') + ' ' + endpoint + '/' + id);
                             if (data && data.backdrop_path) {
                                 return `https://image.tmdb.org/t/p/w1280${data.backdrop_path}`;
                             }
@@ -12027,8 +12050,9 @@ const alreadyActive = isMobile
                     return null;
                 }
 
-                function preloadAndFade(url) {
+                function preloadAndFade(url, gen) {
                     if (!url) return Promise.resolve(false);
+                    pd('banner:preload-start', 'gen=' + gen + ' url=' + url.slice(0, 80));
                     return new Promise((resolve) => {
                         const tempImg = new Image();
                         let settled = false;
@@ -12050,9 +12074,13 @@ const alreadyActive = isMobile
                             const currentEl = document.getElementById(currentLayerId);
                             const blurEl = document.getElementById('backdropBlur');
                             const mobileBackdrop = document.getElementById('mobileBannerBackdrops');
+                            const appliedTo = [];
+                            const didLoad = tempImg && tempImg.naturalWidth > 0;
+                            pd('banner:applied', 'gen=' + gen + ' loaded=' + (didLoad ? 'Y' : 'N') + ' nw=' + (tempImg && tempImg.naturalWidth) + ' url=' + url.slice(0, 60));
 
                             if (blurEl) {
                                 blurEl.src = url;
+                                appliedTo.push('blur');
                             }
                             if (nextEl && currentEl) {
                                 nextEl.src = url;
@@ -12061,6 +12089,7 @@ const alreadyActive = isMobile
                                 nextEl.classList.add('active');
                                 currentEl.classList.remove('active');
                                 activeLayer = activeLayer === 'A' ? 'B' : 'A';
+                                appliedTo.push(nextLayerId);
                             }
                             if (mobileBackdrop) {
                                 mobileBackdrop.innerHTML = '';
@@ -12071,10 +12100,12 @@ const alreadyActive = isMobile
                                 mImg.src = url;
                                 mobileBackdrop.appendChild(mImg);
                                 mobileBackdrop.classList.remove('is-empty');
+                                appliedTo.push('mobile');
                             }
                             done(true);
                         };
                         tempImg.onerror = function() {
+                            pd('banner:preload-error', 'gen=' + gen + ' url=' + url.slice(0, 60));
                             done(false);
                         };
                         tempImg.src = url;
@@ -12082,6 +12113,8 @@ const alreadyActive = isMobile
                 }
 
                 async function init(featuredItems, mode = 'rotate') {
+                    const gen = ++initGen;
+                    pd('banner:init-start', 'gen=' + gen + ' featured=' + (featuredItems && featuredItems.length ? featuredItems.length : '0') + ' mode=' + mode);
                     stop();
                     let itemsToLoad = featuredItems;
                     let loadMode = mode;
@@ -12115,12 +12148,12 @@ const alreadyActive = isMobile
                     }
                     
                     if (!itemsToLoad || !itemsToLoad.length) {
-                        pd('banner:auto-fallback', 'no featured items; querying favorites list_items');
+                        pd('banner:auto-fallback', 'gen=' + gen + ' no featured items; querying favorites list_items');
                         const autoList = [];
                         try {
                             const userId = viewUserId || currentUser?.id;
                             if (userId && supabase) {
-                                const { data: favItems } = await supabase
+                                const favQ = supabase
                                     .from('list_items')
                                     .select('item_id, media_type')
                                     .eq('user_id', userId)
@@ -12128,19 +12161,24 @@ const alreadyActive = isMobile
                                     .in('media_type', ['movie', 'tv', 'anime'])
                                     .order('created_at', { ascending: false })
                                     .limit(30);
+                                const favRes = await withTimeout(favQ, 4000);
+                                const favItems = favRes && !favRes.__timedOut ? favRes.data : null;
+                                pd('banner:auto-fallback-done', 'gen=' + gen + ' rows=' + (Array.isArray(favItems) ? favItems.length : 'timeout/empty'));
                                 if (Array.isArray(favItems) && favItems.length) {
                                     const shuffled = favItems.slice().sort(() => Math.random() - 0.5);
                                     shuffled.slice(0, 10).forEach(row => {
                                         autoList.push({ media_type: row.media_type, media_id: String(row.item_id) });
                                     });
                                 }
+                            } else {
+                                pd('banner:auto-fallback-done', 'gen=' + gen + ' NO-USER-NO-CLIENT');
                             }
                         } catch (_e) {}
                         itemsToLoad = autoList;
                     }
 
                     if (!itemsToLoad || !itemsToLoad.length) {
-                        pd('banner:NO-ITEMS-EVEN-FALLBACK', 'nothing to show; banner will stay default');
+                        pd('banner:NO-ITEMS-EVEN-FALLBACK', 'gen=' + gen + ' nothing to show; banner will stay default');
                         return;
                     }
 
@@ -12149,32 +12187,32 @@ const alreadyActive = isMobile
                         itemsToLoad = [itemsToLoad[0]];
                     }
 
-                    pd('banner:init', 'items=' + itemsToLoad.length + ' mode=' + loadMode + ' first=' + String(itemsToLoad[0] && (itemsToLoad[0].url || itemsToLoad[0].media_id)).slice(0, 80));
-                    const resolved = await Promise.all(itemsToLoad.map(fetchBackdropUrl));
+                    pd('banner:init', 'gen=' + gen + ' items=' + itemsToLoad.length + ' mode=' + loadMode + ' first=' + String(itemsToLoad[0] && (itemsToLoad[0].url || itemsToLoad[0].media_id)).slice(0, 80));
+                    const resolved = await Promise.all(itemsToLoad.map((it) => fetchBackdropUrl(it, gen)));
                     backdropUrls = resolved.filter(Boolean);
-                    pd('banner:backdropUrls', 'requested=' + itemsToLoad.length + ' resolved=' + backdropUrls.length);
+                    pd('banner:backdropUrls', 'gen=' + gen + ' requested=' + itemsToLoad.length + ' resolved=' + backdropUrls.length);
 
                     if (!backdropUrls.length) {
-                        pd('banner:NO-BACKDROPS', 'all fetchBackdropUrl returned empty');
+                        pd('banner:NO-BACKDROPS', 'gen=' + gen + ' all fetchBackdropUrl returned empty');
                         return;
                     }
 
                     const shuffled = loadMode === 'static' ? backdropUrls : backdropUrls.slice().sort(() => Math.random() - 0.5);
                     for (const url of shuffled) {
-                        const ok = await preloadAndFade(url);
+                        const ok = await preloadAndFade(url, gen);
                         if (ok) {
-                            pd('banner:preloaded-ok', url.slice(0, 80));
+                            pd('banner:preloaded-ok', 'gen=' + gen + ' ' + url.slice(0, 80));
                             break;
                         }
                     }
-                    pd('banner:init-done', 'exited loop');
+                    pd('banner:init-done', 'gen=' + gen + ' exited loop');
                 }
 
                 function stop() {
                     backdropUrls = [];
                 }
 
-                return { init, stop, fetchBackdropUrl };
+                return { init, stop, fetchBackdropUrl, __genHint: function() { return initGen; } };
             })();
 
             function toggleOverflowMenu() {
