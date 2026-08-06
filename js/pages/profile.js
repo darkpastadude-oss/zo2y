@@ -7,9 +7,6 @@
                 if (!debugEnabled) return;
                 const entry = { t: Date.now(), label: String(label || ''), detail: detail || '' };
                 __debug.push(entry);
-                try {
-                    if (window.__zo2yDebugAdd) window.__zo2yDebugAdd(entry.label, entry.detail, entry.t);
-                } catch(_) {}
                 try { console.log('[zo2y-debug]', entry.t, entry.label, entry.detail); } catch(_) {}
             }
             function pdDump() {
@@ -351,8 +348,7 @@
                 const INIT_TIMEOUT_MS = 15000;
                 let timeoutHandle = null;
                 let initCompleted = false;
-                const t0 = Date.now();
-                pd('init:start', 'ts=' + t0);
+                pd('init:start', 'ts=' + Date.now());
 
                 try {
                     clearLegacyProfileBookCaches();
@@ -368,7 +364,6 @@
                     if (!window.supabase) {
                         return;
                     }
-                    pd('init:win-supabase', 'ready=1 elapsed=' + (Date.now() - t0) + 'ms');
 
                     const authRuntime = window.ZO2Y_AUTH || null;
                     if (authRuntime && typeof authRuntime.waitForSupabase === 'function') {
@@ -378,11 +373,9 @@
                     // Wait for the persisted session to be restored before running
                     // any query. bootstrap-auth restores it asynchronously; racing it
                     // on cold mobile first-open left the page on username-only data.
-                    const authReady = await waitForAuthReady(10000);
-                    pd('init:authReady', 'ready=' + authReady + ' after=' + (Date.now() - t0) + 'ms __AUTH_READY=' + String(window.__AUTH_READY));
+                    await waitForAuthReady(10000);
 
-                    const hadEnsureFn = !!(window.__ZO2Y_ENSURE_SUPABASE_CLIENT && typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function');
-                    if (hadEnsureFn) {
+                    if (window.__ZO2Y_ENSURE_SUPABASE_CLIENT && typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
                         supabase = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
                     }
                     if (!supabase) {
@@ -396,12 +389,9 @@
                             }
                         });
                     }
-                    pd('init:client', 'source=' + (hadEnsureFn ? 'bridge' : 'createClient') + ' ready=' + !!supabase + ' after=' + (Date.now() - t0) + 'ms');
                     
                     const user = await resolveAuthenticatedProfileUser(supabase);
-                    pd('init:resolveUser', 'user=' + (user ? 'YES' : 'NO') + ' id=' + String(user?.id || '').slice(0, 8) + ' after=' + (Date.now() - t0) + 'ms');
                     if (!user) { 
-                        pd('init:noUser', 'redirectingToLogin');
                         if (window.ZO2Y_AUTH && typeof window.ZO2Y_AUTH.redirectToLogin === 'function') {
                             window.ZO2Y_AUTH.redirectToLogin(window.location.pathname + window.location.search + window.location.hash);
                         } else {
@@ -409,7 +399,6 @@
                         }
                         return; 
                     }
-                    pd('init:userOk', 'id=' + String(user.id).slice(0, 8) + ' email=' + String(user.email || '').slice(0, 40));
                     
                     currentUser = user;
                     window.currentUser = user;
@@ -486,8 +475,6 @@
                     // timed out or returned empty — because the earlier paint may
                     // have produced empty rails/grids that must be corrected.
                     profileDataReady = true;
-                    const rehydrateT0 = Date.now();
-                    pd('init:rehydrateRerender', 'start showcaseLen=' + (showcaseConfig || []).length + ' elapsed=' + (rehydrateT0 - t0) + 'ms');
                     if (!isCollectionRouteActive()) {
                         const renderers = [
                             renderMovies, renderTvShows, renderAnimeShows, renderGames,
@@ -506,7 +493,6 @@
                             });
                         }
                     }
-                    pd('init:rehydrateRerenderDone', 'elapsed=' + (Date.now() - t0) + 'ms rerenderMs=' + (Date.now() - rehydrateT0) + 'ms');
                     
                     document.addEventListener('click', (e) => {
                         if (!e.target.closest('.list-card-actions')) {
@@ -1311,14 +1297,12 @@
                 resetCollaborativeListAccess();
                 targetUserId = getUserIdFromUrl();
                 isViewingOwnProfile = !targetUserId || targetUserId === currentUser.id;
-                pd('profile:loadProfile', 'own=' + isViewingOwnProfile + ' targetUserId=' + String(targetUserId || '').slice(0, 8));
 
                 if (isViewingOwnProfile) {
                     await loadOwnProfile();
                 } else {
                     await loadOtherUserProfile();
                 }
-                pd('profile:afterOwnLoad', 'avatar=' + String((userProfile||{}).avatar_url || 'NONE').slice(0, 40) + ' profileResolvedFromDb=' + profileResolvedFromDb);
                 const pinOwnerId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 await ensurePinnedCollectionsLoaded(pinOwnerId);
 
@@ -1328,14 +1312,12 @@
                         showcaseConfig = await ProfileShowcase.getProfileShowcase(showcaseOwnerId);
                     } catch (_e) { showcaseConfig = []; }
                 }
-                pd('profile:showcase', 'len=' + (showcaseConfig || []).length + ' timedOutPath=' + (profileLookupTimedOut));
                 const statsOwnerId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (statsOwnerId) {
                     setupStatsRealtimeSubscriptions(statsOwnerId).catch((error) => {
                         console.error('Failed to setup realtime stats subscriptions:', error);
                     });
                 }
-                pd('profile:loadProfileDone');
             }
 
             // 3. FIX: Optimize loadProfile function (faster loading)
