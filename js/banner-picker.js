@@ -594,12 +594,12 @@ window.BannerPicker = (function () {
         }
       } else if (type === 'game') {
         const sb = getSupabase();
-        if (sb) {
-          const { data } = await sb.from('games').select('hero_url, background_url, screenshots').eq('id', id).maybeSingle();
+        if (sb && !String(id).startsWith('rawg_') && Number.isFinite(Number(id))) {
+          const { data } = await sb.from('games').select('hero_url, cover_url, extra').eq('id', Number(id)).maybeSingle();
           if (data) {
             if (data.hero_url) urls.push(data.hero_url);
-            if (data.background_url) urls.push(data.background_url);
-            if (Array.isArray(data.screenshots)) urls.push(...data.screenshots);
+            if (data.cover_url) urls.push(data.cover_url);
+            if (data.extra && Array.isArray(data.extra.screenshots)) urls.push(...data.extra.screenshots);
           }
         }
       } else if (type === 'brand' || type === 'food') {
@@ -668,9 +668,9 @@ window.BannerPicker = (function () {
         }
       } else if (type === 'game') {
         const sb = getSupabase();
-        if (sb) {
-          const { data } = await sb.from('games').select('hero_url, background_url').eq('id', id).maybeSingle();
-          if (data) return data.hero_url || data.background_url || null;
+        if (sb && !String(id).startsWith('rawg_') && Number.isFinite(Number(id))) {
+          const { data } = await sb.from('games').select('hero_url, cover_url').eq('id', Number(id)).maybeSingle();
+          if (data) return data.hero_url || data.cover_url || null;
         }
       }
     } catch (_e) { /* ignore */ }

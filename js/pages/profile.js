@@ -83,6 +83,7 @@
             let currentUser = null;
             let userProfile = null;
             let profileLookupTimedOut = false;
+            let profileResolvedFromDb = false;
             let targetUser = null;
             let targetUserId = null;
             let isViewingOwnProfile = true;
@@ -1479,6 +1480,7 @@
                 }
 
                 targetUser = profile;
+                profileResolvedFromDb = true;
                 updateProfileUI(profile);
                 updateTabTitlesForOtherUser(profile.username || profile.full_name || 'User');
                 await loadProfileBannerConfig(targetUserId);
@@ -1521,6 +1523,7 @@
                         }
                         profileLookupTimedOut = false;
                         userProfile = arrived;
+                        profileResolvedFromDb = true;
                         if (userProfile && !userProfile.avatar_url) {
                             userProfile.avatar_url = currentUser?.user_metadata?.avatar_url || currentUser?.user_metadata?.avatar || (function() {
                                 try { return localStorage.getItem('zo2y_user_avatar_url'); } catch(e) { return null; }
@@ -1600,6 +1603,7 @@
                 }
                 window.userProfile = userProfile;
                 if (profile) {
+                    profileResolvedFromDb = true;
                     pd('profile:final-profile', 'avatar=' + (userProfile.avatar_url || 'NONE') + ' banner_url=' + (userProfile.banner_url || 'NONE') + ' username=' + (userProfile.username || '') + ' bio=' + (userProfile.bio || '(empty)') + ' location=' + (userProfile.location || '(empty)'));
                     updateProfileUI(userProfile);
                     return;
@@ -1801,8 +1805,17 @@
             function renderAvatarElement(containerEl, profile = userProfile) {
                 if (!containerEl) return;
                 const avatarUrl = String(profile?.avatar_url || '').trim();
-                pd('avatar:render', 'container=' + (containerEl.id || containerEl.className || '?') + ' url=' + (avatarUrl || 'NONE'));
+                pd('avatar:render', 'container=' + (containerEl.id || containerEl.className || '?') + ' url=' + (avatarUrl || 'NONE') + ' db=' + profileResolvedFromDb);
                 
+                // Defer any session-derived Google avatar until the real profile
+                // has resolved from the DB, so the Gmail photo never flashes
+                // before (or in place of) the user's actual avatar.
+                const isSessionGoogleAvatar = /^https:\/\/lh3\.googleusercontent\.com\//i.test(avatarUrl);
+                if (isSessionGoogleAvatar && !profileResolvedFromDb) {
+                    containerEl.innerHTML = '<i class="fa-solid fa-user avatar-silhouette-icon"></i>';
+                    return;
+                }
+
                 if (avatarUrl && (/^https?:\/\//i.test(avatarUrl) || /^data:image\//i.test(avatarUrl))) {
                     containerEl.innerHTML = '';
                     const img = document.createElement('img');
@@ -4613,7 +4626,7 @@
                     return record;
                 };
 
-                if (supabase) {
+                if (supabase && !String(cacheKey).startsWith('rawg_')) {
                     try {
                         const numericId = Number(cacheKey);
                         let query = supabase
@@ -4762,15 +4775,6 @@
                                     };
                                     merged.thumbnail = merged.cover_url;
                                     bookCache.set(key, merged);
-                                    try {
-                                        const dbRow = {
-                                            id: key,
-                                            title: merged.title,
-                                            authors: merged.author_name || null,
-                                            thumbnail: merged.cover_url || null
-                                        };
-                                        await supabase.from('books').upsert(dbRow, { onConflict: 'id', ignoreDuplicates: false });
-                                    } catch (_dbErr) {}
                                     try {
                                         await supabase.from('list_items').update({
                                             title: merged.title,
@@ -11738,10 +11742,18 @@ const alreadyActive = isMobile
                     var results = await Promise.all(batches[b].map(async function(entry) {
                         try {
                             if (entry.type === 'game') {
-                                var res = await supabase.from('games').select('hero_url,cover_url').eq('id', entry.id).maybeSingle();
-                                var data = res && res.data;
-                                if (data && data.hero_url) return data.hero_url;
-                                if (data && data.cover_url) return data.cover_url;
+                                if (!String(entry.id).startsWith('rawg_')) {
+                                    var res = await supabase.from('games').select('hero_url,cover_url').eq('id', entry.id).maybeSingle();
+                                    var data = res && res.data;
+                                    if (data && data.hero_url) return data.hero_url;
+                                    if (data && data.cover_url) return data.cover_url;
+                                }
+                                try {
+                                    var gres = await igdbFetch('/games/' + encodeURIComponent(entry.id));
+                                    var gdata = Array.isArray(gres) ? gres[0] : (gres && gres.results && gres.results[0]);
+                                    if (gdata && gdata.background_image) return gdata.background_image;
+                                    if (gdata && gdata.cover) return gdata.cover;
+                                } catch (_e) {}
                                 return null;
                             }
                             var endpoint = entry.type === 'movie' ? 'movie' : 'tv';
@@ -11826,10 +11838,19 @@ const alreadyActive = isMobile
                             }
                             return null;
                         } else if (type === 'game') {
-                            const res = await supabase.from('games').select('hero_url, background_url').eq('id', id).maybeSingle();
+                            if (String(id).startsWith('rawg_')) {
+                                try {
+                                    const gres = await igdbFetch('/games/' + encodeURIComponent(id));
+                                    const gdata = Array.isArray(gres) ? gres[0] : (gres && gres.results && gres.results[0]);
+                                    if (gdata && gdata.background_image) return gdata.background_image;
+                                    if (gdata && gdata.cover) return gdata.cover;
+                                } catch (_e) {}
+                                return null;
+                            }
+                            const res = await supabase.from('games').select('hero_url, cover_url').eq('id', id).maybeSingle();
                             const data = res && res.data;
                             if (data && data.hero_url) return data.hero_url;
-                            if (data && data.background_url) return data.background_url;
+                            if (data && data.cover_url) return data.cover_url;
                             return null;
                         } else if (type === 'brand') {
                             const coversRes = await fetch('/assets/data/brand_covers.json');

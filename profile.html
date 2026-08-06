@@ -55,7 +55,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 <script src="js/shared-header.js?v=20260721B" defer></script>
 
     <script src="/js/components/list-modal.js?v=20260722b" defer></script>
-    <script src="js/pages/profile.js?v=20260805DEBUGC" defer></script>
+    <script src="js/pages/profile.js?v=20260806A" defer></script>
     <noscript></noscript>
 
   
@@ -2551,17 +2551,18 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
       initModeIndicator();
       attachToProfileManager();
 
-      var attempts = 0;
+        var attempts = 0;
       var poller = setInterval(function() {
         attempts++;
         var PM = window.ProfileManager;
         if (!PM) { if (attempts > 60) clearInterval(poller); return; }
 
         // === Banner ===
-        if (!PM._bannerBuilt && PM.ProfileBackdropEngine) {
-          PM._bannerBuilt = true;
-          PM.ProfileBackdropEngine.init(PM.userProfile?.featured_backdrops, PM.userProfile?.profile_backdrop_mode || 'rotate');
-        }
+        // Banner is owned exclusively by ProfileManager.loadProfileBannerConfig()
+        // (runs on every own/other-user/rehydrate path after the real profile
+        // resolves). Do NOT kick the backdrop engine here: init() with an empty
+        // profile triggers a wasted favorites query that races the real banner.
+        PM._bannerBuilt = true;
 
         // === Update rail headings from showcase data ===
         if (!PM._headingsUpdated) {
