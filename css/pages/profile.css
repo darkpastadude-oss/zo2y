@@ -6269,7 +6269,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 /* === Cinematic backdrop banner === */
 .pv2-banner {
   position: relative;
-  height: 190px;
+  height: 250px;
   overflow: visible;
   background: #0a1428;
 }
@@ -6409,27 +6409,27 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   display: grid;
   grid-template-columns: auto minmax(0,1fr) auto;
   align-items: flex-start;
-  gap: 20px;
-  padding: 0 32px 14px;
+  gap: 16px;
+  padding: 0 32px 10px;
   max-width: 1440px;
   margin: 0 auto;
 }
 
 /* === Avatar === */
 .pv2-avatar-wrap {
-  margin-top: -36px;
+  margin-top: -40px;
   flex-shrink: 0;
 }
 
 .pv2-avatar {
-  width: 108px;
-  height: 108px;
+  width: 112px;
+  height: 112px;
   border-radius: 50%;
   border: 4px solid #0f1e40;
   box-shadow: 0 8px 28px rgba(0,0,0,0.45);
   background: var(--color-accent);
   color: #0b1633;
-  font-size: 42px;
+  font-size: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -6453,14 +6453,14 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 
 /* === Identity block === */
 .pv2-identity {
-  padding-top: 12px;
+  padding-top: 10px;
   display: grid;
-  gap: 6px;
+  gap: 3px;
   min-width: 0;
 }
 
 .pv2-name {
-  font-size: clamp(1.75rem, 3vw, 2.4rem);
+  font-size: clamp(1.6rem, 2.4vw, 2.1rem);
   font-weight: 800;
   line-height: 1.05;
   letter-spacing: -0.03em;
@@ -6471,7 +6471,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 }
 
 .pv2-username {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 500;
   color: rgba(203,213,225,0.65);
   letter-spacing: 0.01em;
@@ -6682,7 +6682,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   display: flex;
   align-items: center;
   gap: 0;
-  padding: 14px 32px;
+  padding: 8px 32px;
   border-top: 1px solid rgba(255,255,255,0.07);
   max-width: 1440px;
   margin: 0 auto;
@@ -7255,7 +7255,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 /* === Cinematic backdrop banner (mobile) === */
 .mph2-banner {
   position: relative;
-  height: 135px;
+  height: 175px;
   overflow: visible;
   background: #0a1428;
 }
@@ -7491,26 +7491,26 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   z-index: 4;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  gap: 12px;
+  gap: 10px;
   align-items: flex-start;
-  padding: 0 14px 8px;
+  padding: 0 14px 4px;
 }
 
 .mph2-avatar-wrap {
-  margin-top: -30px;
+  margin-top: -32px;
   position: relative;
   z-index: 5;
 }
 
 .mph2-avatar {
-  width: 74px;
-  height: 74px;
+  width: 78px;
+  height: 78px;
   border-radius: 50%;
   border: 3px solid #0f1e40;
   box-shadow: 0 6px 20px rgba(0,0,0,0.5);
   background: var(--color-accent);
   color: #0b1633;
-  font-size: 30px;
+  font-size: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -7534,17 +7534,17 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 
 /* === Identity text === */
 .mph2-identity {
-  padding-top: 6px;
-  padding-right: 94px;
+  padding-top: 4px;
+  padding-right: 90px;
   display: grid;
-  gap: 3px;
+  gap: 2px;
   min-width: 0;
 }
 
 .mph2-name {
-  font-size: 1.42rem;
+  font-size: 1.28rem;
   font-weight: 800;
-  line-height: 1.06;
+  line-height: 1.05;
   letter-spacing: -0.03em;
   color: #fff;
   overflow: hidden;
@@ -7553,16 +7553,16 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 }
 
 .mph2-username {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: rgba(203,213,225,0.62);
   font-weight: 500;
 }
 
 .mph2-bio {
-  font-size: 0.84rem;
+  font-size: 0.8rem;
   color: rgba(203,213,225,0.78);
-  line-height: 1.45;
-  margin-top: 3px;
+  line-height: 1.35;
+  margin-top: 1px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -7572,8 +7572,8 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 .mph2-meta {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 4px;
+  gap: 6px;
+  margin-top: 2px;
   flex-wrap: wrap;
 }
 
@@ -7581,7 +7581,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: rgba(203,213,225,0.48);
 }
 
@@ -7593,7 +7593,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 .mph2-stats {
   display: flex;
   align-items: center;
-  padding: 10px 14px 12px;
+  padding: 6px 14px 7px;
   border-top: 1px solid rgba(255,255,255,0.07);
   gap: 0;
 }
