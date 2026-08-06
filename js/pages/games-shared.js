@@ -917,6 +917,8 @@
     syncRawgArtworkToSupabase,
     ensureGameInSupabase,
     fetchCoverForTitle,
+    readCachedCoverFromStorage,
+    getCoverStorageKey,
     fetchWikipediaCoverCandidate,
     fetchWikipediaCoversForTitles,
     searchGamesFromWikipedia,

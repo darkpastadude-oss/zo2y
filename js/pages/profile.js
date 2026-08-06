@@ -163,6 +163,7 @@
             let currentMediaDetail = null;
             let hasPreloadedTabs = false;
             let tabSwitchToken = 0;
+            let profileDataReady = false;
             let hasBoundRouteListeners = false;
             let hasBoundModalViewportListeners = false;
             const TAB_RENDER_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
@@ -466,10 +467,22 @@
 
                     setTimeout(() => { pdDump(); }, 2500);
 
-                    // Rails rendered early with the 'favorites' default. If the
-                    // user has a custom showcase config, re-render just the rails
-                    // (grids show all lists and need no refresh).
-                    if (showcaseConfig && showcaseConfig.length > 0) {
+                    // Profile data is now authoritative. From here on, tab renders
+                    // are "real" and may be stamped fresh; any render that ran
+                    // before this point (against session-only/empty data) must
+                    // NOT have been cached, so we re-render every section now.
+                    // This runs unconditionally — even when the showcase config
+                    // timed out or returned empty — because the earlier paint may
+                    // have produced empty rails/grids that must be corrected.
+                    profileDataReady = true;
+                    if (!isCollectionRouteActive()) {
+                        const renderers = [
+                            renderMovies, renderTvShows, renderAnimeShows, renderGames,
+                            renderBooks, renderMusic, renderSports, renderTravel,
+                            renderFashion, renderFood, renderCars
+                        ];
+                        await Promise.allSettled(renderers.map(fn => fn().catch(() => {})));
+                    } else {
                         const railUserId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                         if (railUserId) {
                             [
@@ -1369,14 +1382,16 @@
                 }
                 
                 // Banner + stats load in parallel with the profile query so they
-                // don't stack behind it (each has its own 4s timeout). The banner
-                // config is resolved AFTER the real profile so userProfile.banner_url
-                // fallback works on cold load; it never blocks first paint.
-                await userProfileLoadPromise;
+                // don't stack behind it (each has its own 4s timeout). Firing the
+                // banner config query here starts the profile_showcase round-trip
+                // immediately (it doesn't depend on the real profile). If it can't
+                // resolve before the real profile arrives, the rehydrate path
+                // re-fires it so the userProfile.banner_url fallback still works.
                 if (currentUser?.id) {
-                    pd('banner:kickoff', 'after profile load, currentUser.id=' + String(currentUser.id).slice(0,8));
+                    pd('banner:kickoff', 'parallel with profile load, currentUser.id=' + String(currentUser.id).slice(0,8));
                     loadProfileBannerConfig(currentUser.id).catch(err => console.error('Banner config error:', err));
                 }
+                await userProfileLoadPromise;
 
                 // Enforce the dedicated onboarding username flow (no email-derived fallbacks).
                 if (maybeRedirectUsernameOnboarding()) return;
@@ -1923,31 +1938,52 @@
                 const primaryIdentity = rawUsername && !isPlaceholderUsername(rawUsername) ? `@${rawUsername}` : '@user';
                 const secondaryIdentity = '';
 
-                if (isMobile) {
-                    document.getElementById('mobileProfileName').textContent = primaryIdentity;
-                    document.getElementById('mobileProfileUsername').textContent = secondaryIdentity;
-                    document.getElementById('mobileProfileBio').textContent = profile?.bio || "No bio yet. Tap edit to add one!";
-                    renderAvatarElement(document.getElementById('mobileAvatar'), profile);
-                    const mobileAboutBio = document.getElementById('mobileAboutBio');
-                    const mobileAboutLocation = document.getElementById('mobileAboutLocation');
-                    const mobileAboutMember = document.getElementById('mobileAboutMemberSince');
-                    if (mobileAboutBio) mobileAboutBio.textContent = profile?.bio || "No bio yet.";
-                    if (mobileAboutLocation) mobileAboutLocation.textContent = profile?.location || "Location not set";
-                    if (mobileAboutMember) mobileAboutMember.textContent = `Member since ${new Date(currentUser.created_at).getFullYear()}`;
-                } else {
-                    document.getElementById('profileName').textContent = primaryIdentity;
-                    document.getElementById('profileUsername').textContent = secondaryIdentity;
-                    document.getElementById('profileBio').textContent = profile?.bio || "No bio yet. Click edit to add one!";
-                    document.getElementById('profileLocation').textContent = profile?.location || "Location not set";
-                    document.getElementById('memberSince').textContent = `Member since ${new Date(currentUser.created_at).getFullYear()}`;
-                    renderAvatarElement(document.getElementById('profileAvatar'), profile);
-                    const aboutBio = document.getElementById('aboutBio');
-                    const aboutLocation = document.getElementById('aboutLocation');
-                    const aboutMember = document.getElementById('aboutMemberSince');
-                    if (aboutBio) aboutBio.textContent = profile?.bio || "No bio yet.";
-                    if (aboutLocation) aboutLocation.textContent = profile?.location || "Location not set";
-                    if (aboutMember) aboutMember.textContent = `Member since ${new Date(currentUser.created_at).getFullYear()}`;
+                const rawCreatedAt = profile?.created_at || currentUser?.created_at;
+                let memberSinceStr = 'Member since 2024';
+                if (rawCreatedAt) {
+                    const d = new Date(rawCreatedAt);
+                    if (!isNaN(d.getTime())) {
+                        const month = d.toLocaleDateString('en-US', { month: 'short' });
+                        memberSinceStr = `Member since ${month} ${d.getFullYear()}`;
+                    }
                 }
+
+                // Mobile header updates
+                const mobName = document.getElementById('mobileProfileName');
+                const mobUser = document.getElementById('mobileProfileUsername');
+                const mobBio = document.getElementById('mobileProfileBio');
+                const mobMember = document.getElementById('mobileMemberSince');
+                const mobAvatar = document.getElementById('mobileAvatar');
+
+                if (mobName) mobName.textContent = primaryIdentity;
+                if (mobUser) mobUser.textContent = secondaryIdentity;
+                if (mobBio) mobBio.textContent = profile?.bio || "No bio yet. Tap edit to add one!";
+                if (mobMember) mobMember.textContent = memberSinceStr;
+                if (mobAvatar) renderAvatarElement(mobAvatar, profile);
+
+                // Desktop header updates
+                const deskName = document.getElementById('profileName');
+                const deskUser = document.getElementById('profileUsername');
+                const deskBio = document.getElementById('profileBio');
+                const deskMember = document.getElementById('memberSince');
+                const deskAvatar = document.getElementById('profileAvatar');
+
+                if (deskName) deskName.textContent = primaryIdentity;
+                if (deskUser) deskUser.textContent = secondaryIdentity;
+                if (deskBio) deskBio.textContent = profile?.bio || "No bio yet. Click edit to add one!";
+                if (deskMember) deskMember.textContent = memberSinceStr;
+                if (deskAvatar) renderAvatarElement(deskAvatar, profile);
+
+                // About section updates if present
+                const aboutBio = document.getElementById('aboutBio');
+                const aboutMember = document.getElementById('aboutMemberSince');
+                if (aboutBio) aboutBio.textContent = profile?.bio || "No bio yet.";
+                if (aboutMember) aboutMember.textContent = memberSinceStr;
+
+                const mobileAboutBio = document.getElementById('mobileAboutBio');
+                const mobileAboutMember = document.getElementById('mobileAboutMemberSince');
+                if (mobileAboutBio) mobileAboutBio.textContent = profile?.bio || "No bio yet.";
+                if (mobileAboutMember) mobileAboutMember.textContent = memberSinceStr;
             }
 
             function updateTabTitlesForOtherUser(userName) {
@@ -4039,6 +4075,7 @@
             }
 
             function markTabRendered(tabName) {
+                if (!profileDataReady) return;
                 tabRenderCache.set(getTabRenderCacheKey(tabName), Date.now());
             }
 

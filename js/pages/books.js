@@ -62,6 +62,7 @@ function invalidatePoolCache() {
   state._poolCache = null;
   state._poolCacheKey = "";
   state._poolCacheTotal = 0;
+  try { localStorage.removeItem("zo2y_books_pool_v1"); } catch(_) {}
 }
 
 function escapeHtml(v) {
@@ -223,6 +224,27 @@ async function loadBooks(append) {
         return;
       }
     } else {
+      const poolCachedNow = state._poolCacheKey === poolCacheKey && state._poolCache && state._poolCache.length >= PAGE_SIZE;
+      if (!poolCachedNow && !q) {
+        // Rehydrate the popular pool from localStorage so a repeat visit paints
+        // instantly (mirrors the games trending cache). Search results are not
+        // persisted to avoid stale hits.
+        try {
+          if (!state._poolCache) {
+            const raw = localStorage.getItem("zo2y_books_pool_v1");
+            if (raw) {
+              const parsed = JSON.parse(raw);
+              if (parsed && Array.isArray(parsed.data) && parsed.data.length >= PAGE_SIZE && (Date.now() - Number(parsed.timestamp || 0) < 3600000)) {
+                state._poolCache = parsed.data;
+                state._poolCacheKey = poolCacheKey;
+                state._poolCacheTotal = Number(parsed.total || 0) || parsed.data.length;
+              } else {
+                localStorage.removeItem('zo2y_books_pool_v1');
+              }
+            }
+          }
+        } catch (_) {}
+      }
       if (state._poolCacheKey === poolCacheKey && state._poolCache && state._poolCache.length >= PAGE_SIZE) {
         poolBooks = state._poolCache;
         total = state._poolCacheTotal || poolBooks.length;
@@ -241,7 +263,11 @@ async function loadBooks(append) {
             }
           }
         } else {
-          const r1 = await fetchPage(0, 200);
+          // Fast first paint: fetch only the first page and render it immediately
+          // (the previous code awaited 200 books before showing anything, which
+          // is why skeletons lingered). Infinite scroll pulls the rest from the
+          // API on demand, so a small first fetch no longer delays first paint.
+          const r1 = await fetchPage(0, PAGE_SIZE);
           if (!abort.signal.aborted && r1 && r1.items && r1.items.length) {
             poolBooks = poolBooks.concat(r1.items);
             total = r1.total || poolBooks.length;
@@ -263,6 +289,15 @@ async function loadBooks(append) {
         state._poolCache = poolBooks;
         state._poolCacheKey = poolCacheKey;
         state._poolCacheTotal = total;
+        if (!q && poolBooks.length >= PAGE_SIZE) {
+          try {
+            localStorage.setItem("zo2y_books_pool_v1", JSON.stringify({
+              timestamp: Date.now(),
+              total: total,
+              data: poolBooks.slice(0, 200)
+            }));
+          } catch (_) {}
+        }
       }
     }
   } catch (err) {

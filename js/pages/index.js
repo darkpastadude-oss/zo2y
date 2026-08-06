@@ -8642,7 +8642,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           return;
         }
         const script = document.createElement('script');
-        script.src = 'js/pages/games-shared.js?v=20260722a';
+        script.src = 'js/pages/games-shared.js?v=20260806a';
         script.defer = true;
         script.setAttribute('data-home-games-shared', '1');
         script.onload = () => resolve(window.__zo2yGamesShared || {});

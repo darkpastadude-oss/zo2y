@@ -780,7 +780,7 @@
 
   <script src="js/cover-cache.js?v=20260714d" defer></script>
   <script src="js/services/game-service.js?v=20260727a"></script>
-  <script src="js/pages/games-shared.js?v=20260722a"></script>
+  <script src="js/pages/games-shared.js?v=20260806a"></script>
 
   <script>
 
@@ -1505,9 +1505,17 @@
 
       const renderItems = append ? state.games.slice(_gamesLastRendered) : state.games;
 
+      const api = window.__zo2yGamesShared;
       const html = renderItems.map((game) => {
 
-        const coverUrl = game.cover || FALLBACK_IMAGE;
+        let coverUrl = game.cover || FALLBACK_IMAGE;
+        if ((!coverUrl || coverUrl === FALLBACK_IMAGE) && api?.readCachedCoverFromStorage) {
+          const cachedCover = api.readCachedCoverFromStorage(String(game.name || game.id || '').trim());
+          if (cachedCover) {
+            coverUrl = cachedCover;
+            game.cover = cachedCover;
+          }
+        }
 
         const year = game.firstReleaseDate ? new Date(game.firstReleaseDate).getFullYear() : 'TBD';
 
