@@ -380,6 +380,22 @@
                 try {
                     clearLegacyProfileBookCaches();
 
+                    // COLD-START SHELL FIRST: render the static shell + tabs and
+                    // sign off the splash IMMEDIATELY, before ANY network await.
+                    // Previously the first render (and splash fade) was gated behind
+                    // window.supabase wait + waitForSupabase(8s) + waitForAuthReady(10s)
+                    // + resolveAuthenticatedProfileUser — on a cold first load that
+                    // sequence could stall the whole page on the splash for 15-25s,
+                    // so "nothing loaded at all". The shell paints now; profile/
+                    // banner/rails fill in as the async path below resolves.
+                    setupEventListeners();
+                    showPrimaryTab('overview', { force: true, skipTabSync: true });
+                    bindRouteListeners();
+                    fadeProfileSplash();
+                    if (window.innerWidth <= 768) {
+                        initializeMobile();
+                    }
+
                     // Wait for window.supabase if scripts are still evaluating
                     if (!window.supabase) {
                         const sTime = Date.now();
@@ -458,26 +474,10 @@
                         }
                     }, INIT_TIMEOUT_MS);
 
-                    // Single authoritative render. Shell + tabs bind immediately
-                    // (zero network), but rails/grids are NOT painted here against
-                    // session-only/empty data — that duplicated every collection
-                    // fetch. Sections render exactly once, after profile + showcase
-                    // data resolves, in the render pass below.
-                    setupEventListeners();
-                    showPrimaryTab('overview', { force: true, skipTabSync: true });
-                    bindRouteListeners();
-                    
-                    // Early splash sign-off: the shell + tabs render above with zero
-                    // network, so the user sees the page immediately instead of a
-                    // frozen splash while the profile/showcase query runs (which can
-                    // block up to 12s on slow networks). Rails still render exactly
-                    // once, gated on showcase config below.
-                    pd('init:earlySplashFade', 'shell rendered, elapsed=' + (Date.now() - t0) + 'ms');
-                    fadeProfileSplash();
-                    if (window.innerWidth <= 768) {
-                        initializeMobile();
-                    }
-
+                    // Shell + tabs + splash sign-off already happened synchronously at
+                    // the top of initialize() (before any network await), so the page
+                    // paints immediately on cold start. Do NOT re-run setupEventListeners/
+                    // bindRouteListeners/fadeProfileSplash here — that would double-bind.
                     await hydrateInitialRoute();
                     preloadCollectionTabs();
                     updateCollectionViewToggleButtons();
