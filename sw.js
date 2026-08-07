@@ -1,7 +1,7 @@
 // Bump these versions any time you change precached asset URLs to ensure old cached
 // variants don't keep serving stale JS (especially the home heavy loaders).
-const APP_SHELL_CACHE = 'zo2y-app-shell-v324';
-const PAGE_CACHE = 'zo2y-pages-v249';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v325';
+const PAGE_CACHE = 'zo2y-pages-v250';
 const IMAGE_CACHE = 'zo2y-images-v73';
 const API_CACHE = 'zo2y-api-v51';
 const MOVIES_PAGE_VERSION = '20260418a';
@@ -270,27 +270,50 @@ async function navigationNetworkOnly(request) {
   }
 }
 
-async function navigationNetworkFirst(request, fallbackPath = '/index.html') {
+const NAVIGATION_FETCH_TIMEOUT_MS = 8000;
+// Race a no-store network fetch against a hard timeout so a slow/hung network
+// can NEVER leave a top-level navigation (e.g. the post-login redirect to
+// profile.html) spinning with a pending respondWith indefinitely. On timeout it
+// falls back to cached shell/docs so the page still comes up instead of hanging.
+async function navigationFetchWithTimeout(request) {
+  let timer = null;
   try {
-    const response = await fetch(request, { cache: 'no-store' });
-    if (response && response.ok) {
-      const cache = await caches.open(PAGE_CACHE);
-      cache.put(request, response.clone()).catch(() => {});
-    }
+    const response = await Promise.race([
+      fetch(request, { cache: 'no-store' }),
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error('nav_fetch_timeout')), NAVIGATION_FETCH_TIMEOUT_MS);
+      })
+    ]);
+    if (timer) clearTimeout(timer);
     return response;
   } catch (_error) {
+    if (timer) clearTimeout(timer);
+    return null;
+  }
+}
+
+async function navigationNetworkFirst(request, fallbackPath = '/index.html') {
+  const response = await navigationFetchWithTimeout(request);
+  if (response && response.ok) {
+    try {
+      const cache = await caches.open(PAGE_CACHE);
+      cache.put(request, response.clone()).catch(() => {});
+    } catch (_err) {}
+    return response;
+  }
+  try {
     const cached = await caches.match(request, { ignoreSearch: true })
       || await caches.match(fallbackPath)
       || await caches.match('/')
       || await caches.match('/index.html');
     if (cached) return cached;
-    try {
-      const shell = await caches.open(APP_SHELL_CACHE);
-      const shellIndex = await shell.match('/index.html', { ignoreSearch: true }) || await shell.match('/');
-      if (shellIndex) return shellIndex;
-    } catch (_err) {}
-    return offlineResponse();
-  }
+  } catch (_err) {}
+  try {
+    const shell = await caches.open(APP_SHELL_CACHE);
+    const shellIndex = await shell.match('/index.html', { ignoreSearch: true }) || await shell.match('/');
+    if (shellIndex) return shellIndex;
+  } catch (_err) {}
+  return response || offlineResponse();
 }
 
 async function networkFirstWithTimeout(request, cacheName, fallbackPath = '', timeoutMs = 1400) {
@@ -423,12 +446,25 @@ self.addEventListener('fetch', (event) => {
     url.searchParams.has('auth_return')
   ) {
     event.respondWith((async () => {
+      // Bounded no-store fetch for the post-login return navigation so a slow
+      // network can't leave the redirect hanging indefinitely. Fall back to a
+      // cached shell/page if the network stalls or fails.
       try {
-        const response = await fetch(request, { cache: 'no-store' });
-        return response;
-      } catch (_error) {
-        return Response.error();
-      }
+        const response = await navigationFetchWithTimeout(request);
+        if (response && response.ok) return response;
+      } catch (_error) {}
+      try {
+        const cached = await caches.match(request, { ignoreSearch: true })
+          || await caches.match('/index.html')
+          || await caches.match('/');
+        if (cached) return cached;
+      } catch (_err) {}
+      try {
+        const shell = await caches.open(APP_SHELL_CACHE);
+        const shellIndex = await shell.match('/index.html', { ignoreSearch: true }) || await shell.match('/');
+        if (shellIndex) return shellIndex;
+      } catch (_err2) {}
+      return Response.error();
     })());
     return;
   }

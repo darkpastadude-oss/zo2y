@@ -6261,16 +6261,20 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 .pv2-hero {
   position: relative;
   background: #0f1e40;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-  margin-bottom: 0;
-  overflow: visible;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  margin: 16px auto 24px;
+  max-width: 1440px;
+  overflow: hidden;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
 }
 
 /* === Cinematic backdrop banner === */
 .pv2-banner {
   position: relative;
-  height: 250px;
-  overflow: visible;
+  height: clamp(200px, 18vw, 260px);
+  aspect-ratio: 16 / 3.6;
+  overflow: hidden;
   background: linear-gradient(135deg, #0a1428 0%, #162850 45%, #0f1e40 100%);
 }
 
@@ -7183,7 +7187,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 
 @media (max-width: 1024px) {
   .pv2-banner {
-    height: 160px;
+    height: clamp(170px, 18vw, 220px);
   }
 
   .pv2-avatar {

@@ -4,9 +4,11 @@
                 try {
                     const enabled = (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('zo2y-profile-trace') === '1') ||
                         new URLSearchParams(window.location.search).get('profile_trace') === '1';
-                    if (!enabled) return;
-                    console.debug('[PROFILE-BOOT]', Date.now(), label, detail || '');
+                    if (enabled) console.debug('[PROFILE-BOOT]', Date.now(), label, detail || '');
                 } catch (_e) {}
+                try {
+                    if (window.__zo2yDiag && window.__zo2yDiag.ev) window.__zo2yDiag.ev('profile:' + label, 'info', detail || '');
+                } catch (_e2) {}
             }
 
             // Supabase configuration
@@ -176,6 +178,40 @@
             const showcaseData = {};
             let showcaseConfig = [];
             let bannerHasLoaded = false;
+            let railsRenderedWithData = false;
+            let railsRenderCooldownUntil = 0;
+
+            async function renderAllProfileRails() {
+                // Guard against duplicate/overlapping rail renders. Rails render once
+                // at init when data is ready; if cold-start data arrived late, the
+                // rehydrate path calls this again (after a short cooldown) so
+                // session-only/empty rails get replaced by real data — no manual refresh.
+                const now = Date.now();
+                if (now < railsRenderCooldownUntil) return;
+                railsRenderCooldownUntil = now + 600;
+                try {
+                    if (!isCollectionRouteActive()) {
+                        const renderers = [
+                            renderMovies, renderTvShows, renderAnimeShows, renderGames,
+                            renderBooks, renderMusic, renderSports, renderTravel,
+                            renderFashion, renderFood, renderCars
+                        ];
+                        await Promise.allSettled(renderers.map(fn => fn().catch(() => {})));
+                        railsRenderedWithData = true;
+                    } else {
+                        const railUserId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                        if (railUserId) {
+                            [
+                                'movie', 'tv', 'anime', 'game', 'book', 'music',
+                                'travel', 'fashion', 'car', 'food'
+                            ].forEach(contentType => {
+                                renderShowcaseRail(contentType, railUserId).catch(() => {});
+                            });
+                            railsRenderedWithData = true;
+                        }
+                    }
+                } catch (_e) {}
+            }
 
             function getShowcaseListId(mediaType) {
                 const entry = (showcaseConfig || []).find(function(s) { return s.media_type === mediaType && !s.is_hidden; });
@@ -340,40 +376,38 @@
                 return true;
             }
 
-            async function resolveAuthenticatedProfileUser(client) {
+async function resolveAuthenticatedProfileUser(client) {
                 if (!client?.auth) return null;
-                // Fast path: the persisted session was already restored during
-                // bootstrap (waitForAuthReady). getSession() is storage-backed,
-                // so it needs no /auth/v1/user round-trip. Only short-circuit
-                // when the access token has not yet expired — otherwise fall
-                // through to the verifying/refresh path below.
                 try {
                     const cached = await client.auth.getSession();
                     const cachedSession = cached && cached.data && cached.data.session;
                     const cachedUser = cachedSession && cachedSession.user;
+                    try {
+                        if (window.__zo2yDiag) window.__zo2yDiag.ev('profile:resolve-fast', cachedUser && cachedUser.id ? 'ok' : 'warn', 'getSession hasSession=' + (cachedSession ? 'YES' : 'NO') + ' user=' + (cachedUser ? 'YES' : 'NO') + ' cid=' + window.__zo2yDiag.clientId(client));
+                    } catch (_e) {}
                     if (cachedUser && cachedUser.id && expirySafe(cachedSession)) return cachedUser;
                 } catch (_e) {}
-                // On cold/slow first-open the session can be marked ready before
-                // the underlying auth user has propagated. Retry briefly before
-                // giving up so we never bounce to login (or blank) on a transient
-                // cold start.
                 const startedAt = Date.now();
                 while (true) {
                     const authRuntime = window.ZO2Y_AUTH || null;
                     if (authRuntime && typeof authRuntime.getVerifiedUser === 'function') {
                         try {
                             const verifiedUser = await authRuntime.getVerifiedUser(client);
+                            try { if (window.__zo2yDiag) window.__zo2yDiag.ev('profile:resolve-verify', verifiedUser && verifiedUser.id ? 'ok' : 'warn', 'getVerifiedUser user=' + (verifiedUser ? 'YES' : 'NO') + ' id=' + String((verifiedUser && verifiedUser.id) || '').slice(0, 8)); } catch (_e) {}
                             if (verifiedUser?.id) return verifiedUser;
                         } catch (_err) {}
                     }
                     try {
                         const { data, error } = await client.auth.getUser();
-                        if (!error && data?.user) return data.user;
+                        if (!error && data?.user) {
+                            try { if (window.__zo2yDiag) window.__zo2yDiag.ev('profile:resolve-getUser', 'ok', 'getUser id=' + String(data.user.id).slice(0, 8)); } catch (_e) {}
+                            return data.user;
+                        }
                     } catch (_err) {}
                     if ((Date.now() - startedAt) >= 2500) break;
                     await new Promise((r) => setTimeout(r, 150));
                 }
-                return null;
+return null;
             }
 
             // ===== INITIALIZATION =====
@@ -426,8 +460,15 @@
                     // on cold mobile first-open left the page on username-only data.
                     const authReady = await waitForAuthReady(10000);
                     pd('init:authReady', 'ready=' + authReady + ' after=' + (Date.now() - t0) + 'ms __AUTH_READY=' + String(window.__AUTH_READY));
+                    try {
+                        if (window.__zo2yDiag) {
+                            window.__zo2yDiag.ev('profile:initAuthReady', authReady ? 'ok' : 'warn', 'ready=' + authReady + ' __AUTH_READY=' + String(window.__AUTH_READY) + ' after=' + (Date.now() - t0) + 'ms');
+                            if (!authReady) window.__zo2yDiag.set('AUTH_READY', 'NO(timeout@10s)');
+                        }
+                    } catch (_e) {}
 
                     const hadEnsureFn = !!(window.__ZO2Y_ENSURE_SUPABASE_CLIENT && typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function');
+                    const ensureFnId = hadEnsureFn ? String(window.__ZO2Y_ENSURE_SUPABASE_CLIENT.name || 'anon') : 'none';
                     if (hadEnsureFn) {
                         supabase = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
                     }
@@ -441,11 +482,25 @@
                                 detectSessionInUrl: false
                             }
                         });
+                        try { if (window.__zo2yDiag && window.__zo2yDiag.stampClient) window.__zo2yDiag.stampClient(supabase, 'profile'); } catch (_e) {}
                     }
-                    pd('init:client', 'source=' + (hadEnsureFn ? 'bridge' : 'createClient') + ' ready=' + !!supabase + ' after=' + (Date.now() - t0) + 'ms');
+                    pd('init:client', 'source=' + (hadEnsureFn ? 'bridge[' + ensureFnId + ']' : 'createClient') + ' ready=' + !!supabase + ' after=' + (Date.now() - t0) + 'ms');
+                    try {
+                        if (window.__zo2yDiag) {
+                            window.__zo2yDiag.ev('profile:client', supabase ? 'ok' : 'error', 'source=' + (hadEnsureFn ? 'bridge[' + ensureFnId + ']' : 'fallback') + ' cid=' + window.__zo2yDiag.clientId(supabase));
+                            window.__zo2yDiag.set('CLIENT_PROFILE', 'source=' + (hadEnsureFn ? 'bridge[' + ensureFnId + ']' : 'fallback') + ' ' + window.__zo2yDiag.clientId(supabase));
+                        }
+                    } catch (_e) {}
                     
                     const user = await resolveAuthenticatedProfileUser(supabase);
                     pd('init:resolveUser', 'user=' + (user ? 'YES' : 'NO') + ' id=' + String(user?.id || '').slice(0, 8) + ' after=' + (Date.now() - t0) + 'ms');
+                    try {
+                        if (window.__zo2yDiag) {
+                            window.__zo2yDiag.set('CLIENT_RESOLVE', window.__zo2yDiag.clientId(supabase));
+                            window.__zo2yDiag.set('USER_RESOLVED', user ? 'YES:' + String(user.id).slice(0, 8) : 'NO');
+                            window.__zo2yDiag.ev('profile:resolveUser', user ? 'ok' : 'error', 'cid=' + window.__zo2yDiag.clientId(supabase) + ' user=' + (user ? 'YES' : 'NO') + ' id=' + String(user?.id || '').slice(0, 8));
+                        }
+                    } catch (_e) {}
                     if (!user) { 
                         pd('init:noUser', 'redirectingToLogin');
                         if (window.ZO2Y_AUTH && typeof window.ZO2Y_AUTH.redirectToLogin === 'function') {
@@ -515,6 +570,7 @@
                     // once, after the profile/showcase data is ready, below.
                     initCompleted = true;
                     if (timeoutHandle) clearTimeout(timeoutHandle);
+                    try { if (window.__zo2yDiag) window.__zo2yDiag.set('INIT_DONE', 'YES'); } catch (_e) {}
 
                     // Let the profile/banner/pins resolve and apply.
                     await loadProfilePromise;
@@ -526,24 +582,7 @@
                     profileDataReady = true;
                     const rehydrateT0 = Date.now();
                     pd('init:rehydrateRerender', 'start showcaseLen=' + (showcaseConfig || []).length + ' elapsed=' + (rehydrateT0 - t0) + 'ms');
-                    if (!isCollectionRouteActive()) {
-                        const renderers = [
-                            renderMovies, renderTvShows, renderAnimeShows, renderGames,
-                            renderBooks, renderMusic, renderSports, renderTravel,
-                            renderFashion, renderFood, renderCars
-                        ];
-                        await Promise.allSettled(renderers.map(fn => fn().catch(() => {})));
-                    } else {
-                        const railUserId = isViewingOwnProfile ? currentUser?.id : targetUserId;
-                        if (railUserId) {
-                            [
-                                'movie', 'tv', 'anime', 'game', 'book', 'music',
-                                'travel', 'fashion', 'car', 'food'
-                            ].forEach(contentType => {
-                                renderShowcaseRail(contentType, railUserId).catch(() => {});
-                            });
-                        }
-                    }
+                    await renderAllProfileRails();
                     // Rails are now painted with real data — hide the splash now.
                     fadeProfileSplash();
                     pd('init:rehydrateRerenderDone', 'elapsed=' + (Date.now() - t0) + 'ms rerenderMs=' + (Date.now() - rehydrateT0) + 'ms');
@@ -1369,6 +1408,34 @@
                     } catch (_e) { showcaseConfig = []; }
                 }
                 pd('profile:showcase', 'len=' + (showcaseConfig || []).length + ' timedOutPath=' + (profileLookupTimedOut));
+                try { if (window.__zo2yDiag) { window.__zo2yDiag.ev('profile:showcase', (showcaseConfig || []).length ? 'ok' : 'warn', 'len=' + (showcaseConfig || []).length + ' timedOut=' + profileLookupTimedOut); window.__zo2yDiag.set('SHOWCASE_LEN', String((showcaseConfig || []).length)); } } catch (_e) {}
+                // Cold-start showcase timeout self-heal: the query can stall on the
+                // first network round-trip. When the rails repaint later (rehydrate),
+                // re-fetch the showcase so the real layout/rails paint instead of
+                // the empty grid. No profileLookupTimedOut gate — the showcase can
+                // stall independently of the profile query, so bounded retries keep
+                // trying until data lands (each attempt is itself timeout-bounded).
+                if ((!showcaseConfig || showcaseConfig.length === 0) && showcaseOwnerId && window.ProfileShowcase) {
+                    let showcaseAttempts = 0;
+                    const MAX_SHOWCASE_ATTEMPTS = 5;
+                    const showcaseRetry = () => {
+                        if (showcaseConfig && showcaseConfig.length > 0) return;
+                        showcaseAttempts += 1;
+                        ProfileShowcase.getProfileShowcase(showcaseOwnerId).then((lateShowcase) => {
+                            if (lateShowcase && lateShowcase.length > 0) {
+                                showcaseConfig = lateShowcase;
+                                renderAllProfileRails();
+                            } else if (showcaseAttempts < MAX_SHOWCASE_ATTEMPTS) {
+                                window.setTimeout(showcaseRetry, 2000);
+                            }
+                        }).catch(() => {
+                            if (showcaseAttempts < MAX_SHOWCASE_ATTEMPTS) {
+                                window.setTimeout(showcaseRetry, 2000);
+                            }
+                        });
+                    };
+                    window.setTimeout(showcaseRetry, 2000);
+                }
                 const statsOwnerId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (statsOwnerId) {
                     setupStatsRealtimeSubscriptions(statsOwnerId).catch((error) => {
@@ -1526,7 +1593,7 @@
                                 .eq('user_id', userId)
                                 .eq('media_type', 'banner')
                                 .order('created_at', { ascending: false }),
-                            6000
+                            12000
                         );
                     } catch (e) {
                         console.warn('Notice loading banner config from profile_showcase:', e);
@@ -1673,7 +1740,7 @@
             // Renders session-derived data instantly, then re-renders the full
             // profile when the query finally resolves — so a cold/slow start does
             // not require a manual refresh to show banner, bio, and stats.
-            function rehydrateProfileFromQuery(buildQuery, attempt) {
+function rehydrateProfileFromQuery(buildQuery, attempt) {
                 if (!buildQuery || typeof buildQuery !== 'function') return;
                 const round = Number(attempt || 0);
                 let queryPromise = null;
@@ -1692,7 +1759,7 @@
                             // with an auth error before the session settles. Retry
                             // the query a bounded number of times instead of leaving
                             // the page on session-derived (username-only) data.
-                            if (round < 3) {
+                            if (round < 6) {
                                 window.setTimeout(() => {
                                     rehydrateProfileFromQuery(buildQuery, round + 1);
                                 }, 800);
@@ -1714,9 +1781,16 @@
                             loadProfileBannerConfig(currentUser.id);
                         }
                         updateStats().catch(() => {});
+                        // Cold-start data arrived late: repaint the rails so the
+                        // session-only/empty grid is replaced by real data. The
+                        // cooldown guards against overlapping renders. No
+                        // railsRenderedWithData gate: the init render may have
+                        // painted empty rails (mobile timeout) and marked itself
+                        // done, so repaint unconditionally when data lands.
+                        window.setTimeout(() => { renderAllProfileRails(); }, 250);
                     } catch (_err) {}
                 }).catch(() => {
-                    if (round < 3) {
+                    if (round < 6) {
                         window.setTimeout(() => {
                             rehydrateProfileFromQuery(buildQuery, round + 1);
                         }, 800);
@@ -1736,10 +1810,12 @@
                         .eq("id", currentUser.id)
                         .maybeSingle();
                     pd('profile:queryByCol', 'id>user_profiles.id start');
-                    const result = await withTimeout(realQuery, 4000);
+                    try { if (window.__zo2yDiag) window.__zo2yDiag.ev('profile:startProfileQuery', 'info', 'client for user_profiles query cid=' + window.__zo2yDiag.clientId(supabase)); } catch (_e) {}
+                    const result = await withTimeout(realQuery, 12000);
                     if (result && result.__timedOut) {
                         pd('profile:queryByCol-TIMEOUT', '4s exceeded; rehydrate armed');
                         console.warn('Profile query timed out; rendering session data, will rehydrate on arrival');
+                        try { if (window.__zo2yDiag) { window.__zo2yDiag.ev('profile:profileQuery', 'warn', 'TIMEOUT@4s -> session-derived only. RLS likely denied (token missing)'); window.__zo2yDiag.set('PROFILE_SRC', 'TIMEOUT(sessionOnly)'); } } catch (_e) {}
                         profileLookupTimedOut = true;
                         userProfile = buildSessionDerivedProfile();
                         window.userProfile = userProfile;
@@ -1753,6 +1829,12 @@
                     profile = result && result.data ? result.data : null;
                     profileError = result && result.error ? result.error : null;
                     pd('profile:queryByCol-RESOLVED', 'profile=' + (profile ? 'YES' : 'NO') + ' err=' + (profileError ? String(profileError.code || '') : 'none') + ' avatar=' + ((profile&&profile.avatar_url)||'NONE') + ' banner_url=' + ((profile&&profile.banner_url)||'NONE') + ' username=' + ((profile&&profile.username)||'') + ' bio=' + ((profile&&profile.bio)||'(empty)'));
+                    try {
+                        if (window.__zo2yDiag) {
+                            window.__zo2yDiag.ev('profile:queryByCol', profile ? 'ok' : 'warn', 'resolved profile=' + (profile ? 'YES' : 'NO') + ' err=' + (profileError ? String(profileError.code || profileError.message || '') : 'none') + ' cid=' + window.__zo2yDiag.clientId(supabase));
+                            window.__zo2yDiag.set('PROFILE_SRC', profile ? 'DB' : 'err:' + String(profileError && (profileError.code || profileError.message) || 'none'));
+                        }
+                    } catch (_e) {}
                 }
 
                 if (!profile) {
@@ -1761,7 +1843,7 @@
                         .select("*")
                         .eq("user_id", currentUser.id)
                         .maybeSingle();
-                    const fallbackResult = await withTimeout(realFallback, 4000);
+                    const fallbackResult = await withTimeout(realFallback, 12000);
                     if (fallbackResult && fallbackResult.__timedOut) {
                         pd('profile:queryByColFALLBACK-TIMEOUT', '4s exceeded; rehydrate armed');
                         console.warn('Profile fallback query timed out; rendering session data, will rehydrate on arrival');
@@ -1796,6 +1878,7 @@
                 window.userProfile = userProfile;
                 if (profile) {
                     profileResolvedFromDb = true;
+                    try { if (window.__zo2yDiag) { window.__zo2yDiag.ev('profile:profileFromDb', 'ok', 'user_profiles row resolved (RLS allowed)'); window.__zo2yDiag.set('PROFILE_FROM_DB', 'YES'); } } catch (_e) {}
                     pd('profile:final-profile', 'avatar=' + (userProfile.avatar_url || 'NONE') + ' banner_url=' + (userProfile.banner_url || 'NONE') + ' username=' + (userProfile.username || '') + ' bio=' + (userProfile.bio || '(empty)') + ' location=' + (userProfile.location || '(empty)'));
                     updateProfileUI(userProfile);
                     return;

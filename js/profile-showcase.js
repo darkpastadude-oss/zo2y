@@ -77,7 +77,7 @@ const ProfileShowcase = (function () {
                 .select('*')
                 .eq('user_id', userId)
                 .order('display_order', { ascending: true }),
-            4000
+            12000
         );
         if (result && result.__timedOut) {
             console.warn('ProfileShowcase query timed out; proceeding with empty showcase');
