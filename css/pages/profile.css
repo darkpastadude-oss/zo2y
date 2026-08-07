@@ -6271,7 +6271,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   position: relative;
   height: 250px;
   overflow: visible;
-  background: #0a1428;
+  background: linear-gradient(135deg, #0a1428 0%, #162850 45%, #0f1e40 100%);
 }
 
 .pv2-banner-backdrops {
@@ -7257,7 +7257,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   position: relative;
   height: 175px;
   overflow: visible;
-  background: #0a1428;
+  background: linear-gradient(135deg, #0a1428 0%, #162850 45%, #0f1e40 100%);
 }
 
 .mph2-banner-backdrops {

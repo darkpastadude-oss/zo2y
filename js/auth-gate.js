@@ -168,39 +168,12 @@
     }
   }
 
-  function authDebug(label, payload) {
-    if (!authDebugEnabled()) return;
-    if (payload === undefined) {
-      console.log('[ZO2Y AUTH]', label);
-      return;
-    }
-    console.log('[ZO2Y AUTH]', label, payload);
+  function authDebug(_label, _payload) {
+    return;
   }
 
   function pushAuthDebugEvent(label, payload) {
-    var safeLabel = String(label || 'event');
-    var safePayload = payload && typeof payload === 'object'
-      ? payload
-      : (payload === undefined ? {} : { value: payload });
-    var event = {
-      t: Date.now(),
-      label: safeLabel,
-      payload: safePayload
-    };
-    authDebugEvents.push(event);
-    if (authDebugEvents.length > AUTH_DEBUG_MAX_EVENTS) {
-      authDebugEvents.splice(0, authDebugEvents.length - AUTH_DEBUG_MAX_EVENTS);
-    }
-    try {
-      window.__ZO2Y_AUTH_DEBUG_EVENTS = authDebugEvents.slice(-AUTH_DEBUG_MAX_EVENTS);
-    } catch (_errStore) {}
-    try {
-      window.dispatchEvent(new CustomEvent('zo2y-auth-debug', {
-        detail: event
-      }));
-    } catch (_errEvent) {}
-    authDebug(safeLabel, safePayload);
-    return event;
+    return { t: Date.now(), label: String(label || 'event') };
   }
 
   function getAuthDebugSnapshot() {
@@ -477,6 +450,21 @@
     return !!(claims && claims.sub);
   }
 
+  function isSnapshotFresh(session) {
+    if (!session) return false;
+    var now = Math.floor(Date.now() / 1000);
+    var exp = session.expires_at;
+    if (typeof exp === 'number' && exp < now) return false;
+    var token = session.access_token;
+    if (typeof token === 'string' && token.split('.').length === 3) {
+      try {
+        var payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+        if (typeof payload.exp === 'number' && payload.exp < now) return false;
+      } catch (_err) {}
+    }
+    return true;
+  }
+
   function getStoredSessionSnapshot() {
     var keys = [STORAGE_KEY, LEGACY_STORAGE_KEY, PERSIST_STORAGE_KEY];
     for (var i = 0; i < keys.length; i += 1) {
@@ -504,7 +492,6 @@
     session = normalizeSessionFromJwt(session);
     if (!isValidSessionSnapshot(session)) return false;
     try {
-      lastKnownSessionSnapshot = session;
       var payload = JSON.stringify(session);
       safeSetAuthStorage(STORAGE_KEY, payload);
       safeSetAuthStorage(PERSIST_STORAGE_KEY, payload);
@@ -1023,13 +1010,6 @@
     if (auth.detectSessionInUrl === undefined) auth.detectSessionInUrl = false;
     if (auth.flowType === undefined) auth.flowType = 'implicit';
     next.auth = auth;
-    // Preview/debug only: if a fetch hook is installed on window, have every
-    // supabase client capture THAT reference instead of the original (they
-    // otherwise keep the pre-hook fetch, so the debug panel never sees traffic).
-    // Inert on production builds (no __zo2yDebugFetch defined there).
-    if (typeof window !== 'undefined' && typeof window.__zo2yDebugFetch === 'function') {
-      next.global = Object.assign({}, next.global || {}, { fetch: window.__zo2yDebugFetch });
-    }
     return next;
   }
 
@@ -2034,6 +2014,21 @@
         authenticated = !!(session && isValidSessionSnapshot(session));
         if (authenticated) {
           persistSessionSnapshot(session);
+        }
+
+        // Slow-network safety: the SDK's getSession/restore/refresh can each hit
+        // their timeouts and return null even though a valid session was just
+        // persisted by the login/signup page. If we bounce to login here, the
+        // user is sent right back to the auth page after a successful login —
+        // the "redirect gets stuck / requires refresh" failure. The stored
+        // snapshot (already validated by getStoredSessionSnapshot) is sufficient
+        // to treat the user as authenticated; the destination page restores it.
+        if (!authenticated) {
+          var fallbackSnapshot = getStoredSessionSnapshot();
+          if (fallbackSnapshot && !hasRecentExplicitSignout() && isSnapshotFresh(fallbackSnapshot)) {
+            authenticated = true;
+            session = fallbackSnapshot;
+          }
         }
 
         applyShellState(authenticated, pageKey, {

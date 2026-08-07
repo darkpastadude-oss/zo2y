@@ -1,28 +1,6 @@
 // ===== GLOBAL PROFILE MANAGER =====
         const ProfileManager = (function() {
-            // ---- DEBUG TRACKER (preview) ----
-            const debugEnabled = !/[?&]debug=0/.test(window.location.search) || (() => { try { return window.sessionStorage.getItem('zo2y_profile_debug') === '1'; } catch(_) { return false; } })();
-            const __debug = [];
-            function pd(label, detail) {
-                if (!debugEnabled) return;
-                const entry = { t: Date.now(), label: String(label || ''), detail: detail || '' };
-                __debug.push(entry);
-                try {
-                    if (window.__zo2yDebugAdd) window.__zo2yDebugAdd(entry.label, entry.detail, entry.t);
-                } catch(_) {}
-                try { console.log('[zo2y-debug]', entry.t, entry.label, entry.detail); } catch(_) {}
-            }
-            function pdDump() {
-                if (!debugEnabled) return '';
-                const lines = __debug.map(e => `${e.t} ${e.label} ${e.detail}`);
-                const body = lines.join('\n');
-                try { console.log('[zo2y-debug] ===== PROFILE DEBUG DUMP =====\n' + body); } catch(_) {}
-                return body;
-            }
-            window.__zo2yProfileDebug = pdDump;
-            window.__zo2yProfileDebugEnabled = debugEnabled;
-            pd('module:load', 'debugEnabled=' + debugEnabled + ' url=' + window.location.href);
-            // ---- /DEBUG TRACKER ----
+            function pd() {}
 
             // Supabase configuration
             const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
@@ -514,8 +492,6 @@
                     // Let the profile/banner/pins resolve and apply.
                     await loadProfilePromise;
                     pd('init:profileLoaded', 'avatarFinal=' + String((userProfile||{}).avatar_url || 'NONE').slice(0,40) + ' banner_url=' + String((userProfile||{}).banner_url || 'NONE') + ' bannerHasLoaded=' + bannerHasLoaded);
-
-                    setTimeout(() => { pdDump(); }, 2500);
 
                     // Profile data is now authoritative. This is the only rail/
                     // grid render that runs — paints every section from real
