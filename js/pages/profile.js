@@ -1,6 +1,13 @@
 // ===== GLOBAL PROFILE MANAGER =====
         const ProfileManager = (function() {
-            function pd() {}
+            function pd(label, detail) {
+                try {
+                    const enabled = (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('zo2y-profile-trace') === '1') ||
+                        new URLSearchParams(window.location.search).get('profile_trace') === '1';
+                    if (!enabled) return;
+                    console.debug('[PROFILE-BOOT]', Date.now(), label, detail || '');
+                } catch (_e) {}
+            }
 
             // Supabase configuration
             const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
@@ -449,6 +456,26 @@
                         return; 
                     }
                     pd('init:userOk', 'id=' + String(user.id).slice(0, 8) + ' email=' + String(user.email || '').slice(0, 40));
+                    
+                    // [PROFILE-BOOT] Deterministic token re-attach onto THIS client
+                    // before any RLS-gated query (user_profiles, showcase, rails).
+                    // Fixes the post-login first-nav mobile bug: the client can be
+                    // live while an in-memory access token was never attached (the
+                    // SDK storage envelope differs from our raw snapshot), so RLS
+                    // returns 0 rows for every rail though the username already
+                    // renders from JWT claims. Idempotent on refresh.
+                    try {
+                        const attachT0 = Date.now();
+                        const attachedSession = await window.ZO2Y_AUTH?.ensureSessionAttached?.(supabase);
+                        pd('init:sessionAttached', 'session=' + (attachedSession ? 'YES' : 'NO') + ' user=' + String((attachedSession && attachedSession.user && attachedSession.user.id) || '').slice(0, 8) + ' after=' + (Date.now() - attachT0) + 'ms');
+                        if (attachedSession && attachedSession.user && attachedSession.user.id) {
+                            currentUser = attachedSession.user;
+                            window.currentUser = attachedSession.user;
+                            user = attachedSession.user;
+                        }
+                    } catch (_e) {
+                        pd('attachSessionErr', 'msg=' + String(_e && _e.message || _e).slice(0, 80));
+                    }
                     
                     currentUser = user;
                     window.currentUser = user;

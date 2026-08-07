@@ -2182,12 +2182,51 @@
     });
   }
 
+  // Deterministic gate: guarantee that `client` has a usable access token
+  // attached BEFORE any RLS-gated query fires. On a fresh post-login nav the
+  // client's in-memory session may be empty (SDK storage format never hydrated
+  // the persisted snapshot), so getSession()/verify falls back to a snapshot
+  // WITHOUT calling setSession — leaving the client tokenless and RLS returning
+  // zero rows (username renders from JWT claims, but every rail stays empty).
+  // This helper re-attaches the persisted snapshot onto that exact client and
+  // is idempotent: if the client already holds a live token it returns quickly.
+  async function ensureSessionAttachedToClient(client) {
+    if (!client || !client.auth || typeof client.auth.setSession !== 'function' || typeof client.auth.getSession !== 'function') return null;
+    try {
+      var current = await withTimeout(client.auth.getSession(), 2500);
+      var currentSession = current && current.data ? current.data.session : null;
+      if (currentSession && currentSession.access_token && isValidSessionSnapshot(normalizeSessionFromJwt(currentSession))) {
+        var normalized = normalizeSessionFromJwt(currentSession);
+        if (isValidSessionSnapshot(normalized)) return normalized;
+      }
+    } catch (_err) {}
+    try {
+      var stored = getStoredSessionSnapshot();
+      if (!stored || !stored.access_token || !stored.refresh_token) return null;
+      var result = await withTimeout(client.auth.setSession({
+        access_token: stored.access_token,
+        refresh_token: stored.refresh_token
+      }), 3500);
+      var attached = normalizeSessionFromJwt(result && result.data ? result.data.session : null);
+      if (isValidSessionSnapshot(attached)) {
+        persistSessionSnapshot(attached);
+        return attached;
+      }
+      if (isValidSessionSnapshot(stored)) {
+        persistSessionSnapshot(stored);
+        return stored;
+      }
+    } catch (_err2) {}
+    return null;
+  }
+
   function exposeAuthRuntime() {
     window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE = hydrateCanonicalAuthStorageFromDurable;
     window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT = restoreClientSessionFromSnapshot;
     window.__ZO2Y_HAS_STORED_AUTH_SESSION = hasStoredSupabaseSession;
     window.__ZO2Y_PERSIST_SESSION_SNAPSHOT = persistSessionSnapshot;
     window.__ZO2Y_ENSURE_SUPABASE_CLIENT = ensureSharedSupabaseClient;
+    window.__ZO2Y_ENSURE_SESSION_ATTACHED = ensureSessionAttachedToClient;
     window.__ZO2Y_ENSURE_AUTH_PROFILE = ensureAuthProfile;
     window.__ZO2Y_MARK_EXPLICIT_SIGNOUT = markExplicitSignout;
     window.__ZO2Y_CLEAR_EXPLICIT_SIGNOUT = clearExplicitSignoutMarker;
@@ -2225,6 +2264,7 @@
       },
       waitForSupabase: waitForSupabase,
       ensureClient: ensureSharedSupabaseClient,
+      ensureSessionAttached: ensureSessionAttachedToClient,
       createClient: createIsolatedSupabaseClient,
       getActiveSession: getActiveSession,
       getVerifiedUser: getVerifiedUser,
