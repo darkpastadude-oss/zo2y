@@ -6272,8 +6272,8 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 /* === Cinematic backdrop banner === */
 .pv2-banner {
   position: relative;
-  height: clamp(200px, 18vw, 260px);
-  aspect-ratio: 16 / 3.6;
+  height: clamp(210px, 20vw, 290px);
+  aspect-ratio: 16 / 4.2;
   overflow: hidden;
   background: linear-gradient(135deg, #0a1428 0%, #162850 45%, #0f1e40 100%);
 }
