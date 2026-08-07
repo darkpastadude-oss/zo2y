@@ -1,15 +1,6 @@
 // ===== GLOBAL PROFILE MANAGER =====
         const ProfileManager = (function() {
-            function pd(label, detail) {
-                try {
-                    const enabled = (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('zo2y-profile-trace') === '1') ||
-                        new URLSearchParams(window.location.search).get('profile_trace') === '1';
-                    if (enabled) console.debug('[PROFILE-BOOT]', Date.now(), label, detail || '');
-                } catch (_e) {}
-                try {
-                    if (window.__zo2yDiag && window.__zo2yDiag.ev) window.__zo2yDiag.ev('profile:' + label, 'info', detail || '');
-                } catch (_e2) {}
-            }
+            
 
             // Supabase configuration
             const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
@@ -382,9 +373,7 @@ async function resolveAuthenticatedProfileUser(client) {
                     const cached = await client.auth.getSession();
                     const cachedSession = cached && cached.data && cached.data.session;
                     const cachedUser = cachedSession && cachedSession.user;
-                    try {
-                        if (window.__zo2yDiag) window.__zo2yDiag.ev('profile:resolve-fast', cachedUser && cachedUser.id ? 'ok' : 'warn', 'getSession hasSession=' + (cachedSession ? 'YES' : 'NO') + ' user=' + (cachedUser ? 'YES' : 'NO') + ' cid=' + window.__zo2yDiag.clientId(client));
-                    } catch (_e) {}
+                    
                     if (cachedUser && cachedUser.id && expirySafe(cachedSession)) return cachedUser;
                 } catch (_e) {}
                 const startedAt = Date.now();
@@ -393,14 +382,14 @@ async function resolveAuthenticatedProfileUser(client) {
                     if (authRuntime && typeof authRuntime.getVerifiedUser === 'function') {
                         try {
                             const verifiedUser = await authRuntime.getVerifiedUser(client);
-                            try { if (window.__zo2yDiag) window.__zo2yDiag.ev('profile:resolve-verify', verifiedUser && verifiedUser.id ? 'ok' : 'warn', 'getVerifiedUser user=' + (verifiedUser ? 'YES' : 'NO') + ' id=' + String((verifiedUser && verifiedUser.id) || '').slice(0, 8)); } catch (_e) {}
+                            
                             if (verifiedUser?.id) return verifiedUser;
                         } catch (_err) {}
                     }
                     try {
                         const { data, error } = await client.auth.getUser();
                         if (!error && data?.user) {
-                            try { if (window.__zo2yDiag) window.__zo2yDiag.ev('profile:resolve-getUser', 'ok', 'getUser id=' + String(data.user.id).slice(0, 8)); } catch (_e) {}
+                            
                             return data.user;
                         }
                     } catch (_err) {}
@@ -416,7 +405,7 @@ return null;
                 let timeoutHandle = null;
                 let initCompleted = false;
                 const t0 = Date.now();
-                pd('init:start', 'ts=' + t0);
+                
 
                 try {
                     clearLegacyProfileBookCaches();
@@ -448,7 +437,7 @@ return null;
                     if (!window.supabase) {
                         return;
                     }
-                    pd('init:win-supabase', 'ready=1 elapsed=' + (Date.now() - t0) + 'ms');
+                    
 
                     const authRuntime = window.ZO2Y_AUTH || null;
                     if (authRuntime && typeof authRuntime.waitForSupabase === 'function') {
@@ -459,13 +448,8 @@ return null;
                     // any query. bootstrap-auth restores it asynchronously; racing it
                     // on cold mobile first-open left the page on username-only data.
                     const authReady = await waitForAuthReady(10000);
-                    pd('init:authReady', 'ready=' + authReady + ' after=' + (Date.now() - t0) + 'ms __AUTH_READY=' + String(window.__AUTH_READY));
-                    try {
-                        if (window.__zo2yDiag) {
-                            window.__zo2yDiag.ev('profile:initAuthReady', authReady ? 'ok' : 'warn', 'ready=' + authReady + ' __AUTH_READY=' + String(window.__AUTH_READY) + ' after=' + (Date.now() - t0) + 'ms');
-                            if (!authReady) window.__zo2yDiag.set('AUTH_READY', 'NO(timeout@10s)');
-                        }
-                    } catch (_e) {}
+                    
+                    
 
                     const hadEnsureFn = !!(window.__ZO2Y_ENSURE_SUPABASE_CLIENT && typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function');
                     const ensureFnId = hadEnsureFn ? String(window.__ZO2Y_ENSURE_SUPABASE_CLIENT.name || 'anon') : 'none';
@@ -482,27 +466,16 @@ return null;
                                 detectSessionInUrl: false
                             }
                         });
-                        try { if (window.__zo2yDiag && window.__zo2yDiag.stampClient) window.__zo2yDiag.stampClient(supabase, 'profile'); } catch (_e) {}
+                        
                     }
-                    pd('init:client', 'source=' + (hadEnsureFn ? 'bridge[' + ensureFnId + ']' : 'createClient') + ' ready=' + !!supabase + ' after=' + (Date.now() - t0) + 'ms');
-                    try {
-                        if (window.__zo2yDiag) {
-                            window.__zo2yDiag.ev('profile:client', supabase ? 'ok' : 'error', 'source=' + (hadEnsureFn ? 'bridge[' + ensureFnId + ']' : 'fallback') + ' cid=' + window.__zo2yDiag.clientId(supabase));
-                            window.__zo2yDiag.set('CLIENT_PROFILE', 'source=' + (hadEnsureFn ? 'bridge[' + ensureFnId + ']' : 'fallback') + ' ' + window.__zo2yDiag.clientId(supabase));
-                        }
-                    } catch (_e) {}
+                    
+                    
                     
                     const user = await resolveAuthenticatedProfileUser(supabase);
-                    pd('init:resolveUser', 'user=' + (user ? 'YES' : 'NO') + ' id=' + String(user?.id || '').slice(0, 8) + ' after=' + (Date.now() - t0) + 'ms');
-                    try {
-                        if (window.__zo2yDiag) {
-                            window.__zo2yDiag.set('CLIENT_RESOLVE', window.__zo2yDiag.clientId(supabase));
-                            window.__zo2yDiag.set('USER_RESOLVED', user ? 'YES:' + String(user.id).slice(0, 8) : 'NO');
-                            window.__zo2yDiag.ev('profile:resolveUser', user ? 'ok' : 'error', 'cid=' + window.__zo2yDiag.clientId(supabase) + ' user=' + (user ? 'YES' : 'NO') + ' id=' + String(user?.id || '').slice(0, 8));
-                        }
-                    } catch (_e) {}
+                    
+                    
                     if (!user) { 
-                        pd('init:noUser', 'redirectingToLogin');
+                        
                         if (window.ZO2Y_AUTH && typeof window.ZO2Y_AUTH.redirectToLogin === 'function') {
                             window.ZO2Y_AUTH.redirectToLogin(window.location.pathname + window.location.search + window.location.hash);
                         } else {
@@ -510,7 +483,7 @@ return null;
                         }
                         return; 
                     }
-                    pd('init:userOk', 'id=' + String(user.id).slice(0, 8) + ' email=' + String(user.email || '').slice(0, 40));
+                    
                     
                     // [PROFILE-BOOT] Deterministic token re-attach onto THIS client
                     // before any RLS-gated query (user_profiles, showcase, rails).
@@ -522,14 +495,14 @@ return null;
                     try {
                         const attachT0 = Date.now();
                         const attachedSession = await window.ZO2Y_AUTH?.ensureSessionAttached?.(supabase);
-                        pd('init:sessionAttached', 'session=' + (attachedSession ? 'YES' : 'NO') + ' user=' + String((attachedSession && attachedSession.user && attachedSession.user.id) || '').slice(0, 8) + ' after=' + (Date.now() - attachT0) + 'ms');
+                        
                         if (attachedSession && attachedSession.user && attachedSession.user.id) {
                             currentUser = attachedSession.user;
                             window.currentUser = attachedSession.user;
                             user = attachedSession.user;
                         }
                     } catch (_e) {
-                        pd('attachSessionErr', 'msg=' + String(_e && _e.message || _e).slice(0, 80));
+                        
                     }
                     
                     currentUser = user;
@@ -570,22 +543,22 @@ return null;
                     // once, after the profile/showcase data is ready, below.
                     initCompleted = true;
                     if (timeoutHandle) clearTimeout(timeoutHandle);
-                    try { if (window.__zo2yDiag) window.__zo2yDiag.set('INIT_DONE', 'YES'); } catch (_e) {}
+                    
 
                     // Let the profile/banner/pins resolve and apply.
                     await loadProfilePromise;
-                    pd('init:profileLoaded', 'avatarFinal=' + String((userProfile||{}).avatar_url || 'NONE').slice(0,40) + ' banner_url=' + String((userProfile||{}).banner_url || 'NONE') + ' bannerHasLoaded=' + bannerHasLoaded);
+                    
 
                     // Profile data is now authoritative. This is the only rail/
                     // grid render that runs — paints every section from real
                     // profile + showcase data, exactly once per load.
                     profileDataReady = true;
                     const rehydrateT0 = Date.now();
-                    pd('init:rehydrateRerender', 'start showcaseLen=' + (showcaseConfig || []).length + ' elapsed=' + (rehydrateT0 - t0) + 'ms');
+                    
                     await renderAllProfileRails();
                     // Rails are now painted with real data — hide the splash now.
                     fadeProfileSplash();
-                    pd('init:rehydrateRerenderDone', 'elapsed=' + (Date.now() - t0) + 'ms rerenderMs=' + (Date.now() - rehydrateT0) + 'ms');
+                    
                     
                     document.addEventListener('click', (e) => {
                         if (!e.target.closest('.list-card-actions')) {
@@ -1390,14 +1363,14 @@ return null;
                 resetCollaborativeListAccess();
                 targetUserId = getUserIdFromUrl();
                 isViewingOwnProfile = !targetUserId || targetUserId === currentUser.id;
-                pd('profile:loadProfile', 'own=' + isViewingOwnProfile + ' targetUserId=' + String(targetUserId || '').slice(0, 8));
+                
 
                 if (isViewingOwnProfile) {
                     await loadOwnProfile();
                 } else {
                     await loadOtherUserProfile();
                 }
-                pd('profile:afterOwnLoad', 'avatar=' + String((userProfile||{}).avatar_url || 'NONE').slice(0, 40) + ' profileResolvedFromDb=' + profileResolvedFromDb);
+                
                 const pinOwnerId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 await ensurePinnedCollectionsLoaded(pinOwnerId);
 
@@ -1407,8 +1380,8 @@ return null;
                         showcaseConfig = await ProfileShowcase.getProfileShowcase(showcaseOwnerId);
                     } catch (_e) { showcaseConfig = []; }
                 }
-                pd('profile:showcase', 'len=' + (showcaseConfig || []).length + ' timedOutPath=' + (profileLookupTimedOut));
-                try { if (window.__zo2yDiag) { window.__zo2yDiag.ev('profile:showcase', (showcaseConfig || []).length ? 'ok' : 'warn', 'len=' + (showcaseConfig || []).length + ' timedOut=' + profileLookupTimedOut); window.__zo2yDiag.set('SHOWCASE_LEN', String((showcaseConfig || []).length)); } } catch (_e) {}
+                
+                
                 // Cold-start showcase timeout self-heal: the query can stall on the
                 // first network round-trip. When the rails repaint later (rehydrate),
                 // re-fetch the showcase so the real layout/rails paint instead of
@@ -1442,7 +1415,7 @@ return null;
                         console.error('Failed to setup realtime stats subscriptions:', error);
                     });
                 }
-                pd('profile:loadProfileDone');
+                
             }
 
             // 3. FIX: Optimize loadProfile function (faster loading)
@@ -1495,12 +1468,12 @@ return null;
                 if (!userProfile) {
                     userProfile = buildSessionDerivedProfile();
                     window.userProfile = userProfile;
-                    pd('profile:sessionDerived', 'avatar=' + (userProfile.avatar_url || 'NONE') + ' username=' + (userProfile.username || '(empty)') + ' bio=' + (userProfile.bio || '(empty)'));
+                    
                     updateProfileUI();
                     fadeProfileSplash();
                     userProfileLoadPromise = loadUserProfile();
                 } else {
-                    pd('profile:cached-present', 'avatar=' + ((userProfile||{}).avatar_url || 'none'));
+                    
                     updateProfileUI();
                     fadeProfileSplash();
                     userProfileLoadPromise = Promise.resolve();
@@ -1513,7 +1486,7 @@ return null;
                 // resolve before the real profile arrives, the rehydrate path
                 // re-fires it so the userProfile.banner_url fallback still works.
                 if (currentUser?.id) {
-                    pd('banner:kickoff', 'parallel with profile load, currentUser.id=' + String(currentUser.id).slice(0,8));
+                    
                     loadProfileBannerConfig(currentUser.id).catch(err => console.error('Banner config error:', err));
                 }
                 await userProfileLoadPromise;
@@ -1541,7 +1514,7 @@ return null;
             async function loadProfileBannerConfigImpl(userId) {
                 if (!userId) return;
                 let config = null;
-                pd('banner:kickoff-gen', 'gen=' + ProfileBackdropEngine.__genHint() + ' uid=' + String(userId).slice(0, 8));
+                
 
                 const isUuid = (str) => typeof str === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 
@@ -1558,7 +1531,7 @@ return null;
                         sessProbe = (got && got.data && got.data.session && got.data.session.access_token) ? true : false;
                     } catch (_p) { sessProbe = 'err'; }
                     try {
-                        pd('banner:auth-probe', 'sessionToken=' + String(sessProbe) + ' clientHasAuth=' + !!(supabase && supabase.auth) + ' apikeyRace=' + (window.__ZO2Y_ENSURE_SUPABASE_CLIENT ? 'ensureFn' : 'direct'));
+                        
                     } catch (_p) {}
 
                     // COLD-START GATE: on mobile the session token attaches AFTER the
@@ -1581,7 +1554,7 @@ return null;
                             await new Promise(r => setTimeout(r, 150));
                             waited += 150;
                         }
-                        pd('banner:auth-gate', sessProbe ? ('token-attached waitMs=' + waited) : ('no-token-after ' + waited + 'ms'));
+                        
                     }
 
                     let bannerRows = null;
@@ -1600,7 +1573,7 @@ return null;
                     }
                     const timedOut = !!(bannerRows && bannerRows.__timedOut);
                     const rows = bannerRows && !timedOut ? (bannerRows.data || []) : null;
-                    pd('banner:source1-showcase', timedOut ? 'TIMEOUT(6s)' : ('rows=' + (Array.isArray(rows) ? rows.length : 'none')));
+                    
 
                     // Single query per kickoff. On timeout we do NOT re-issue a
                     // fresh request while the original is still in flight (that
@@ -1623,7 +1596,7 @@ return null;
 
                 // 2. Check userProfile.banner_url directly from user_profiles table
                 if ((!config || !config.items || !config.items.length) && userProfile && userProfile.banner_url) {
-                    pd('banner:source2-userprofile', 'banner_url=' + userProfile.banner_url);
+                    
                     config = {
                         items: [{ media_type: 'banner', media_id: 'custom', title: 'Banner', url: userProfile.banner_url, pos_y: userProfile.banner_position_y || 15 }],
                         mode: 'static',
@@ -1636,7 +1609,7 @@ return null;
                 if (!config || !Array.isArray(config.items) || config.items.length === 0) {
                     try {
                         const stored = localStorage.getItem('zo2y_banner_config_' + userId);
-                        pd('banner:source3-localstorage', stored ? 'HIT items=' + (config ? (config.items||{}).length : '0') : 'EMPTY');
+                        
                         if (stored) config = JSON.parse(stored);
                     } catch (_e) {}
                 }
@@ -1644,13 +1617,13 @@ return null;
                 if (config && Array.isArray(config.items) && config.items.length > 0) {
                     if (config.pos_y !== undefined && userProfile) userProfile.banner_position_y = config.pos_y;
                     if (config.pos_x !== undefined && userProfile) userProfile.banner_position_x = config.pos_x;
-                    pd('banner:resolved-config', 'items=' + config.items.length + ' mode=' + (config.mode || 'rotate') + ' firstUrl=' + String(config.items[0] && config.items[0].url ? config.items[0].url : (config.items[0].media_id || 'n/a')).slice(0, 80));
+                    
                     await ProfileBackdropEngine.init(config.items, config.mode || 'rotate');
                     bannerHasLoaded = true;
                     return;
                 }
 
-                pd('banner:NO-CONFIG', 'all sources empty; calling init() with no items');
+                
                 ProfileBackdropEngine.init();
             }
 
@@ -1754,7 +1727,7 @@ function rehydrateProfileFromQuery(buildQuery, attempt) {
                     try {
                         const arrived = result && !result.__timedOut ? (result.data || null) : null;
                         if (!arrived) {
-                            pd('rehydrate:no-arrival', 'data missing; round=' + round);
+                            
                             // Self-heal: the abandoned cold-start query can reject
                             // with an auth error before the session settles. Retry
                             // the query a bounded number of times instead of leaving
@@ -1775,7 +1748,7 @@ function rehydrateProfileFromQuery(buildQuery, attempt) {
                             })() || null;
                         }
                         window.userProfile = userProfile;
-                        pd('rehydrate:arrived', 'avatar=' + (userProfile.avatar_url || 'NONE') + ' banner_url=' + (userProfile.banner_url || 'NONE') + ' username=' + (userProfile.username || ''));
+                        
                         updateProfileUI(userProfile);
                         if (!bannerHasLoaded && currentUser && currentUser.id) {
                             loadProfileBannerConfig(currentUser.id);
@@ -1809,13 +1782,13 @@ function rehydrateProfileFromQuery(buildQuery, attempt) {
                         .select("*")
                         .eq("id", currentUser.id)
                         .maybeSingle();
-                    pd('profile:queryByCol', 'id>user_profiles.id start');
-                    try { if (window.__zo2yDiag) window.__zo2yDiag.ev('profile:startProfileQuery', 'info', 'client for user_profiles query cid=' + window.__zo2yDiag.clientId(supabase)); } catch (_e) {}
+                    
+                    
                     const result = await withTimeout(realQuery, 12000);
                     if (result && result.__timedOut) {
-                        pd('profile:queryByCol-TIMEOUT', '4s exceeded; rehydrate armed');
+                        
                         console.warn('Profile query timed out; rendering session data, will rehydrate on arrival');
-                        try { if (window.__zo2yDiag) { window.__zo2yDiag.ev('profile:profileQuery', 'warn', 'TIMEOUT@4s -> session-derived only. RLS likely denied (token missing)'); window.__zo2yDiag.set('PROFILE_SRC', 'TIMEOUT(sessionOnly)'); } } catch (_e) {}
+                        
                         profileLookupTimedOut = true;
                         userProfile = buildSessionDerivedProfile();
                         window.userProfile = userProfile;
@@ -1828,13 +1801,8 @@ function rehydrateProfileFromQuery(buildQuery, attempt) {
                     }
                     profile = result && result.data ? result.data : null;
                     profileError = result && result.error ? result.error : null;
-                    pd('profile:queryByCol-RESOLVED', 'profile=' + (profile ? 'YES' : 'NO') + ' err=' + (profileError ? String(profileError.code || '') : 'none') + ' avatar=' + ((profile&&profile.avatar_url)||'NONE') + ' banner_url=' + ((profile&&profile.banner_url)||'NONE') + ' username=' + ((profile&&profile.username)||'') + ' bio=' + ((profile&&profile.bio)||'(empty)'));
-                    try {
-                        if (window.__zo2yDiag) {
-                            window.__zo2yDiag.ev('profile:queryByCol', profile ? 'ok' : 'warn', 'resolved profile=' + (profile ? 'YES' : 'NO') + ' err=' + (profileError ? String(profileError.code || profileError.message || '') : 'none') + ' cid=' + window.__zo2yDiag.clientId(supabase));
-                            window.__zo2yDiag.set('PROFILE_SRC', profile ? 'DB' : 'err:' + String(profileError && (profileError.code || profileError.message) || 'none'));
-                        }
-                    } catch (_e) {}
+                    
+                    
                 }
 
                 if (!profile) {
@@ -1845,7 +1813,7 @@ function rehydrateProfileFromQuery(buildQuery, attempt) {
                         .maybeSingle();
                     const fallbackResult = await withTimeout(realFallback, 12000);
                     if (fallbackResult && fallbackResult.__timedOut) {
-                        pd('profile:queryByColFALLBACK-TIMEOUT', '4s exceeded; rehydrate armed');
+                        
                         console.warn('Profile fallback query timed out; rendering session data, will rehydrate on arrival');
                         profileLookupTimedOut = true;
                         userProfile = buildSessionDerivedProfile();
@@ -1878,8 +1846,8 @@ function rehydrateProfileFromQuery(buildQuery, attempt) {
                 window.userProfile = userProfile;
                 if (profile) {
                     profileResolvedFromDb = true;
-                    try { if (window.__zo2yDiag) { window.__zo2yDiag.ev('profile:profileFromDb', 'ok', 'user_profiles row resolved (RLS allowed)'); window.__zo2yDiag.set('PROFILE_FROM_DB', 'YES'); } } catch (_e) {}
-                    pd('profile:final-profile', 'avatar=' + (userProfile.avatar_url || 'NONE') + ' banner_url=' + (userProfile.banner_url || 'NONE') + ' username=' + (userProfile.username || '') + ' bio=' + (userProfile.bio || '(empty)') + ' location=' + (userProfile.location || '(empty)'));
+                    
+                    
                     updateProfileUI(userProfile);
                     return;
                 }
@@ -2080,7 +2048,7 @@ function rehydrateProfileFromQuery(buildQuery, attempt) {
             function renderAvatarElement(containerEl, profile = userProfile) {
                 if (!containerEl) return;
                 const avatarUrl = String(profile?.avatar_url || '').trim();
-                pd('avatar:render', 'container=' + (containerEl.id || containerEl.className || '?') + ' url=' + (avatarUrl || 'NONE') + ' db=' + profileResolvedFromDb);
+                
                 
                 // Defer any session-derived Google avatar until the real profile
                 // has resolved from the DB, so the Gmail photo never flashes
@@ -12312,20 +12280,20 @@ const alreadyActive = isMobile
                     if (item.url) return item.url;
                     if (!item.media_type || !item.media_id) return null;
                     const fbId = String(item.media_id || '').slice(0, 20);
-                    pd('banner:fetchBackdrop', 'gen=' + gen + ' type=' + item.media_type + ' id=' + fbId);
+                    
                     try {
                         const type = item.media_type;
                         const id = item.media_id;
                         if (type === 'movie' || type === 'tv' || type === 'anime') {
                             const endpoint = type === 'movie' ? 'movie' : 'tv';
-                            pd('banner:tmdb-start', 'gen=' + gen + ' ' + endpoint + '/' + id);
+                            
                             const res = await fetch(`/api/tmdb/${endpoint}/${id}?language=en`);
                             if (!res.ok) {
-                                pd('banner:tmdb-done', 'gen=' + gen + ' NOT-OK status=' + res.status + ' ' + endpoint + '/' + id);
+                                
                                 return null;
                             }
                             const data = await res.json();
-                            pd('banner:tmdb-done', 'gen=' + gen + ' ok backdrop_path=' + (data && data.backdrop_path ? 'YES' : 'NO') + ' ' + endpoint + '/' + id);
+                            
                             if (data && data.backdrop_path) {
                                 return `https://image.tmdb.org/t/p/w1280${data.backdrop_path}`;
                             }
@@ -12361,7 +12329,7 @@ const alreadyActive = isMobile
 
                 function preloadAndFade(url, gen) {
                     if (!url) return Promise.resolve(false);
-                    pd('banner:preload-start', 'gen=' + gen + ' url=' + url.slice(0, 80));
+                    
                     return new Promise((resolve) => {
                         const tempImg = new Image();
                         let settled = false;
@@ -12385,7 +12353,7 @@ const alreadyActive = isMobile
                             const mobileBackdrop = document.getElementById('mobileBannerBackdrops');
                             const appliedTo = [];
                             const didLoad = tempImg && tempImg.naturalWidth > 0;
-                            pd('banner:applied', 'gen=' + gen + ' loaded=' + (didLoad ? 'Y' : 'N') + ' nw=' + (tempImg && tempImg.naturalWidth) + ' url=' + url.slice(0, 60));
+                            
 
                             if (blurEl) {
                                 blurEl.src = url;
@@ -12414,7 +12382,7 @@ const alreadyActive = isMobile
                             done(true);
                         };
                         tempImg.onerror = function() {
-                            pd('banner:preload-error', 'gen=' + gen + ' url=' + url.slice(0, 60));
+                            
                             done(false);
                         };
                         tempImg.src = url;
@@ -12423,7 +12391,7 @@ const alreadyActive = isMobile
 
                 async function init(featuredItems, mode = 'rotate') {
                     const gen = ++initGen;
-                    pd('banner:init-start', 'gen=' + gen + ' featured=' + (featuredItems && featuredItems.length ? featuredItems.length : '0') + ' mode=' + mode);
+                    
                     stop();
                     let itemsToLoad = featuredItems;
                     let loadMode = mode;
@@ -12457,7 +12425,7 @@ const alreadyActive = isMobile
                     }
                     
                     if (!itemsToLoad || !itemsToLoad.length) {
-                        pd('banner:auto-fallback', 'gen=' + gen + ' no featured items; querying favorites list_items');
+                        
                         const autoList = [];
                         try {
                             const userId = viewUserId || currentUser?.id;
@@ -12472,7 +12440,7 @@ const alreadyActive = isMobile
                                     .limit(30);
                                 const favRes = await withTimeout(favQ, 5000);
                                 const favItems = favRes && !favRes.__timedOut ? favRes.data : null;
-                                pd('banner:auto-fallback-done', 'gen=' + gen + ' rows=' + (Array.isArray(favItems) ? favItems.length : 'timeout/empty'));
+                                
                                 if (Array.isArray(favItems) && favItems.length) {
                                     const shuffled = favItems.slice().sort(() => Math.random() - 0.5);
                                     shuffled.slice(0, 10).forEach(row => {
@@ -12480,14 +12448,14 @@ const alreadyActive = isMobile
                                     });
                                 }
                             } else {
-                                pd('banner:auto-fallback-done', 'gen=' + gen + ' NO-USER-NO-CLIENT');
+                                
                             }
                         } catch (_e) {}
                         itemsToLoad = autoList;
                     }
 
                     if (!itemsToLoad || !itemsToLoad.length) {
-                        pd('banner:NO-ITEMS-EVEN-FALLBACK', 'gen=' + gen + ' nothing to show; banner will stay default');
+                        
                         return;
                     }
 
@@ -12496,13 +12464,13 @@ const alreadyActive = isMobile
                         itemsToLoad = [itemsToLoad[0]];
                     }
 
-                    pd('banner:init', 'gen=' + gen + ' items=' + itemsToLoad.length + ' mode=' + loadMode + ' first=' + String(itemsToLoad[0] && (itemsToLoad[0].url || itemsToLoad[0].media_id)).slice(0, 80));
+                    
                     const resolved = await Promise.all(itemsToLoad.map((it) => fetchBackdropUrl(it, gen)));
                     backdropUrls = resolved.filter(Boolean);
-                    pd('banner:backdropUrls', 'gen=' + gen + ' requested=' + itemsToLoad.length + ' resolved=' + backdropUrls.length);
+                    
 
                     if (!backdropUrls.length) {
-                        pd('banner:NO-BACKDROPS', 'gen=' + gen + ' all fetchBackdropUrl returned empty');
+                        
                         return;
                     }
 
@@ -12510,11 +12478,11 @@ const alreadyActive = isMobile
                     for (const url of shuffled) {
                         const ok = await preloadAndFade(url, gen);
                         if (ok) {
-                            pd('banner:preloaded-ok', 'gen=' + gen + ' ' + url.slice(0, 80));
+                            
                             break;
                         }
                     }
-                    pd('banner:init-done', 'gen=' + gen + ' exited loop');
+                    
                 }
 
                 function stop() {

@@ -454,12 +454,12 @@ const HEADER_HTML = `
       } catch (_err) {}
     }
     if (supabaseClient) {
-      try { if (window.__zo2yDiag) { window.__zo2yDiag.ev('hdr:ensureClient', 'ok', 'cached id=' + window.__zo2yDiag.clientId(supabaseClient)); window.__zo2yDiag.set('CLIENT_HEADER', window.__zo2yDiag.clientId(supabaseClient)); } } catch (_e) {}
+      
       return supabaseClient;
     }
     if (window.__ZO2Y_SUPABASE_CLIENT) {
       supabaseClient = window.__ZO2Y_SUPABASE_CLIENT;
-      try { if (window.__zo2yDiag) { window.__zo2yDiag.ev('hdr:ensure', 'ok', 'reused shared id=' + window.__zo2yDiag.clientId(supabaseClient)); window.__zo2yDiag.set('CLIENT_HEADER', window.__zo2yDiag.clientId(supabaseClient)); } } catch (_e) {}
+      
       return supabaseClient;
     }
     if (
@@ -471,7 +471,7 @@ const HEADER_HTML = `
         if (sharedClient) {
           supabaseClient = sharedClient;
           window.__ZO2Y_SUPABASE_CLIENT = sharedClient;
-          try { if (window.__zo2yDiag) { window.__zo2yDiag.ev('hdr:ensure', 'ok', 'via global id=' + window.__zo2yDiag.clientId(supabaseClient)); window.__zo2yDiag.set('CLIENT_HEADER', window.__zo2yDiag.clientId(supabaseClient)); } } catch (_e) {}
+          
           return supabaseClient;
         }
       } catch (_err) {}
@@ -542,8 +542,8 @@ const HEADER_HTML = `
       });
       window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
 window.__ZO2Y_ENSURE_SUPABASE_CLIENT = ensureSupabaseClient;
-  try { if (window.__zo2yDiag && window.__zo2yDiag.ev) window.__zo2yDiag.ev('hdr:defineGlobal', 'info', '__ZO2Y_ENSURE_SUPABASE_CLIENT overwritten to ensureSupabaseClient'); } catch (_e) {}
-      try { if (window.__zo2yDiag) { window.__zo2yDiag.ev('hdr:createRaw', 'WARN', 'created NEW raw client id=' + window.__zo2yDiag.clientId(supabaseClient) + ' (overwrote shared global)'); window.__zo2yDiag.set('CLIENT_HEADER', window.__zo2yDiag.clientId(supabaseClient)); } } catch (_e) {}
+  
+      
       return supabaseClient;
     } catch (_err) {
       return null;

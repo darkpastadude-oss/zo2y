@@ -1066,7 +1066,7 @@
     } catch (_e) {
       return null;
     }
-    try { if (window.__zo2yDiag && window.__zo2yDiag.stampClient) window.__zo2yDiag.stampClient(client, 'gate'); } catch (_e) {}
+    
     attachClientListeners(client);
     if (shouldShare) {
       window.__ZO2Y_SUPABASE_CLIENT = client;
@@ -1137,18 +1137,18 @@
 
   function ensureSharedSupabaseClient(options) {
     if (!window.supabase || typeof window.supabase.createClient !== 'function') {
-      try { if (window.__zo2yDiag && window.__zo2yDiag.ev) window.__zo2yDiag.ev('gate:ensureClient', 'warn', 'no window.supabase yet'); } catch (_e) {}
+      
       return null;
     }
     patchSupabaseNamespace(window.supabase);
     if (window.__ZO2Y_SUPABASE_CLIENT) {
       attachClientListeners(window.__ZO2Y_SUPABASE_CLIENT);
-      try { if (window.__zo2yDiag) { window.__zo2yDiag.ev('gate:ensureClient', 'ok', 'reused id=' + window.__zo2yDiag.clientId(window.__ZO2Y_SUPABASE_CLIENT)); window.__zo2yDiag.set('CLIENT_SHARED', window.__zo2yDiag.clientId(window.__ZO2Y_SUPABASE_CLIENT)); } } catch (_e) {}
+      
       return window.__ZO2Y_SUPABASE_CLIENT;
     }
     var factory = window.__ZO2Y_SUPABASE_CREATE_CLIENT_ORIGINAL || window.supabase.createClient.bind(window.supabase);
     var created = createClientWithFactory(factory, options || {});
-    try { if (window.__zo2yDiag) { window.__zo2yDiag.ev('gate:ensureClient', 'created', 'id=' + window.__zo2yDiag.clientId(created)); window.__zo2yDiag.set('CLIENT_SHARED', window.__zo2yDiag.clientId(created)); } } catch (_e) {}
+    
     return created;
   }
 
@@ -2199,9 +2199,9 @@
   // is idempotent: if the client already holds a live token it returns quickly.
   async function ensureSessionAttachedToClient(client) {
     var cid = null;
-    try { cid = window.__zo2yDiag && window.__zo2yDiag.clientId ? window.__zo2yDiag.clientId(client) : null; } catch (_e) {}
+    
     if (!client || !client.auth || typeof client.auth.setSession !== 'function' || typeof client.auth.getSession !== 'function') {
-      try { if (window.__zo2yDiag && window.__zo2yDiag.ev) window.__zo2yDiag.ev('attach:badClient', 'error', 'clientId=' + cid); } catch (_e) {}
+      
       return null;
     }
     try {
@@ -2210,20 +2210,20 @@
       if (currentSession && currentSession.access_token && isValidSessionSnapshot(normalizeSessionFromJwt(currentSession))) {
         var normalized = normalizeSessionFromJwt(currentSession);
         if (isValidSessionSnapshot(normalized)) {
-          try { if (window.__zo2yDiag) { window.__zo2yDiag.ev('attach:reattach', 'ok', 'client already has live token cid=' + cid + ' user=' + String((normalized.user && normalized.user.id) || '').slice(0, 8)); window.__zo2yDiag.set('SESSION_ATTACHED', 'YES(already)'); } } catch (_e) {}
+          
           return normalized;
         }
       }
     } catch (_err) {
-      try { if (window.__zo2yDiag && window.__zo2yDiag.ev) window.__zo2yDiag.ev('attach:getSessionErr', 'warn', 'cid=' + cid + ' ' + String(_err && _err.message || _err).slice(0, 80)); } catch (_e) {}
+      
     }
     try {
       var stored = getStoredSessionSnapshot();
       if (!stored || !stored.access_token || !stored.refresh_token) {
-        try { if (window.__zo2yDiag && window.__zo2yDiag.ev) window.__zo2yDiag.ev('attach:noSnapshot', 'ERROR', 'no stored session snapshot cid=' + cid); window.__zo2yDiag && window.__zo2yDiag.set && window.__zo2yDiag.set('SESSION_ATTACHED', 'NO(storage)'); } catch (_e) {}
+        
         return null;
       }
-      try { if (window.__zo2yDiag && window.__zo2yDiag.ev) window.__zo2yDiag.ev('attach:setSession', 'info', 'calling setSession cid=' + cid); } catch (_e) {}
+      
       var result = await withTimeout(client.auth.setSession({
         access_token: stored.access_token,
         refresh_token: stored.refresh_token
@@ -2231,17 +2231,17 @@
       var attached = normalizeSessionFromJwt(result && result.data ? result.data.session : null);
       if (isValidSessionSnapshot(attached)) {
         persistSessionSnapshot(attached);
-        try { if (window.__zo2yDiag) { window.__zo2yDiag.ev('attach:attached', 'ok', 'setSession ok cid=' + cid + ' user=' + String((attached.user && attached.user.id) || '').slice(0, 8)); window.__zo2yDiag.set('SESSION_ATTACHED', 'YES(setSession)'); } } catch (_e) {}
+        
         return attached;
       }
       if (isValidSessionSnapshot(stored)) {
         persistSessionSnapshot(stored);
-        try { if (window.__zo2yDiag) { window.__zo2yDiag.ev('attach:storedFallback', 'warn', 'setSession empty, returned stored snapshot cid=' + cid); window.__zo2yDiag.set('SESSION_ATTACHED', 'YES(stored)'); } } catch (_e) {}
+        
         return stored;
       }
-      try { if (window.__zo2yDiag && window.__zo2yDiag.ev) window.__zo2yDiag.ev('attach:emptySetSession', 'ERROR', 'setSession returned invalid cid=' + cid); } catch (_e) {}
+      
     } catch (_err2) {
-      try { if (window.__zo2yDiag && window.__zo2yDiag.ev) window.__zo2yDiag.ev('attach:setSessionErr', 'ERROR', 'cid=' + cid + ' ' + String(_err2 && _err2.message || _err2).slice(0, 100)); } catch (_e) {}
+      
     }
     return null;
   }
