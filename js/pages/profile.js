@@ -507,6 +507,7 @@ return null;
                     
                     currentUser = user;
                     window.currentUser = user;
+                    if (window.UserStore) UserStore.seed(user);
                     try { if (user && user.id) localStorage.setItem('zo2y_current_user_id', user.id); } catch (_e) {}
                     if (window.ListUtils && typeof ListUtils.setTierSyncContext === 'function') {
                         ListUtils.setTierSyncContext(supabase, currentUser.id);
@@ -1748,7 +1749,7 @@ function rehydrateProfileFromQuery(buildQuery, attempt) {
                             })() || null;
                         }
                         window.userProfile = userProfile;
-                        
+                        if (window.UserStore) UserStore.update(userProfile);
                         updateProfileUI(userProfile);
                         if (!bannerHasLoaded && currentUser && currentUser.id) {
                             loadProfileBannerConfig(currentUser.id);
@@ -1844,6 +1845,7 @@ function rehydrateProfileFromQuery(buildQuery, attempt) {
                     })() || null;
                 }
                 window.userProfile = userProfile;
+                if (window.UserStore) UserStore.update(userProfile);
                 if (profile) {
                     profileResolvedFromDb = true;
                     
@@ -1934,6 +1936,7 @@ function rehydrateProfileFromQuery(buildQuery, attempt) {
                     localStorage.setItem(getOnboardingPendingKey(currentUser.id), '1');
                 } catch (_err) {}
                 window.userProfile = userProfile;
+                if (window.UserStore) UserStore.update(userProfile);
                 updateProfileUI(userProfile);
             }
 
@@ -11567,8 +11570,14 @@ const alreadyActive = isMobile
 
                 (async () => {
                     try {
-                        // A. Sync to Supabase Auth user_metadata so login on any device restores avatar_url
-                        if (currentUser && supabase?.auth?.updateUser) {
+                        // A. Sync to Supabase Auth user_metadata so login on any device restores avatar_url.
+                        // D6 CONSTRAINT: NEVER write base64 image data into user_metadata — GoTrue embeds
+                        // user_metadata in every JWT, and an 18KB avatar data-URI grows the token past the
+                        // proxy header limit (~32KB), making EVERY authenticated request fail with 400.
+                        // Only small non-data-URI values may live in metadata; image bytes belong in user_profiles.
+                        const isDataUriAvatar = typeof finalAvatarUrl === 'string' && finalAvatarUrl.indexOf('data:') === 0;
+                        const isSmallMetaAvatar = !isDataUriAvatar && String(finalAvatarUrl || '').length <= 2048;
+                        if (isSmallMetaAvatar && currentUser && supabase?.auth?.updateUser) {
                             await supabase.auth.updateUser({
                                 data: { avatar_url: finalAvatarUrl, avatar: finalAvatarUrl }
                             }).catch(err => console.warn('Could not sync auth metadata avatar:', err));

@@ -113,6 +113,7 @@
   const missingItemTables = new Set();
   const entityIdCache = new Map();
   const systemListIdCache = new Map();
+  const inFlightListOps = new Map();
 
   const ENTITY_CONFIG = {
     movie: { entityType: 'movie', provider: null },
@@ -1462,6 +1463,22 @@
     if (userId) setTierSyncContext(client, userId);
     const entityId = await resolveEntityId(client, type, itemId);
     if (!entityId) return false;
+    const opKey = 'add:' + type + ':' + String(listId) + ':' + String(entityId);
+    const existing = inFlightListOps.get(opKey);
+    if (existing) return existing;
+    const promise = (async () => {
+      try {
+        return await doAddItemToList(client, userId, type, entityId, listId, itemPayload);
+      } finally {
+        if (inFlightListOps.get(opKey) === promise) inFlightListOps.delete(opKey);
+      }
+    })();
+    inFlightListOps.set(opKey, promise);
+    return promise;
+  }
+
+  async function doAddItemToList(client, userId, type, entityId, listId, itemPayload) {
+    const cfg = getListConfig(type);
     let ownerId = userId;
     const { data: ownerRows } = await client
       .from(cfg.listTable).select('user_id').eq('id', listId).maybeSingle();
@@ -1537,6 +1554,22 @@
     if (missingItemTables.has(cfg.itemsTable)) return false;
     const entityId = await resolveEntityId(client, type, itemId);
     if (!entityId) return false;
+    const opKey = 'remove:' + type + ':' + String(listId) + ':' + String(entityId);
+    const existing = inFlightListOps.get(opKey);
+    if (existing) return existing;
+    const promise = (async () => {
+      try {
+        return await doRemoveItemFromList(client, userId, type, entityId, listId);
+      } finally {
+        if (inFlightListOps.get(opKey) === promise) inFlightListOps.delete(opKey);
+      }
+    })();
+    inFlightListOps.set(opKey, promise);
+    return promise;
+  }
+
+  async function doRemoveItemFromList(client, userId, type, entityId, listId) {
+    const cfg = getListConfig(type);
     let query = client.from(cfg.itemsTable).delete().eq('item_id', entityId).eq('user_id', userId);
     
     const defaultListIds = new Set([

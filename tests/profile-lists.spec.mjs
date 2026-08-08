@@ -321,4 +321,48 @@ test.describe('Profile List Operations (Authenticated)', () => {
     await page.waitForTimeout(2000);
     expect(oldTableRequests).toEqual([]);
   });
+
+  test('concurrent add calls produce exactly one row (L3 operation lock)', async ({ page }) => {
+    if (!authSession || !testUserId) { test.skip(); return; }
+    await injectSessionViaInitScript(page, authSession);
+    await page.goto('/profile.html', { waitUntil: 'networkidle', timeout: 30000 });
+    await page.waitForFunction(() => typeof window.ListUtils !== 'undefined' && typeof window.ListUtils.addItemToList === 'function', null, { timeout: 30000 });
+
+    const uniqueItemId = '999991' + String(Date.now()).slice(-6);
+    const result = await page.evaluate(async ({ itemId }) => {
+      try {
+        const sb = window.supabase.createClient(
+          window.__ZO2Y_SUPABASE_CONFIG.url,
+          window.__ZO2Y_SUPABASE_CONFIG.key,
+          { auth: { storageKey: 'zo2y-auth-v2', autoRefreshToken: false } }
+        );
+        const { data: session } = await sb.auth.getSession();
+        const out = {};
+        out.p1 = await window.ListUtils.addItemToList(sb, session.session.user.id, 'movie', itemId, 'favorites');
+        out.p2 = await window.ListUtils.addItemToList(sb, session.session.user.id, 'movie', itemId, 'favorites');
+        return out;
+      } catch (e) {
+        return { error: String(e && e.message ? e.message : e), proto: Object.prototype.toString.call(e) };
+      }
+    }, { itemId: uniqueItemId });
+
+    expect(result.error).toBeUndefined();
+    expect(result.p1).toBe(true);
+    expect(result.p2).toBe(true);
+
+    const rows = await safeQuery('list_items', {
+      user_id: testUserId,
+      media_type: 'movie',
+      item_id: uniqueItemId,
+      list_type: 'favorites',
+    });
+    expect(rows.length).toBe(1);
+
+    await safeDelete('list_items', {
+      user_id: testUserId,
+      media_type: 'movie',
+      item_id: uniqueItemId,
+      list_type: 'favorites',
+    });
+  });
 });

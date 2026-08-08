@@ -348,6 +348,19 @@ const HEADER_HTML = `
     return getUserProfileLabelFallback(user);
   }
 
+  function readUserStoreProfileLabel() {
+    try {
+      if (!window.UserStore || typeof window.UserStore.get !== 'function') return '';
+      const snap = window.UserStore.get();
+      if (!snap || snap.loaded !== true) return '';
+      const label = String(snap.username || '').trim();
+      if (!label || /^user_[a-z0-9]{6}$/i.test(label) || label.toLowerCase() === 'profile') return '';
+      return label;
+    } catch (_err) {
+      return '';
+    }
+  }
+
   function persistHeaderSessionSnapshot(session) {
     if (!session?.access_token || !session?.refresh_token) return false;
     if (typeof window.__ZO2Y_PERSIST_SESSION_SNAPSHOT === 'function') {
@@ -629,6 +642,14 @@ window.__ZO2Y_ENSURE_SUPABASE_CLIENT = ensureSupabaseClient;
     window.addEventListener('focus', () => {
       void syncAuthHeaderState();
     });
+    if (window.AppEvents && typeof window.AppEvents.on === 'function') {
+      window.AppEvents.on('profile:updated', () => {
+        authHeaderProfileLabelUserId = '';
+        authHeaderProfileLabelValue = '';
+        authHeaderProfileLabelAt = 0;
+        void syncAuthHeaderState();
+      });
+    }
     window.addEventListener('pagehide', () => {
       if (lastKnownHeaderSession?.access_token && lastKnownHeaderSession?.refresh_token) {
         persistHeaderSessionSnapshot(lastKnownHeaderSession);
@@ -799,29 +820,34 @@ window.__ZO2Y_ENSURE_SUPABASE_CLIENT = ensureSupabaseClient;
 
       if (loggedIn) {
         let label = 'Profile';
-        try {
-          const userId = String(user?.id || '').trim();
-          const cachedFresh =
-            userId &&
-            authHeaderProfileLabelUserId === userId &&
-            authHeaderProfileLabelValue &&
-            (Date.now() - authHeaderProfileLabelAt) < 30000;
-          if (cachedFresh) {
-            label = authHeaderProfileLabelValue;
-          } else {
+        const storeLabel = readUserStoreProfileLabel();
+        if (storeLabel) {
+          label = authHeaderProfileLabelValue || storeLabel;
+        } else {
+          try {
+            const userId = String(user?.id || '').trim();
+            const cachedFresh =
+              userId &&
+              authHeaderProfileLabelUserId === userId &&
+              authHeaderProfileLabelValue &&
+              (Date.now() - authHeaderProfileLabelAt) < 30000;
+            if (cachedFresh) {
+              label = authHeaderProfileLabelValue;
+            } else {
+              label = await resolveHeaderProfileLabel(client, user);
+              if (label && label !== 'Profile') {
+                authHeaderProfileLabelUserId = userId;
+                authHeaderProfileLabelValue = label;
+                authHeaderProfileLabelAt = Date.now();
+              }
+            }
+          } catch (_profileErr) {
             label = await resolveHeaderProfileLabel(client, user);
             if (label && label !== 'Profile') {
-              authHeaderProfileLabelUserId = userId;
+              authHeaderProfileLabelUserId = String(user?.id || '').trim();
               authHeaderProfileLabelValue = label;
               authHeaderProfileLabelAt = Date.now();
             }
-          }
-        } catch (_profileErr) {
-          label = await resolveHeaderProfileLabel(client, user);
-          if (label && label !== 'Profile') {
-            authHeaderProfileLabelUserId = String(user?.id || '').trim();
-            authHeaderProfileLabelValue = label;
-            authHeaderProfileLabelAt = Date.now();
           }
         }
 
